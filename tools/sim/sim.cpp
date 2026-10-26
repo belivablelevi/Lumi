@@ -7,6 +7,7 @@
 //   tour.frames                    a scripted session: pats, shake, menu, Boop Pong
 //   screens.frames / .labels       stills of each UI screen
 // A .frames file is a sequence of raw 1024-byte SSD1306 page buffers.
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -108,10 +109,10 @@ struct Tour {
     s += std::string(":") + pong::phaseName(g.phase());
     if (g.phase() != pong::Phase::Play) return s;
     const uint32_t now = ha.now;
-    if (g.ball() == pong::Ball::Incoming || g.ball() == pong::Ball::Outgoing) return s + ":court";
+    if (g.ball() == pong::Ball::Incoming) return s + ":rally";
     if (g.inPointPause(now))
-      return s + (g.lastPointMine() ? ":point_won" : g.lastMiss() == pong::Miss::TooEarly ? ":too_early" : ":missed");
-    return s + ":waiting";
+      return s + (g.lastPointMine() ? ":point_won" : ":missed");
+    return s + (g.serving() ? ":serve" : ":waiting");
   }
 
   void tick(uint32_t now) {
@@ -194,33 +195,38 @@ struct Tour {
     da.queuePat();
     db.queuePat();
     da.run(100);
-    // Scripted players. A hits most balls, alternating dead-centre smashes
-    // with ordinary returns and tilting to aim; it lets every 6th ball past.
-    // B misses every 3rd ball and pats too early once.
+    // Scripted players tilt to steer their paddles. A tracks the ball (a bit
+    // late, so it hits off-centre and the ball angles away), pats for a smash
+    // on every other hit and lets every 6th ball past. B misses every 3rd.
     App* apps[2] = {&a, &b};
     sim::Driver* drv[2] = {&da, &db};
     int incoming[2] = {0, 0};
     bool patted[2] = {false, false};
+    float tilt[2] = {0, 0};
     pong::Ball last[2] = {pong::Ball::None, pong::Ball::None};
-    for (int i = 0; i < 20000 && a.mode() == App::Mode::Pong; ++i) {
+    for (int i = 0; i < 30000 && a.mode() == App::Mode::Pong; ++i) {
       for (int k = 0; k < 2; ++k) {
         const pong::Game& g = apps[k]->game();
         if (g.ball() == pong::Ball::Incoming && last[k] != pong::Ball::Incoming) {
           ++incoming[k];
           patted[k] = false;
-          if (k == 0) da.orient(incoming[0] % 2 ? -0.5f : 0.5f, 0.85f, 0);  // aim
         }
         last[k] = g.ball();
-        if (g.ball() != pong::Ball::Incoming || patted[k]) continue;
-        const int n = incoming[k];
-        const float y = g.ballY(ha.now);
-        float at;  // pat once the ball is this far down
-        if (k == 0) at = n % 6 == 0 ? 1e9f : (n % 2 ? pong::kPaddleY - 15 : pong::kPaddleY - 75);
-        else at = n % 3 == 0 ? 1e9f : (n == 5 ? pong::kPaddleY - 350 : pong::kPaddleY - 40);
-        if (y >= at) {
-          drv[k]->queuePat();
-          patted[k] = true;
+        float want = 0;  // paddle target, -1 (left) .. 1 (right)
+        if (g.ball() == pong::Ball::Incoming) {
+          const int n = incoming[k];
+          const bool dodge = k == 0 ? n % 6 == 0 : n % 3 == 0;
+          const float x = g.ballX(ha.now) + (k == 0 && n % 2 ? 9.f : 0.f);
+          want = (x - 64) / (64 - pong::kPaddleHalf);
+          if (dodge) want = x < 64 ? 1 : -1;
+          if (k == 0 && n % 2 == 0 && !dodge && !patted[k] && g.ballY(ha.now) >= pong::kPaddleY - 30) {
+            drv[k]->queuePat();
+            patted[k] = true;
+          }
         }
+        want = want < -1 ? -1 : (want > 1 ? 1 : want);
+        tilt[k] += (-0.5f * want - tilt[k]) * 0.2f;  // hands move smoothly
+        drv[k]->orient(tilt[k], sqrtf(1 - tilt[k] * tilt[k]), 0);
       }
       da.run(10);
     }

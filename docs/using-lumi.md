@@ -55,27 +55,28 @@ Lumi tracks **happiness** and **energy**, and they survive sleep.
 
 ## Boop Pong (2 players)
 
-Ping-pong between two Lumis. Each screen is your half of the table.
+Classic Pong between two Lumis. Each screen is your half of the table, with
+your paddle along the bottom.
 
 1. Both players pick **PONG** from the menu within ~20 s of each other.
    The two Lumis find each other over ESP-NOW (no Wi-Fi network needed, and
    the range is tens of metres).
-2. One Lumi serves. The ball flies up off its screen and drops onto the
+2. **Tilt Lumi to move your paddle**, like turning the knob on the old Pong
+   machine. Right side down slides it right; about 30° of tilt reaches the
+   edge of the screen.
+3. One Lumi serves. The ball flies up off its screen and drops onto the
    other Lumi's screen from the top.
-3. A dotted **hit line** runs across the bottom of the screen, with markers
-   at both edges showing the hit zone. **Pat your Lumi while the ball is on
-   the line** to send it back.
-   - Pat too early ("too early!") or let it go past ("missed it!") and your
-     pal wins the point.
-   - A pat right on the line is a **SMASH**: the ball comes back faster.
-     Every return speeds it up a little, so long rallies get hard.
-   - **Tilt** Lumi as you hit to aim. Right side down sends the ball right.
-     It bounces off the side walls.
-4. Whoever lost the point serves the next one. First to **5 points** wins.
+4. Get your paddle under the ball and it bounces back to your pal.
+   - Where it hits sets the angle: the centre sends it straight back, the
+     edges send it off sideways, bouncing off the walls.
+   - Every return is a little faster, so long rallies get hard.
+   - **Pat** Lumi just as the ball meets the paddle for a **SMASH**: it goes
+     back much faster. Patting is optional; it never loses you a point.
+5. Miss the ball and your pal scores. Whoever lost the point serves the next
+   one. First to **5 points** wins.
 
-While the ball is on your pal's side, your Lumi looks up at the net and
-waits. Shake to back out while still searching. If the other Lumi
-disappears mid-match, yours notices after a few seconds and goes home.
+Shake to back out while still searching. If the other Lumi disappears
+mid-match, yours notices after a few seconds and goes home.
 
 ## Updating the firmware over Wi-Fi
 

@@ -32,11 +32,8 @@ enum class Trigger : uint8_t {
   LowBattery,
   PongSearching,
   PongFound,
-  PongWatch,      // ball is on our pal's screen
-  PongSmash,
   PongPointWon,
-  PongPointLost,  // let the ball past
-  PongWhiff,      // patted too early
+  PongPointLost,  // the ball got past our paddle
   PongWinMatch,
   PongLoseMatch,
   Boot,

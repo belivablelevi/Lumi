@@ -128,6 +128,7 @@ class App {
   pong::Phase lastPhase_ = pong::Phase::Idle;
   bool gameRecorded_ = false;
   uint32_t smashUntil_ = 0;
+  float paddle_ = kWidth / 2.f;  // smoothed paddle position
 };
 
 uint8_t batteryPercent(uint16_t mv);

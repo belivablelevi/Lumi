@@ -15,8 +15,8 @@ shares no code, artwork or branding with Rekko and isn't affiliated with it.
 |---|---|
 | 0.96" OLED, 128×64, glowing cyan | SSD1306 0.96" 128×64 (blue panel reads as cyan) |
 | Motion sensor, 6-axis, feels every pat & shake | MPU-6050: pat, double-pat, pat-spam, shake, drop, tilt, flip, pick-up, put-down |
-| ESP32-C3 brain, runs 60+ animations | XIAO ESP32C3 · **67 animations** from 29 parametric expressions, plus blinking, eye-darts and breathing on top |
-| 2-player wireless battle | **Boop Pong** over ESP-NOW: ping-pong across two screens, pat to hit, tilt to aim, first to 5 |
+| ESP32-C3 brain, runs 60+ animations | XIAO ESP32C3 · **64 animations** from 29 parametric expressions, plus blinking, eye-darts and breathing on top |
+| 2-player wireless battle | **Boop Pong** over ESP-NOW: classic Pong across two screens. Tilt to move your paddle, pat to smash, first to 5 |
 | 500 mAh battery inside | 503030 500 mAh LiPo |
 | USB-C rechargeable | XIAO's USB-C + on-board charger |
 | Deep-sleeps when idle | ESP32-C3 deep sleep, display off, IMU on wake-on-motion |
@@ -45,7 +45,7 @@ firmware/
   src/                      hardware glue: main.cpp, OLED + IMU drivers, config.h (pins & tuning)
   lib/lumi_core/src/        portable brain, no Arduino dependencies:
     face.*                    parametric face renderer + 29 expressions
-    animations.*              67 animations (data tables; add your own here)
+    animations.*              64 animations (data tables; add your own here)
     animator.*                tweening, blinking, eye darts, motion layers
     gestures.*                pat / shake / tilt / pickup / freefall detection
     mood.h                    happiness + energy, persisted across deep sleep
@@ -90,7 +90,7 @@ release **BOOT**, then upload again.
 The behaviour runs on your computer exactly as it does on the device:
 
 ```sh
-make -C tests                         # 666 checks: gestures, pong protocol, animations, app flows
+make -C tests                         # 643 checks: gestures, pong protocol, animations, app flows
 python3 tools/sim/make_previews.py    # re-render docs/previews (needs Pillow)
 python3 tools/sim/make_previews.py --all-gifs   # one GIF per animation in build/sim/gifs
 ```
@@ -111,8 +111,8 @@ plus a table row saying which gesture triggers it and in which mood range.
   Tap timestamps come from the FIFO cadence, so they stay accurate even
   while the display is being redrawn.
 - **Boop Pong**: ESP-NOW broadcast, no pairing. The Lumi with the higher
-  MAC hosts and serves first. Only the Lumi the ball is on decides whether
-  it was hit, so radio latency just makes the flight a little longer. Each
+  MAC hosts and serves first. Tilt steers the paddle (low-passed gravity
+  X). Only the Lumi the ball is on decides whether it was hit, so radio latency just makes the flight a little longer. Each
   ball crossing the net carries a sequence number plus its position, angle
   and speed, and each Lumi's miss count only ever grows. Packets repeat
   ~10 times a second, so lost ones only add delay. The tests play whole
@@ -123,7 +123,7 @@ plus a table row saying which gesture triggers it and in which mood range.
 
 ## Status
 
-- ✅ Core logic: 666 automated checks pass (ASan/UBSan clean), including
+- ✅ Core logic: 643 automated checks pass (ASan/UBSan clean), including
   two simulated Lumis playing complete Boop Pong matches through their menus.
 - ✅ Firmware compiles and links for the ESP32-C3 (Arduino core 2.0.17,
   `-Wall -Wextra`, no warnings in Lumi's code): 816 KB flash (62% of an OTA

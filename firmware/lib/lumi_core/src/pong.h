@@ -1,18 +1,21 @@
-// Boop Pong: 2-player ping-pong between two Lumis.
+// Boop Pong: classic Pong between two Lumis.
 //
-// Each Lumi shows its own half of the court. The ball drops from the top of
-// the screen (the "net") towards the hit line near the bottom; pat Lumi while
-// the ball is on the line to hit it back. Pat too early or let it pass and the
-// point goes to your pal. A well-centred hit is a SMASH and speeds the ball up
-// more. Tilting Lumi aims the return left or right. When the ball leaves the
-// top of your screen it flies over the radio and drops onto your pal's screen.
-// First to 5 points wins.
+// Each Lumi shows its own half of the court with a paddle along the bottom.
+// Tilt Lumi to slide the paddle, like turning the knob on the original Pong:
+// right side down moves it right. The ball drops in from the top of the screen
+// (the "net"); if the paddle is under it when it arrives it bounces back, and
+// where it hits the paddle sets the angle - dead centre goes straight, the
+// edges send it off sideways. Every return is a little faster. A pat just as
+// the ball meets the paddle is a SMASH (extra speed). Miss the ball and your
+// pal scores. First to 5 points wins.
 //
-// Fairness: only the Lumi the ball is on decides whether it was hit, so radio
-// latency just makes the flight a little longer. Transport is ESP-NOW
-// broadcast (unacknowledged), so every packet carries the full state - the
-// sender's miss counter and the last ball it sent, tagged with a sequence
-// number - and is repeated ~10x per second. Lost packets only delay things.
+// When the ball leaves the top of your screen it flies over the radio and
+// drops onto your pal's screen. Only the Lumi the ball is on decides whether
+// it was hit, so radio latency just makes the flight a little longer.
+// Transport is ESP-NOW broadcast (unacknowledged), so every packet carries the
+// full state - the sender's miss counter and the last ball it sent, tagged
+// with a sequence number - and is repeated ~10x per second. Lost packets only
+// delay things.
 //
 // This file is transport-agnostic; the firmware plugs in ESP-NOW and the tests
 // plug in an in-memory link.
@@ -33,17 +36,17 @@ constexpr int kPointsToWin = 5;
 // (0, top of the screen) to the baseline (1000).
 constexpr float kCourtWidth = 128;
 constexpr float kBallR = 3;
-constexpr float kPaddleY = 880;      // the hit line
-constexpr float kHitWindow = 110;    // +- court units around the hit line
-constexpr float kLateGraceMs = 60;   // pats are detected a few ms after they happen
+constexpr float kPaddleY = 880;      // the paddle's top edge
+constexpr float kPaddleHalf = 14;    // half the paddle width, px
+constexpr float kOutY = 1060;        // a missed ball is gone once it reaches here
+constexpr uint32_t kSmashWindowMs = 150;  // pat this close to the bounce to smash
 
 // Speeds in court units per millisecond.
 constexpr float kServeSpeed = 0.55f;  // ~1.8 s to cross one screen
 constexpr float kMaxSpeed = 1.9f;     // ~0.5 s
 constexpr float kReturnBoost = 1.06f;
 constexpr float kSmashBoost = 1.18f;
-constexpr float kSmashQuality = 0.65f;  // how centred a hit must be to smash
-constexpr float kMaxVx = 0.09f;         // sideways speed at full tilt, px/ms
+constexpr float kMaxVx = 0.1f;          // sideways speed off the paddle's very edge, px/ms
 
 constexpr uint32_t kBeaconEveryMs = 150;
 constexpr uint32_t kSendEveryMs = 100;
@@ -97,7 +100,6 @@ enum class Ball : uint8_t {
 
 // Things the app may want to react to; read them with takeEvent().
 enum class Event : uint8_t { None, Hit, Smash, BallLeft, BallArrived, PointWon, PointLost };
-enum class Miss : uint8_t { None, TooEarly, TooLate };
 
 const char* phaseName(Phase p);
 
@@ -114,8 +116,9 @@ class Game {
   void onTap(uint32_t tapTimeMs);
   void onPacket(const Packet& p, uint32_t nowMs);
   void cancel(uint32_t nowMs);
-  // -1 (full left) .. +1 (full right); applied to the next return.
-  void setAim(float aim) { aim_ = aim < -1 ? -1 : (aim > 1 ? 1 : aim); }
+  // Paddle centre in screen pixels; the app drives it from the tilt.
+  void setPaddle(float x);
+  float paddleX() const { return paddle_; }
 
   Phase phase() const { return phase_; }
   uint32_t phaseElapsed(uint32_t nowMs) const { return nowMs - phaseStart_; }
@@ -135,7 +138,6 @@ class Game {
   int rally() const { return rally_; }  // hits so far this point, both sides
   bool inPointPause(uint32_t nowMs) const { return (int32_t)(pointUntil_ - nowMs) > 0; }
   bool lastPointMine() const { return lastPointMine_; }
-  Miss lastMiss() const { return lastMiss_; }
   bool serving() const { return serveAt_ != 0; }
 
   Event takeEvent();
@@ -145,7 +147,8 @@ class Game {
   void abort(AbortReason why, uint32_t now);
   void send(MsgType type, const uint8_t* to, uint32_t now);
   void push(Event e);
-  void miss(Miss why, uint32_t now);
+  void miss(uint32_t now);
+  void checkPaddle(uint32_t now);
   void serve(uint32_t now);
   bool inMatch() const { return phase_ >= Phase::Intro && phase_ <= Phase::MatchOver; }
 
@@ -165,11 +168,13 @@ class Game {
 
   uint8_t myMisses_ = 0, theirMisses_ = 0;
   bool lastPointMine_ = false;
-  Miss lastMiss_ = Miss::None;
   uint32_t pointUntil_ = 0;
   uint32_t serveAt_ = 0;
-  float aim_ = 0;
+  float paddle_ = kCourtWidth / 2;
   int rally_ = 0;
+  uint32_t lastTap_ = 0, hitAt_ = 0;
+  bool haveTap_ = false;
+  bool missed_ = false;  // ball got past the paddle and is falling off-screen
 
   // Current ball on our screen: position = start + velocity * (t - t0).
   Ball ball_ = Ball::None;

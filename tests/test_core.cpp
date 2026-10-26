@@ -161,8 +161,8 @@ static void testGestures() {
 // ---------------------------------------------------------------------------
 // Boop Pong: two games talking through a simulated radio.
 
-// How a scripted player hits the ball.
-enum class Style { Perfect, MissEveryThird, TooEarly, Never };
+// How a scripted player moves its paddle (and whether it pats to smash).
+enum class Style { Perfect, Smasher, MissEveryThird, EdgeHits, Never };
 
 struct Radio;
 struct Node {
@@ -206,7 +206,7 @@ static void radioSend(const pong::Packet& p, void* ctx) {
   }
 }
 
-// Plays one node's scripted pats for this instant.
+// Plays one node's scripted paddle (and pats) for this instant.
 static void playTurn(Node& n, uint32_t now) {
   pong::Game& g = n.game;
   if (g.ball() == pong::Ball::Incoming && n.lastBall != pong::Ball::Incoming) {
@@ -216,16 +216,17 @@ static void playTurn(Node& n, uint32_t now) {
   n.lastBall = g.ball();
   for (pong::Event e = g.takeEvent(); e != pong::Event::None; e = g.takeEvent())
     if (e == pong::Event::Smash) ++n.smashes;
-  if (g.ball() != pong::Ball::Incoming || n.tapped) return;
-  const float y = g.ballY(now);
-  bool tap = false;
+  if (g.ball() != pong::Ball::Incoming) return;
+  const float x = g.ballX(now);
+  const float away = x < pong::kCourtWidth / 2 ? 120.f : 8.f;
   switch (n.style) {
-    case Style::Perfect: tap = y >= pong::kPaddleY - 5; break;
-    case Style::MissEveryThird: tap = n.incoming % 3 != 0 && y >= pong::kPaddleY - 5; break;
-    case Style::TooEarly: tap = y >= pong::kPaddleY - 400; break;
-    case Style::Never: break;
+    case Style::Perfect:
+    case Style::Smasher: g.setPaddle(x); break;
+    case Style::MissEveryThird: g.setPaddle(n.incoming % 3 == 0 ? away : x); break;
+    case Style::EdgeHits: g.setPaddle(x < 64 ? x + 13 : x - 13); break;
+    case Style::Never: g.setPaddle(away); break;
   }
-  if (tap) {
+  if (n.style == Style::Smasher && !n.tapped && g.ballY(now) >= pong::kPaddleY - 40) {
     n.tapped = true;
     g.onTap(now);
   }
@@ -297,20 +298,33 @@ static void testPong() {
     CHECK_EQ(m.b.game.myPoints(), m.a.game.theirPoints());
     CHECK_EQ(m.b.game.theirPoints(), m.a.game.myPoints());
     CHECK(m.a.game.wonMatch() && !m.b.game.wonMatch());
-    CHECK(m.a.smashes > 0);  // dead-centre hits are smashes
+    CHECK_EQ(m.a.smashes, 0);  // no pats, no smashes
   }
-  {  // patting too early loses the point
-    Pair m(10, 5, Style::TooEarly, Style::Perfect);
-    m.runUntilDone();
-    CHECK_EQ(m.b.game.myPoints(), kPointsToWin);
-    CHECK_EQ(m.a.game.myPoints(), 0);
-    CHECK(m.a.game.lastMiss() == Miss::TooEarly);
-  }
-  {  // not patting at all loses the point too
+  {  // a paddle that never reaches the ball loses every point
     Pair m(0, 6, Style::Never, Style::Perfect);
     m.runUntilDone();
     CHECK_EQ(m.b.game.myPoints(), kPointsToWin);
-    CHECK(m.a.game.lastMiss() == Miss::TooLate);
+    CHECK_EQ(m.a.game.myPoints(), 0);
+  }
+  {  // patting as the ball meets the paddle smashes it
+    Pair m(0, 11, Style::Smasher, Style::MissEveryThird);
+    m.runUntilDone();
+    CHECK(m.a.smashes > 3);
+    CHECK(m.a.game.wonMatch());
+  }
+  {  // hitting with the paddle's edge sends the ball off at an angle
+    Pair m(0, 12, Style::EdgeHits, Style::Never);
+    float maxDrift = 0;
+    while (m.a.game.active() && m.r.now < 120000) {
+      step(m.r);
+      const pong::Game& g = m.a.game;
+      if (g.ball() == Ball::Outgoing && g.rally() > 0) {
+        const float drift = fabsf(g.ballX(m.r.now + 100) - g.ballX(m.r.now));
+        if (drift > maxDrift) maxDrift = drift;
+      }
+    }
+    CHECK(maxDrift > 5);  // ~0.08 px/ms sideways
+    CHECK(m.a.game.wonMatch());
   }
   {  // two perfect players on a lossy link: the ball is never lost, the rally
      // just goes on and speeds up to the cap
@@ -579,18 +593,20 @@ static void testApp() {
     both(100);
     CHECK(a.mode() == App::Mode::Pong && b.mode() == App::Mode::Pong);
 
-    // A pats whenever the ball reaches its hit line; B never does.
+    // A steers its paddle under the ball by tilting; B leans hard left and
+    // never moves.
+    db.orient(0.9f, 0.4f, 0);
     int hits = 0;
-    bool patted = false;
     pong::Ball last = pong::Ball::None;
-    for (int i = 0; i < 20000 && (a.mode() == App::Mode::Pong || b.mode() == App::Mode::Pong); ++i) {
+    for (int i = 0; i < 30000 && (a.mode() == App::Mode::Pong || b.mode() == App::Mode::Pong); ++i) {
       const pong::Game& g = a.game();
-      if (g.ball() == pong::Ball::Incoming && last != pong::Ball::Incoming) patted = false;
       if (g.ball() == pong::Ball::Outgoing && last == pong::Ball::Incoming) ++hits;
       last = g.ball();
-      if (g.ball() == pong::Ball::Incoming && !patted && g.ballY(ha.now) >= pong::kPaddleY - 30) {
-        da.queuePat();  // one real pat per ball, through the gesture detector
-        patted = true;
+      if (g.ball() == pong::Ball::Incoming) {
+        // Tilt so the paddle lines up with where the ball is now.
+        const float want = (g.ballX(ha.now) - 64) / (64 - pong::kPaddleHalf);
+        const float gx = -0.5f * (want < -1 ? -1 : (want > 1 ? 1 : want));
+        da.orient(gx, sqrtf(1 - gx * gx), 0);
       }
       both(10);
     }

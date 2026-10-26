@@ -61,8 +61,9 @@ void Game::begin(const uint8_t mac[6], uint32_t now, uint32_t randomSeed, SendFn
   abort_ = AbortReason::None;
   myMisses_ = theirMisses_ = 0;
   lastPointMine_ = false;
-  lastMiss_ = Miss::None;
   pointUntil_ = serveAt_ = 0;
+  paddle_ = kCourtWidth / 2;
+  haveTap_ = missed_ = false;
   rally_ = 0;
   ball_ = Ball::None;
   speed_ = kServeSpeed;
@@ -133,18 +134,25 @@ void Game::serve(uint32_t now) {
   rally_ = 0;
   speed_ = kServeSpeed;
   smash_ = false;
+  missed_ = false;
   ball_ = Ball::Outgoing;
+  hitAt_ = now;
   t0_ = now;
-  x0_ = kCourtWidth / 2 + rng_.range(-30, 30);
+  x0_ = paddle_;  // served from your own paddle
   y0_ = kPaddleY;
   vx_ = (rng_.range(-100, 100) / 100.f) * kMaxVx * 0.5f;
   vy_ = -speed_;
 }
 
-void Game::miss(Miss why, uint32_t now) {
+void Game::setPaddle(float x) {
+  const float lo = kPaddleHalf, hi = kCourtWidth - 1 - kPaddleHalf;
+  paddle_ = x < lo ? lo : (x > hi ? hi : x);
+}
+
+void Game::miss(uint32_t now) {
   ++myMisses_;
-  lastMiss_ = why;
   lastPointMine_ = false;
+  missed_ = false;
   ball_ = Ball::None;
   pointUntil_ = now + kPointPauseMs;
   serveAt_ = pointUntil_;  // whoever lost the point serves the next one
@@ -153,23 +161,44 @@ void Game::miss(Miss why, uint32_t now) {
 }
 
 void Game::onTap(uint32_t t) {
-  if (phase_ != Phase::Play || ball_ != Ball::Incoming) return;
-  const float d = ballY(t) - kPaddleY;
-  if (d < -kHitWindow) {
-    miss(Miss::TooEarly, t);
+  lastTap_ = t;
+  haveTap_ = true;
+  // A pat just after the bounce still counts as a smash.
+  if (phase_ == Phase::Play && ball_ == Ball::Outgoing && !smash_ && rally_ > 0 &&
+      (int32_t)(t - hitAt_) >= 0 && t - hitAt_ <= kSmashWindowMs) {
+    x0_ = ballX(t);
+    y0_ = ballY(t);
+    t0_ = t;
+    speed_ = speed_ / kReturnBoost * kSmashBoost;
+    if (speed_ > kMaxSpeed) speed_ = kMaxSpeed;
+    vy_ = -speed_;
+    smash_ = true;
+    push(Event::Smash);
+  }
+}
+
+// Called once the incoming ball has reached the paddle's height.
+void Game::checkPaddle(uint32_t now) {
+  const uint32_t at = t0_ + (uint32_t)((kPaddleY - y0_) / vy_);
+  const float x = ballX(at);
+  const float reach = kPaddleHalf + kBallR;
+  if (fabsf(x - paddle_) > reach) {
+    missed_ = true;  // let it fall off the bottom, then score the point
     return;
   }
-  if (d > kHitWindow) return;  // already past; tick() will call it
-
-  const float quality = 1 - fabsf(d) / kHitWindow;
-  smash_ = quality >= kSmashQuality;
+  // Where it hits sets the angle, as in the original Pong.
+  const float offset = clampf((x - paddle_) / reach, -1, 1);
+  const bool tapped = haveTap_ && (int32_t)(now - lastTap_) >= 0 &&
+                      (lastTap_ + kSmashWindowMs >= at && lastTap_ <= at + kSmashWindowMs);
+  smash_ = tapped;
   speed_ = speed_ * (smash_ ? kSmashBoost : kReturnBoost);
   if (speed_ > kMaxSpeed) speed_ = kMaxSpeed;
-  x0_ = ballX(t);
-  y0_ = ballY(t);
-  vx_ = aim_ * kMaxVx;
+  x0_ = x;
+  y0_ = kPaddleY;
+  vx_ = offset * kMaxVx;
   vy_ = -speed_;
-  t0_ = t;
+  t0_ = at;
+  hitAt_ = at;
   ball_ = Ball::Outgoing;
   ++rally_;
   push(smash_ ? Event::Smash : Event::Hit);
@@ -224,8 +253,8 @@ void Game::onPacket(const Packet& p, uint32_t now) {
   if (p.misses > theirMisses_) {
     theirMisses_ = p.misses;
     lastPointMine_ = true;
-    lastMiss_ = Miss::None;
     ball_ = Ball::None;
+    missed_ = false;
     serveAt_ = 0;
     pointUntil_ = now + kPointPauseMs;
     push(Event::PointWon);
@@ -236,6 +265,7 @@ void Game::onPacket(const Packet& p, uint32_t now) {
     // A new ball crossed the net. Mirror it: their right is our left.
     lastRecv_ = p.ballSeq;
     ball_ = Ball::Incoming;
+    missed_ = false;
     serveAt_ = 0;
     t0_ = now;
     y0_ = 0;
@@ -288,8 +318,9 @@ void Game::tick(uint32_t now) {
         break;
       }
       if (serveAt_ && (int32_t)(now - serveAt_) >= 0) serve(now);
-      if (ball_ == Ball::Incoming && ballY(now - (uint32_t)kLateGraceMs) > kPaddleY + kHitWindow) {
-        miss(Miss::TooLate, now);
+      if (ball_ == Ball::Incoming && !missed_ && ballY(now) >= kPaddleY) checkPaddle(now);
+      if (ball_ == Ball::Incoming && missed_ && ballY(now) >= kOutY) {
+        miss(now);
       } else if (ball_ == Ball::Outgoing && ballY(now) <= 0) {
         // Over the net: hand the ball to our pal.
         float vx;

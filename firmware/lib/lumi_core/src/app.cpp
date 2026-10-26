@@ -86,6 +86,7 @@ void App::enterMode(Mode m) {
       lastPhase_ = pong::Phase::Idle;
       gameRecorded_ = false;
       smashUntil_ = 0;
+      paddle_ = kWidth / 2.f;
       anim_.stop();
       break;
     }
@@ -307,8 +308,11 @@ void App::updatePet(uint32_t now) {
 
 void App::updatePong(uint32_t now) {
   using pong::Phase;
-  // Tilt aims the next return: right side down sends the ball right.
-  game_.setAim(clampf(-gestures_.gx() * 1.6f, -1, 1));
+  // Tilt steers the paddle like the knob on the original Pong: right side
+  // down slides it right; ~30 degrees of tilt reaches the edge.
+  const float target = kWidth / 2.f + clampf(-gestures_.gx() / 0.5f, -1, 1) * (kWidth / 2.f - pong::kPaddleHalf);
+  paddle_ += (target - paddle_) * 0.6f;
+  game_.setPaddle(paddle_);
   game_.tick(now);
 
   for (pong::Event e = game_.takeEvent(); e != pong::Event::None; e = game_.takeEvent()) {
@@ -316,18 +320,11 @@ void App::updatePong(uint32_t now) {
       case pong::Event::Smash:
         smashUntil_ = now + 700;
         break;
-      case pong::Event::BallLeft:
-        anim_.setBase(Expr::Neutral);
-        react(Trigger::PongWatch);
-        break;
-      case pong::Event::BallArrived:
-        anim_.stop();
-        break;
       case pong::Event::PointWon:
         react(Trigger::PongPointWon);
         break;
       case pong::Event::PointLost:
-        react(game_.lastMiss() == pong::Miss::TooEarly ? Trigger::PongWhiff : Trigger::PongPointLost);
+        react(Trigger::PongPointLost);
         break;
       default:
         break;
@@ -506,24 +503,27 @@ void App::drawCompactFace(Canvas& c, uint32_t now) {
 }
 
 void App::renderCourt(Canvas& c, uint32_t now) {
-  // Court: the net is the top edge, the hit line sits near the bottom.
+  // Court: the net is the top edge, our paddle runs along the bottom.
   auto pixY = [](float y) { return (int)(11 + y * 50 / 1000.f); };
   for (int x = 0; x < kWidth; x += 4) c.pixel(x, 10);
-  const int line = pixY(pong::kPaddleY);
-  const int top = pixY(pong::kPaddleY - pong::kHitWindow), bottom = pixY(pong::kPaddleY + pong::kHitWindow);
-  for (int x = 0; x < kWidth; x += 2) c.pixel(x, line);
-  for (int side = 0; side < 2; ++side) {
-    const int x = side ? kWidth - 3 : 0;
-    c.fillRect(x, top, 3, bottom - top + 1);
+  const int px = (int)(game_.paddleX() + 0.5f), py = pixY(pong::kPaddleY) + 1;
+  c.fillRoundRect(px - (int)pong::kPaddleHalf, py, 2 * (int)pong::kPaddleHalf + 1, 3, 1);
+
+  const pong::Ball ball = game_.ball();
+  if (ball == pong::Ball::Incoming || ball == pong::Ball::Outgoing) {
+    const int bx = (int)(game_.ballX(now) + 0.5f), by = pixY(game_.ballY(now));
+    c.fillCircle(bx, by, 3);
+    if (ball == pong::Ball::Incoming && game_.ballSmash()) {
+      c.vline(bx, by - 8, by - 5);  // speed streak behind a smash
+      c.vline(bx - 2, by - 7, by - 5);
+      c.vline(bx + 2, by - 7, by - 5);
+    }
+  } else if (game_.serving()) {
+    c.textCentered(28, "your serve", 1);
+  } else {
+    c.textCentered(28, game_.rally() > 1 ? "nice rally!" : "pal's turn", 1);
   }
-  const int bx = (int)(game_.ballX(now) + 0.5f), by = pixY(game_.ballY(now));
-  c.fillCircle(bx, by, 3);
-  if (game_.ball() == pong::Ball::Incoming && game_.ballSmash()) {
-    c.vline(bx, by - 8, by - 5);  // speed streak behind a smash
-    c.vline(bx - 2, by - 7, by - 5);
-    c.vline(bx + 2, by - 7, by - 5);
-  }
-  if ((int32_t)(smashUntil_ - now) > 0) c.textCentered(28, "SMASH!", 2);
+  if ((int32_t)(smashUntil_ - now) > 0) c.textCentered(24, "SMASH!", 2);
 }
 
 void App::renderPong(Canvas& c, uint32_t now) {
@@ -535,13 +535,12 @@ void App::renderPong(Canvas& c, uint32_t now) {
   if (p == Phase::Intro) {
     c.textCentered(2, "BOOP", 3);
     c.textCentered(28, "PONG", 2);
-    c.textCentered(50, (el / 1200) & 1 ? "tilt to aim" : "pat on the line!", 1);
+    c.textCentered(50, (el / 1200) & 1 ? "tilt to move" : "don't miss the ball!", 1);
     return;
   }
 
   snprintf(buf, sizeof(buf), "YOU %d : %d PAL", game_.myPoints(), game_.theirPoints());
-  const pong::Ball ball = game_.ball();
-  if (p == Phase::Play && (ball == pong::Ball::Incoming || ball == pong::Ball::Outgoing)) {
+  if (p == Phase::Play && !game_.inPointPause(now)) {
     c.textCentered(0, buf, 1);
     renderCourt(c, now);
     return;
@@ -562,18 +561,7 @@ void App::renderPong(Canvas& c, uint32_t now) {
       break;
     case Phase::Play:
       c.textCentered(0, buf, 1);
-      if (game_.inPointPause(now)) {
-        c.textCentered(56,
-                       game_.lastPointMine()                         ? "POINT TO YOU!"
-                       : game_.lastMiss() == pong::Miss::TooEarly    ? "too early!"
-                                                                      : "missed it!",
-                       1);
-      } else if (game_.serving()) {
-        c.textCentered(56, "your serve...", 1);
-      } else {
-        snprintf(buf, sizeof(buf), "pal's turn  rally %d", game_.rally());
-        c.textCentered(56, game_.rally() > 1 ? buf : "pal's turn", 1);
-      }
+      c.textCentered(56, game_.lastPointMine() ? "POINT TO YOU!" : "missed it!", 1);
       break;
     case Phase::MatchOver:
       c.textCentered(0, game_.wonMatch() ? "VICTORY!" : "DEFEAT", 1);
