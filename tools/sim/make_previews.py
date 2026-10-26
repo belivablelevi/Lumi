@@ -26,7 +26,7 @@ GAP = (2, 4, 6)
 # Animations stitched into the highlight reel, in order.
 HIGHLIGHTS = [
     "boot_hello", "look_around", "pat_giggle", "double_pat_hearts", "pat_purr", "shake_dizzy",
-    "upside_down_panic", "sparkle", "hum", "pat_spam_annoyed", "battle_win_match", "lonely",
+    "upside_down_panic", "sparkle", "hum", "pat_spam_annoyed", "pong_smash", "pong_win_match", "lonely",
     "yawn", "fall_asleep",
 ]
 

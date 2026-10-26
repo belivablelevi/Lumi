@@ -22,7 +22,7 @@ AliExpress/Amazon numbers from late 2026, so check current listings.
 ## Why these parts
 
 - **XIAO ESP32C3** has USB-C, a LiPo charger and battery pads, and it's
-  21 × 17.8 mm. The ESP32-C3 has the radio for ESP-NOW (used by Boop Battle)
+  21 × 17.8 mm. The ESP32-C3 has the radio for ESP-NOW (used by Boop Pong)
   and enough flash for over-the-air updates. A bare "ESP32-C3 SuperMini"
   also works if you add a TP4056 USB-C charger board, but it won't fit the
   35 × 37 mm case as easily.
@@ -42,7 +42,7 @@ AliExpress/Amazon numbers from late 2026, so check current listings.
 - Rough battery life estimates, not yet measured on a built unit:
   - **Awake** (face animating, radio off, 80 MHz): about 25–30 mA, so
     ~16–20 h of continuous play.
-  - **Boop Battle** (ESP-NOW receiving): about 80–100 mA while a match runs.
+  - **Boop Pong** (ESP-NOW receiving): about 80–100 mA while a match runs.
   - **Asleep**: Seeed quotes ~44 µA for the XIAO ESP32C3 in deep sleep.
     Add the MPU-6050 in 5 Hz cycle mode (~10–20 µA), the OLED in sleep
     (a few µA) and the 440 kΩ divider (~9 µA). That's under 0.1 mA, so

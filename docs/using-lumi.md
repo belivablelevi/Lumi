@@ -28,7 +28,7 @@ bouncing around in a bag), it goes back to sleep.
 Lumi tracks **happiness** and **energy**, and they survive sleep.
 
 - Pats raise happiness. Shaking, dropping and pat-spam lower it. Winning a
-  Boop Battle is a big boost, and even losing one is fun.
+  Boop Pong match is a big boost, and even losing one is fun.
 - Energy drains while awake and recharges while asleep.
 - The resting face follows mood: happy crescent eyes when it's content,
   droopy eyes when it's sad, half-closed lids when it's tired.
@@ -47,27 +47,35 @@ Lumi tracks **happiness** and **energy**, and they survive sleep.
 
 | Item | What it does |
 |---|---|
-| **BATTLE** | Boop Battle (below) |
-| **BATTERY** | Charge level, voltage, lifetime pats and battle wins |
+| **PONG** | Boop Pong (below) |
+| **BATTERY** | Charge level, voltage, lifetime pats and match wins |
 | **UPDATE** | Wi-Fi firmware update (below) |
 | **SLEEP** | Go to sleep now |
 | **BACK** | Close the menu |
 
-## Boop Battle (2 players)
+## Boop Pong (2 players)
 
-1. Both players pick **BATTLE** from the menu within ~20 s of each other.
+Ping-pong between two Lumis. Each screen is your half of the table.
+
+1. Both players pick **PONG** from the menu within ~20 s of each other.
    The two Lumis find each other over ESP-NOW (no Wi-Fi network needed, and
    the range is tens of metres).
-2. Each round, both screens say *"wait for it…"* for a random 1.5–4 s
-   (the same delay on both).
-3. The screen flashes **BOOP!**: pat your Lumi as fast as you can.
-4. Fastest pat wins the round. Pat **before** the flash and it's a foul
-   ("TOO EARLY!"). Each Lumi times its own reaction, so radio lag can't
-   decide a round.
-5. First to **3 wins** takes the match. Draws replay (up to 9 rounds).
+2. One Lumi serves. The ball flies up off its screen and drops onto the
+   other Lumi's screen from the top.
+3. A dotted **hit line** runs across the bottom of the screen, with markers
+   at both edges showing the hit zone. **Pat your Lumi while the ball is on
+   the line** to send it back.
+   - Pat too early ("too early!") or let it go past ("missed it!") and your
+     pal wins the point.
+   - A pat right on the line is a **SMASH**: the ball comes back faster.
+     Every return speeds it up a little, so long rallies get hard.
+   - **Tilt** Lumi as you hit to aim. Right side down sends the ball right.
+     It bounces off the side walls.
+4. Whoever lost the point serves the next one. First to **5 points** wins.
 
-Shake to back out while still searching. If the other Lumi disappears
-mid-match, yours notices after a few seconds and goes home.
+While the ball is on your pal's side, your Lumi looks up at the net and
+waits. Shake to back out while still searching. If the other Lumi
+disappears mid-match, yours notices after a few seconds and goes home.
 
 ## Updating the firmware over Wi-Fi
 

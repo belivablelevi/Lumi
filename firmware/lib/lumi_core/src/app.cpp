@@ -6,9 +6,9 @@ namespace lumi {
 
 namespace {
 
-const char* const kMenuItems[] = {"BATTLE", "BATTERY", "UPDATE", "SLEEP", "BACK"};
+const char* const kMenuItems[] = {"PONG", "BATTERY", "UPDATE", "SLEEP", "BACK"};
 constexpr int kMenuCount = sizeof(kMenuItems) / sizeof(kMenuItems[0]);
-enum MenuItem { kMenuBattle, kMenuBattery, kMenuUpdate, kMenuSleep, kMenuBack };
+enum MenuItem { kMenuPong, kMenuBattery, kMenuUpdate, kMenuSleep, kMenuBack };
 
 constexpr uint32_t kBatteryScreenMs = 4000;
 constexpr uint32_t kBatteryReadEveryMs = 5000;
@@ -35,7 +35,7 @@ const char* App::modeName(Mode m) {
     case Mode::Pet: return "pet";
     case Mode::Menu: return "menu";
     case Mode::Battery: return "battery";
-    case Mode::Battle: return "battle";
+    case Mode::Pong: return "pong";
     case Mode::Update: return "update";
     case Mode::FallingAsleep: return "falling_asleep";
     case Mode::Sleep: return "sleep";
@@ -74,24 +74,25 @@ void App::enterMode(Mode m) {
       menuSel_ = 0;
       menuLastInput_ = modeStart_;
       break;
-    case Mode::Battle: {
+    case Mode::Pong: {
       if (!hal_.radioStart()) {
         enterMode(Mode::Pet);
-        react(Trigger::BattleLoseRound);
+        react(Trigger::PongPointLost);
         return;
       }
       uint8_t mac[6];
       hal_.macAddress(mac);
       game_.begin(mac, modeStart_, hal_.random32(), &App::sendThunk, this);
-      lastPhase_ = battle::Phase::Idle;
-      battleRecorded_ = false;
+      lastPhase_ = pong::Phase::Idle;
+      gameRecorded_ = false;
+      smashUntil_ = 0;
       anim_.stop();
       break;
     }
     case Mode::Update:
       if (!hal_.updateStart()) {
         enterMode(Mode::Pet);
-        react(Trigger::BattleLoseRound);
+        react(Trigger::PongPointLost);
         return;
       }
       anim_.stop();
@@ -106,10 +107,10 @@ void App::enterMode(Mode m) {
   }
 }
 
-void App::sendThunk(const battle::Packet& p, void* ctx) { static_cast<App*>(ctx)->hal_.radioSend(p); }
+void App::sendThunk(const pong::Packet& p, void* ctx) { static_cast<App*>(ctx)->hal_.radioSend(p); }
 
-void App::onPacket(const battle::Packet& p) {
-  if (mode_ == Mode::Battle) game_.onPacket(p, hal_.millis());
+void App::onPacket(const pong::Packet& p) {
+  if (mode_ == Mode::Pong) game_.onPacket(p, hal_.millis());
 }
 
 void App::onAccel(float x, float y, float z, uint32_t t) {
@@ -147,8 +148,8 @@ void App::handle(const GestureEvent& e) {
     case Mode::Battery:
       if (e.gesture == Gesture::Pat || e.gesture == Gesture::Shake) enterMode(Mode::Pet);
       break;
-    case Mode::Battle:
-      handleBattle(e);
+    case Mode::Pong:
+      handlePong(e);
       break;
     case Mode::Update:
       if (e.gesture == Gesture::Shake && hal_.updateProgress() < 0) {
@@ -233,8 +234,8 @@ void App::handleMenu(const GestureEvent& e) {
     enterMode(Mode::Pet);
   } else if (e.gesture == Gesture::Pat) {
     switch (menuSel_) {
-      case kMenuBattle:
-        enterMode(Mode::Battle);
+      case kMenuPong:
+        enterMode(Mode::Pong);
         break;
       case kMenuBattery:
         batteryMv_ = hal_.batteryMv();
@@ -254,13 +255,13 @@ void App::handleMenu(const GestureEvent& e) {
   }
 }
 
-void App::handleBattle(const GestureEvent& e) {
+void App::handlePong(const GestureEvent& e) {
   const uint32_t now = hal_.millis();
   if (e.gesture == Gesture::Pat) {
     game_.onTap(e.timeMs);
   } else if (e.gesture == Gesture::Shake) {
-    const battle::Phase p = game_.phase();
-    if (p == battle::Phase::Lobby || p == battle::Phase::Inviting || p == battle::Phase::Intro)
+    const pong::Phase p = game_.phase();
+    if (p == pong::Phase::Lobby || p == pong::Phase::Inviting || p == pong::Phase::Intro)
       game_.cancel(now);
   }
 }
@@ -304,42 +305,53 @@ void App::updatePet(uint32_t now) {
   anim_.setBase(mood_.restingExpression());
 }
 
-void App::updateBattle(uint32_t now) {
-  using battle::Phase;
+void App::updatePong(uint32_t now) {
+  using pong::Phase;
+  // Tilt aims the next return: right side down sends the ball right.
+  game_.setAim(clampf(-gestures_.gx() * 1.6f, -1, 1));
   game_.tick(now);
+
+  for (pong::Event e = game_.takeEvent(); e != pong::Event::None; e = game_.takeEvent()) {
+    switch (e) {
+      case pong::Event::Smash:
+        smashUntil_ = now + 700;
+        break;
+      case pong::Event::BallLeft:
+        anim_.setBase(Expr::Neutral);
+        react(Trigger::PongWatch);
+        break;
+      case pong::Event::BallArrived:
+        anim_.stop();
+        break;
+      case pong::Event::PointWon:
+        react(Trigger::PongPointWon);
+        break;
+      case pong::Event::PointLost:
+        react(game_.lastMiss() == pong::Miss::TooEarly ? Trigger::PongWhiff : Trigger::PongPointLost);
+        break;
+      default:
+        break;
+    }
+  }
+
   const Phase p = game_.phase();
   if (p != lastPhase_) {
     switch (p) {
       case Phase::Lobby:
         anim_.setBase(Expr::Neutral);
-        react(Trigger::BattleSearching);
+        react(Trigger::PongSearching);
         break;
       case Phase::Intro:
-        react(Trigger::BattleFound);
+        react(Trigger::PongFound);
         break;
-      case Phase::Ready:
-        anim_.stop();
-        anim_.setBase(Expr::Determined);
-        break;
-      case Phase::Go:
-        anim_.stop();
-        anim_.setBase(Expr::Surprised);
-        break;
-      case Phase::Waiting:
+      case Phase::Play:
         anim_.setBase(Expr::Neutral);
         break;
-      case Phase::RoundResult:
-        if (game_.myResult(game_.round()) == battle::kFoul) react(Trigger::BattleFoul);
-        else if (game_.lastOutcome() == battle::Outcome::Win) react(Trigger::BattleWinRound);
-        else if (game_.lastOutcome() == battle::Outcome::Lose) react(Trigger::BattleLoseRound);
-        else react(Trigger::BattleDrawRound);
-        break;
       case Phase::MatchOver:
-        if (game_.drewMatch()) react(Trigger::BattleDrawRound);
-        else react(game_.wonMatch() ? Trigger::BattleWinMatch : Trigger::BattleLoseMatch);
-        if (!battleRecorded_) {
-          mood_.onBattle(game_.wonMatch());
-          battleRecorded_ = true;
+        react(game_.wonMatch() ? Trigger::PongWinMatch : Trigger::PongLoseMatch);
+        if (!gameRecorded_) {
+          mood_.onGame(game_.wonMatch());
+          gameRecorded_ = true;
         }
         break;
       case Phase::Aborted:
@@ -355,7 +367,7 @@ void App::updateBattle(uint32_t now) {
     }
     lastPhase_ = p;
   }
-  if (p == Phase::Lobby && !anim_.busy()) react(Trigger::BattleSearching);
+  if (p == Phase::Lobby && !anim_.busy()) react(Trigger::PongSearching);
 }
 
 void App::update() {
@@ -379,8 +391,8 @@ void App::update() {
     case Mode::Battery:
       if (now - modeStart_ >= kBatteryScreenMs) enterMode(Mode::Pet);
       break;
-    case Mode::Battle:
-      updateBattle(now);
+    case Mode::Pong:
+      updatePong(now);
       break;
     case Mode::Update:
       if (now - modeStart_ >= cfg_.updateTimeoutMs && hal_.updateProgress() < 0) {
@@ -427,8 +439,8 @@ void App::render(Canvas& c) {
     case Mode::Battery:
       renderBattery(c, now);
       break;
-    case Mode::Battle:
-      renderBattle(c, now);
+    case Mode::Pong:
+      renderPong(c, now);
       break;
     case Mode::Update:
       renderUpdate(c, now);
@@ -474,7 +486,7 @@ void App::renderBattery(Canvas& c, uint32_t now) {
   if (usb) c.textCentered(44, "charging", 1);
 
   const MoodState& s = mood_.state();
-  snprintf(buf, sizeof(buf), "pats %lu  wins %lu", (unsigned long)s.pats, (unsigned long)s.battlesWon);
+  snprintf(buf, sizeof(buf), "pats %lu  wins %lu", (unsigned long)s.pats, (unsigned long)s.gamesWon);
   c.textCentered(55, buf, 1);
 }
 
@@ -493,84 +505,86 @@ void App::drawCompactFace(Canvas& c, uint32_t now) {
   drawFace(c, f, now);
 }
 
-namespace {
-
-void formatTime(char* out, size_t n, uint16_t v) {
-  if (v == battle::kFoul) snprintf(out, n, "early");
-  else if (v == battle::kTimeout) snprintf(out, n, "slow");
-  else if (v == battle::kPending) snprintf(out, n, "...");
-  else snprintf(out, n, "%ums", (unsigned)v);
+void App::renderCourt(Canvas& c, uint32_t now) {
+  // Court: the net is the top edge, the hit line sits near the bottom.
+  auto pixY = [](float y) { return (int)(11 + y * 50 / 1000.f); };
+  for (int x = 0; x < kWidth; x += 4) c.pixel(x, 10);
+  const int line = pixY(pong::kPaddleY);
+  const int top = pixY(pong::kPaddleY - pong::kHitWindow), bottom = pixY(pong::kPaddleY + pong::kHitWindow);
+  for (int x = 0; x < kWidth; x += 2) c.pixel(x, line);
+  for (int side = 0; side < 2; ++side) {
+    const int x = side ? kWidth - 3 : 0;
+    c.fillRect(x, top, 3, bottom - top + 1);
+  }
+  const int bx = (int)(game_.ballX(now) + 0.5f), by = pixY(game_.ballY(now));
+  c.fillCircle(bx, by, 3);
+  if (game_.ball() == pong::Ball::Incoming && game_.ballSmash()) {
+    c.vline(bx, by - 8, by - 5);  // speed streak behind a smash
+    c.vline(bx - 2, by - 7, by - 5);
+    c.vline(bx + 2, by - 7, by - 5);
+  }
+  if ((int32_t)(smashUntil_ - now) > 0) c.textCentered(28, "SMASH!", 2);
 }
 
-}  // namespace
-
-void App::renderBattle(Canvas& c, uint32_t now) {
-  using battle::Phase;
+void App::renderPong(Canvas& c, uint32_t now) {
+  using pong::Phase;
   const Phase p = game_.phase();
   const uint32_t el = game_.phaseElapsed(now);
-  char buf[32], a[12], b[12];
+  char buf[32];
 
   if (p == Phase::Intro) {
-    c.textCentered(4, "BOOP", 3);
-    c.textCentered(30, "BATTLE", 2);
-    c.textCentered(52, (el / 1000) & 1 ? "then pat fast!" : "wait for BOOP", 1);
+    c.textCentered(2, "BOOP", 3);
+    c.textCentered(28, "PONG", 2);
+    c.textCentered(50, (el / 1200) & 1 ? "tilt to aim" : "pat on the line!", 1);
     return;
   }
-  if (p == Phase::Go) {
-    c.fillRect(0, 0, kWidth, kHeight);
-    c.textCentered(10, "BOOP!", 4, false);
-    c.textCentered(48, "PAT NOW!", 1, false);
+
+  snprintf(buf, sizeof(buf), "YOU %d : %d PAL", game_.myPoints(), game_.theirPoints());
+  const pong::Ball ball = game_.ball();
+  if (p == Phase::Play && (ball == pong::Ball::Incoming || ball == pong::Ball::Outgoing)) {
+    c.textCentered(0, buf, 1);
+    renderCourt(c, now);
     return;
   }
 
   drawCompactFace(c, now);
-  snprintf(buf, sizeof(buf), "YOU %d : %d PAL", game_.myWins(), game_.theirWins());
-  const int r = game_.round();
-
   switch (p) {
     case Phase::Lobby: {
-      c.textCentered(0, "BOOP BATTLE", 1);
+      c.textCentered(0, "BOOP PONG", 1);
       static const char* const kDots[] = {"finding a pal", "finding a pal.", "finding a pal..",
                                           "finding a pal..."};
       c.textCentered(56, kDots[(now / 400) % 4], 1);
       break;
     }
     case Phase::Inviting:
-      c.textCentered(0, "BOOP BATTLE", 1);
+      c.textCentered(0, "BOOP PONG", 1);
       c.textCentered(56, "found a pal!", 1);
       break;
-    case Phase::Ready:
+    case Phase::Play:
       c.textCentered(0, buf, 1);
-      c.textCentered(56, "wait for it...", 1);
+      if (game_.inPointPause(now)) {
+        c.textCentered(56,
+                       game_.lastPointMine()                         ? "POINT TO YOU!"
+                       : game_.lastMiss() == pong::Miss::TooEarly    ? "too early!"
+                                                                      : "missed it!",
+                       1);
+      } else if (game_.serving()) {
+        c.textCentered(56, "your serve...", 1);
+      } else {
+        snprintf(buf, sizeof(buf), "pal's turn  rally %d", game_.rally());
+        c.textCentered(56, game_.rally() > 1 ? buf : "pal's turn", 1);
+      }
       break;
-    case Phase::Waiting:
-      c.textCentered(0, buf, 1);
-      formatTime(a, sizeof(a), game_.myResult(r));
-      snprintf(buf, sizeof(buf), "you: %s", a);
-      c.textCentered(56, (el / 1200) & 1 ? "waiting for pal" : buf, 1);
-      break;
-    case Phase::RoundResult: {
-      const char* head = game_.myResult(r) == battle::kFoul ? "TOO EARLY!"
-                         : game_.lastOutcome() == battle::Outcome::Win  ? "YOU WIN!"
-                         : game_.lastOutcome() == battle::Outcome::Lose ? "PAL WINS"
-                                                                         : "DRAW";
-      c.textCentered(0, head, 1);
-      formatTime(a, sizeof(a), game_.myResult(r));
-      formatTime(b, sizeof(b), game_.theirResult(r));
-      snprintf(buf, sizeof(buf), "%s vs %s", a, b);
-      c.textCentered(56, buf, 1);
-      break;
-    }
     case Phase::MatchOver:
-      c.textCentered(0, game_.drewMatch() ? "IT'S A DRAW" : game_.wonMatch() ? "VICTORY!" : "DEFEAT", 1);
-      snprintf(buf, sizeof(buf), "%d : %d", game_.myWins(), game_.theirWins());
+      c.textCentered(0, game_.wonMatch() ? "VICTORY!" : "DEFEAT", 1);
+      snprintf(buf, sizeof(buf), "%d : %d", game_.myPoints(), game_.theirPoints());
       c.textCentered(56, buf, 1);
       break;
     case Phase::Aborted:
       c.textCentered(56,
-                     game_.abortReason() == battle::AbortReason::NoFriend    ? "no pal nearby"
-                     : game_.abortReason() == battle::AbortReason::Cancelled ? "maybe later"
-                                                                             : "pal left :(",
+                     game_.abortReason() == pong::AbortReason::NoFriend    ? "no pal nearby"
+                     : game_.abortReason() == pong::AbortReason::Cancelled ? "maybe later"
+                                                                           : "pal left :(",
                      1);
       break;
     default:

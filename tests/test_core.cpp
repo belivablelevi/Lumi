@@ -13,7 +13,7 @@
 #include "app.h"
 #include "fake_hal.h"
 #include "animator.h"
-#include "battle.h"
+#include "pong.h"
 #include "face.h"
 #include "gestures.h"
 #include "gfx.h"
@@ -159,20 +159,28 @@ static void testGestures() {
 }
 
 // ---------------------------------------------------------------------------
-// Battle: two games talking through a simulated radio.
+// Boop Pong: two games talking through a simulated radio.
+
+// How a scripted player hits the ball.
+enum class Style { Perfect, MissEveryThird, TooEarly, Never };
 
 struct Radio;
 struct Node {
-  battle::Game game;
+  pong::Game game;
   uint8_t mac[6];
   Radio* radio;
   int id;
+  Style style = Style::Perfect;
+  pong::Ball lastBall = pong::Ball::None;
+  bool tapped = false;
+  int incoming = 0;
+  int smashes = 0;
 };
 
 struct InFlight {
   uint32_t at;
   int to;
-  battle::Packet p;
+  pong::Packet p;
 };
 
 struct Radio {
@@ -182,7 +190,6 @@ struct Radio {
   uint32_t latency = 4;
   int lossPercent = 0;
   uint32_t rng = 7;
-  int sent = 0, dropped = 0;
 
   bool lose() {
     rng = rng * 1103515245u + 12345u;
@@ -190,17 +197,37 @@ struct Radio {
   }
 };
 
-static void radioSend(const battle::Packet& p, void* ctx) {
+static void radioSend(const pong::Packet& p, void* ctx) {
   Node* from = (Node*)ctx;
   Radio* r = from->radio;
   for (Node* n : r->nodes) {
-    if (n == from) continue;
-    ++r->sent;
-    if (r->lose()) {
-      ++r->dropped;
-      continue;
-    }
+    if (n == from || r->lose()) continue;
     r->air.push_back({r->now + r->latency, n->id, p});
+  }
+}
+
+// Plays one node's scripted pats for this instant.
+static void playTurn(Node& n, uint32_t now) {
+  pong::Game& g = n.game;
+  if (g.ball() == pong::Ball::Incoming && n.lastBall != pong::Ball::Incoming) {
+    n.tapped = false;
+    ++n.incoming;
+  }
+  n.lastBall = g.ball();
+  for (pong::Event e = g.takeEvent(); e != pong::Event::None; e = g.takeEvent())
+    if (e == pong::Event::Smash) ++n.smashes;
+  if (g.ball() != pong::Ball::Incoming || n.tapped) return;
+  const float y = g.ballY(now);
+  bool tap = false;
+  switch (n.style) {
+    case Style::Perfect: tap = y >= pong::kPaddleY - 5; break;
+    case Style::MissEveryThird: tap = n.incoming % 3 != 0 && y >= pong::kPaddleY - 5; break;
+    case Style::TooEarly: tap = y >= pong::kPaddleY - 400; break;
+    case Style::Never: break;
+  }
+  if (tap) {
+    n.tapped = true;
+    g.onTap(now);
   }
 }
 
@@ -210,114 +237,89 @@ static void step(Radio& r) {
     r.air.pop_front();
     r.nodes[f.to]->game.onPacket(f.p, r.now);
   }
-  for (Node* n : r.nodes) n->game.tick(r.now);
+  for (Node* n : r.nodes) {
+    playTurn(*n, r.now);
+    n->game.tick(r.now);
+  }
   r.now += 5;
 }
 
-// Each player reacts `reactMs[i]` after the flash, or fouls if negative.
-struct MatchResult {
-  bool done[2];
-  int wins[2];
-  battle::AbortReason abort[2];
-  int rounds;
+struct Pair {
+  Radio r;
+  Node a, b;
+  Pair(int loss, uint32_t seed, Style sa, Style sb) {
+    r.lossPercent = loss;
+    r.rng = seed;
+    const uint8_t macA[6] = {0x24, 0x0A, 0xC4, 0x00, 0x00, 0x10};
+    const uint8_t macB[6] = {0x24, 0x0A, 0xC4, 0x00, 0x00, 0x22};
+    memcpy(a.mac, macA, 6);
+    memcpy(b.mac, macB, 6);
+    a.radio = b.radio = &r;
+    a.id = 0;
+    b.id = 1;
+    a.style = sa;
+    b.style = sb;
+    r.nodes = {&a, &b};
+    a.game.begin(a.mac, r.now, seed, radioSend, &a);
+    r.now += 70;  // B starts a moment later
+    b.game.begin(b.mac, r.now, seed * 3 + 1, radioSend, &b);
+  }
+  void runUntilDone(uint32_t maxMs = 600000) {
+    while ((a.game.active() || b.game.active()) && r.now < maxMs) step(r);
+  }
+  void runFor(uint32_t ms) {
+    const uint32_t end = r.now + ms;
+    while (r.now < end) step(r);
+  }
 };
 
-static MatchResult playMatch(int lossPercent, int reactA, int reactB, uint32_t seed) {
-  Radio r;
-  r.lossPercent = lossPercent;
-  r.rng = seed;
-  Node a, b;
-  const uint8_t macA[6] = {0x24, 0x0A, 0xC4, 0x00, 0x00, 0x10};
-  const uint8_t macB[6] = {0x24, 0x0A, 0xC4, 0x00, 0x00, 0x22};
-  memcpy(a.mac, macA, 6);
-  memcpy(b.mac, macB, 6);
-  a.radio = b.radio = &r;
-  a.id = 0;
-  b.id = 1;
-  r.nodes = {&a, &b};
-  a.game.begin(a.mac, r.now, seed, radioSend, &a);
-  r.now += 70;  // B starts a moment later
-  b.game.begin(b.mac, r.now, seed * 3 + 1, radioSend, &b);
-
-  Node* nodes[2] = {&a, &b};
-  int react[2] = {reactA, reactB};
-  uint32_t tapAt[2] = {0, 0};
-  bool tapped[2] = {false, false};
-  int lastRound[2] = {-1, -1};
-  int maxRound = 0;
-
-  for (int i = 0; i < 200000 && (a.game.active() || b.game.active()); ++i) {
-    for (int k = 0; k < 2; ++k) {
-      battle::Game& g = nodes[k]->game;
-      if (g.phase() == battle::Phase::Ready && lastRound[k] != g.round()) {
-        lastRound[k] = g.round();
-        tapped[k] = false;
-        if (react[k] < 0) tapAt[k] = r.now + 300;  // pats too early
-        else tapAt[k] = 0;
-      }
-      if (g.phase() == battle::Phase::Go && !tapped[k] && tapAt[k] == 0 && react[k] >= 0)
-        tapAt[k] = r.now + (uint32_t)react[k];
-      if (!tapped[k] && tapAt[k] && r.now >= tapAt[k] &&
-          (g.phase() == battle::Phase::Ready || g.phase() == battle::Phase::Go)) {
-        g.onTap(r.now);
-        tapped[k] = true;
-      }
-      if (g.round() > maxRound) maxRound = g.round();
+static void testPong() {
+  printf("pong\n");
+  using namespace pong;
+  {  // walls: the ball stays on screen and reverses when it bounces
+    float vx = 0;
+    for (int x = -300; x < 600; x += 7) {
+      const float b = bounceX((float)x, 1, &vx);
+      CHECK(b >= kBallR && b <= kCourtWidth - 1 - kBallR);
     }
-    step(r);
+    CHECK(fabsf(bounceX(64, 1, &vx) - 64) < 0.01f && vx > 0);
+    bounceX(200, 1, &vx);
+    CHECK(vx < 0);
   }
-  MatchResult m;
-  for (int k = 0; k < 2; ++k) {
-    m.done[k] = nodes[k]->game.phase() == battle::Phase::Done;
-    m.wins[k] = nodes[k]->game.myWins();
-    m.abort[k] = nodes[k]->game.abortReason();
+  for (int loss : {0, 40}) {  // A never misses, B misses every third ball
+    Pair m(loss, 42 + loss, Style::Perfect, Style::MissEveryThird);
+    m.runUntilDone();
+    CHECK(m.a.game.phase() == Phase::Done && m.b.game.phase() == Phase::Done);
+    CHECK(m.a.game.abortReason() == AbortReason::None);
+    CHECK_EQ(m.a.game.myPoints(), kPointsToWin);
+    CHECK_EQ(m.a.game.theirPoints(), 0);
+    // Both Lumis agree on the final score.
+    CHECK_EQ(m.b.game.myPoints(), m.a.game.theirPoints());
+    CHECK_EQ(m.b.game.theirPoints(), m.a.game.myPoints());
+    CHECK(m.a.game.wonMatch() && !m.b.game.wonMatch());
+    CHECK(m.a.smashes > 0);  // dead-centre hits are smashes
   }
-  m.rounds = maxRound + 1;
-  return m;
-}
-
-static void testBattle() {
-  printf("battle\n");
-  using namespace battle;
-  CHECK(judge(200, 300) == Outcome::Win);
-  CHECK(judge(300, 200) == Outcome::Lose);
-  CHECK(judge(250, 250) == Outcome::Draw);
-  CHECK(judge(kFoul, 900) == Outcome::Lose);
-  CHECK(judge(900, kFoul) == Outcome::Win);
-  CHECK(judge(kFoul, kFoul) == Outcome::Draw);
-  CHECK(judge(kTimeout, 1500) == Outcome::Lose);
-  CHECK(judge(kTimeout, kFoul) == Outcome::Win);
-  CHECK(judge(kTimeout, kTimeout) == Outcome::Draw);
-  for (int i = 0; i < 50; ++i) {
-    uint32_t d = roundDelayMs(1234567u + i * 77u, i % 9);
-    CHECK(d >= 1500 && d < 4000);
+  {  // patting too early loses the point
+    Pair m(10, 5, Style::TooEarly, Style::Perfect);
+    m.runUntilDone();
+    CHECK_EQ(m.b.game.myPoints(), kPointsToWin);
+    CHECK_EQ(m.a.game.myPoints(), 0);
+    CHECK(m.a.game.lastMiss() == Miss::TooEarly);
   }
-
-  {  // A is faster: A wins 3-0 on a perfect link
-    MatchResult m = playMatch(0, 180, 320, 42);
-    CHECK(m.done[0] && m.done[1]);
-    CHECK_EQ(m.wins[0], 3);
-    CHECK_EQ(m.wins[1], 0);
-    CHECK(m.abort[0] == AbortReason::None && m.abort[1] == AbortReason::None);
-    CHECK_EQ(m.rounds, 3);
+  {  // not patting at all loses the point too
+    Pair m(0, 6, Style::Never, Style::Perfect);
+    m.runUntilDone();
+    CHECK_EQ(m.b.game.myPoints(), kPointsToWin);
+    CHECK(m.a.game.lastMiss() == Miss::TooLate);
   }
-  {  // B faster, on a horrible 40% loss link - must still agree on the result
-    MatchResult m = playMatch(40, 400, 210, 99);
-    CHECK(m.done[0] && m.done[1]);
-    CHECK_EQ(m.wins[0], 0);
-    CHECK_EQ(m.wins[1], 3);
-  }
-  {  // A fouls every round -> B wins even though B is slow
-    MatchResult m = playMatch(10, -1, 900, 5);
-    CHECK_EQ(m.wins[1], 3);
-    CHECK_EQ(m.wins[0], 0);
-  }
-  {  // both identical -> every round drawn, match ends at the round cap
-    MatchResult m = playMatch(0, 250, 250, 8);
-    CHECK_EQ(m.wins[0], 0);
-    CHECK_EQ(m.wins[1], 0);
-    CHECK_EQ(m.rounds, kMaxRounds);
-    CHECK(m.done[0] && m.done[1]);
+  {  // two perfect players on a lossy link: the ball is never lost, the rally
+     // just goes on and speeds up to the cap
+    Pair m(40, 9, Style::Perfect, Style::Perfect);
+    m.runFor(90000);
+    CHECK(m.a.game.phase() == Phase::Play && m.b.game.phase() == Phase::Play);
+    CHECK_EQ(m.a.game.myPoints() + m.a.game.theirPoints(), 0);
+    CHECK(m.a.game.rally() > 40);
+    CHECK(fabsf(m.a.game.ballSpeed() - kMaxSpeed) < 0.001f || fabsf(m.b.game.ballSpeed() - kMaxSpeed) < 0.001f);
   }
   {  // nobody around -> lobby times out
     Radio r;
@@ -332,23 +334,13 @@ static void testBattle() {
     CHECK(a.game.phase() == Phase::Done);
     CHECK(a.game.abortReason() == AbortReason::NoFriend);
   }
-  {  // peer vanishes mid-match
-    Radio r;
-    Node a, b;
-    const uint8_t macA[6] = {9, 9, 9, 9, 9, 1}, macB[6] = {9, 9, 9, 9, 9, 2};
-    memcpy(a.mac, macA, 6);
-    memcpy(b.mac, macB, 6);
-    a.radio = b.radio = &r;
-    a.id = 0;
-    b.id = 1;
-    r.nodes = {&a, &b};
-    a.game.begin(a.mac, 0, 3, radioSend, &a);
-    b.game.begin(b.mac, 0, 4, radioSend, &b);
-    while (a.game.phase() != Phase::Ready && r.now < 10000) step(r);
-    CHECK(a.game.phase() == Phase::Ready);
-    r.lossPercent = 100;  // B walks out of range
-    while (a.game.active() && r.now < 60000) step(r);
-    CHECK(a.game.abortReason() == AbortReason::PeerLost);
+  {  // pal walks out of range mid-match
+    Pair m(0, 3, Style::Perfect, Style::Perfect);
+    while (m.a.game.phase() != Phase::Play && m.r.now < 10000) step(m.r);
+    CHECK(m.a.game.phase() == Phase::Play);
+    m.r.lossPercent = 100;
+    while (m.a.game.active() && m.r.now < 60000) step(m.r);
+    CHECK(m.a.game.abortReason() == AbortReason::PeerLost);
   }
 }
 
@@ -553,7 +545,7 @@ static void testApp() {
     d.run(800);
     CHECK(app.mode() == App::Mode::Pet);
   }
-  {  // two Lumis play a full Boop Battle through the menus
+  {  // two Lumis play a full Boop Pong match through the menus
     sim::FakeAir air;
     FakeHal ha, hb;
     ha.mac[5] = 0x01;
@@ -568,7 +560,6 @@ static void testApp() {
     a.begin(WakeReason::PowerOn, 0);
     b.begin(WakeReason::PowerOn, 0);
     Driver da(a, ha), db(b, hb);
-    App* apps[2] = {&a, &b};
     Driver* drv[2] = {&da, &db};
     auto both = [&](uint32_t ms) {
       for (uint32_t e = 0; e < ms; e += 10) {
@@ -586,35 +577,29 @@ static void testApp() {
     da.queuePat();
     db.queuePat();
     both(100);
-    CHECK(a.mode() == App::Mode::Battle && b.mode() == App::Mode::Battle);
+    CHECK(a.mode() == App::Mode::Pong && b.mode() == App::Mode::Pong);
 
-    const uint32_t react[2] = {190, 340};  // A is quicker
-    int lastRound[2] = {-1, -1};
-    uint32_t goAt[2] = {0, 0};
-    bool patted[2] = {false, false};
-    bool sawGo = false;
-    for (int i = 0; i < 9000 && (a.mode() == App::Mode::Battle || b.mode() == App::Mode::Battle); ++i) {
-      for (int k = 0; k < 2; ++k) {
-        const battle::Game& g = apps[k]->game();
-        if (g.phase() == battle::Phase::Go && lastRound[k] != g.round()) {
-          lastRound[k] = g.round();
-          goAt[k] = ha.now;
-          patted[k] = false;
-          sawGo = true;
-        }
-        if (g.phase() == battle::Phase::Go && !patted[k] && ha.now >= goAt[k] + react[k]) {
-          drv[k]->queuePat();
-          patted[k] = true;
-        }
+    // A pats whenever the ball reaches its hit line; B never does.
+    int hits = 0;
+    bool patted = false;
+    pong::Ball last = pong::Ball::None;
+    for (int i = 0; i < 20000 && (a.mode() == App::Mode::Pong || b.mode() == App::Mode::Pong); ++i) {
+      const pong::Game& g = a.game();
+      if (g.ball() == pong::Ball::Incoming && last != pong::Ball::Incoming) patted = false;
+      if (g.ball() == pong::Ball::Outgoing && last == pong::Ball::Incoming) ++hits;
+      last = g.ball();
+      if (g.ball() == pong::Ball::Incoming && !patted && g.ballY(ha.now) >= pong::kPaddleY - 30) {
+        da.queuePat();  // one real pat per ball, through the gesture detector
+        patted = true;
       }
       both(10);
     }
-    CHECK(sawGo);
+    CHECK(hits >= 2);
     CHECK(a.mode() == App::Mode::Pet && b.mode() == App::Mode::Pet);
-    CHECK_EQ(ma.battlesPlayed, 1u);
-    CHECK_EQ(mb.battlesPlayed, 1u);
-    CHECK_EQ(ma.battlesWon, 1u);
-    CHECK_EQ(mb.battlesWon, 0u);
+    CHECK_EQ(ma.gamesPlayed, 1u);
+    CHECK_EQ(mb.gamesPlayed, 1u);
+    CHECK_EQ(ma.gamesWon, 1u);
+    CHECK_EQ(mb.gamesWon, 0u);
     CHECK(!ha.radioOn && !hb.radioOn);
   }
   CHECK_EQ(batteryPercent(4200), 100);
@@ -625,7 +610,7 @@ static void testApp() {
 int main() {
   testGfxAndFace();
   testGestures();
-  testBattle();
+  testPong();
   testAnimations();
   testMood();
   testApp();

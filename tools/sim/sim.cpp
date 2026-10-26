@@ -4,12 +4,13 @@
 // Output (in the directory given as argv[1]):
 //   expressions.frames / .labels   one frame per expression
 //   anim_<name>.frames             every animation, 30 fps
-//   tour.frames                    a scripted session: pats, shake, menu, battle
+//   tour.frames                    a scripted session: pats, shake, menu, Boop Pong
 //   screens.frames / .labels       stills of each UI screen
 // A .frames file is a sequence of raw 1024-byte SSD1306 page buffers.
 #include <stdio.h>
 #include <string.h>
 
+#include <set>
 #include <string>
 #include <vector>
 
@@ -77,7 +78,7 @@ void renderAnimations() {
   fclose(index);
 }
 
-// A scripted session on device A, with device B as a battle partner.
+// A scripted session on device A, with device B as a Boop Pong partner.
 struct Tour {
   sim::FakeAir air;
   sim::FakeHal ha, hb;
@@ -102,8 +103,15 @@ struct Tour {
 
   std::string screenName() {
     std::string s = App::modeName(a.mode());
-    if (a.mode() == App::Mode::Battle) s += std::string(":") + battle::phaseName(a.game().phase());
-    return s;
+    if (a.mode() != App::Mode::Pong) return s;
+    const pong::Game& g = a.game();
+    s += std::string(":") + pong::phaseName(g.phase());
+    if (g.phase() != pong::Phase::Play) return s;
+    const uint32_t now = ha.now;
+    if (g.ball() == pong::Ball::Incoming || g.ball() == pong::Ball::Outgoing) return s + ":court";
+    if (g.inPointPause(now))
+      return s + (g.lastPointMine() ? ":point_won" : g.lastMiss() == pong::Miss::TooEarly ? ":too_early" : ":missed");
+    return s + ":waiting";
   }
 
   void tick(uint32_t now) {
@@ -112,16 +120,19 @@ struct Tour {
     if (now % 60 != 0) return;  // record at ~16 fps
     Canvas c;
     a.render(c);
-    frames.add(c);
+    frames.add(c, App::modeName(a.mode()));
     const std::string s = screenName();
-    if (s != lastScreen && a.mode() != App::Mode::Pet) {
+    if (s != lastScreen && a.mode() != App::Mode::Pet && !captured_.count(s)) {
       // Capture each new screen a little after it appears.
       pendingScreen_ = s;
-      pendingAt_ = now + (a.mode() == App::Mode::Battle ? 600 : a.mode() == App::Mode::FallingAsleep ? 1500 : 300);
+      pendingAt_ = now + (a.mode() == App::Mode::Pong ? 500 : a.mode() == App::Mode::FallingAsleep ? 1500 : 300);
     }
     lastScreen = s;
     if (!pendingScreen_.empty() && now >= pendingAt_) {
-      if (screenName() == pendingScreen_) screens.add(c, pendingScreen_);
+      if (screenName() == pendingScreen_) {
+        screens.add(c, pendingScreen_);
+        captured_.insert(pendingScreen_);
+      }
       pendingScreen_.clear();
     }
   }
@@ -178,39 +189,42 @@ struct Tour {
     da.shake(900);
     da.run(1500);
 
-    // Both into battle (the menu opens on BATTLE).
+    // Both into Boop Pong (the menu opens on PONG).
     openMenu();
     da.queuePat();
     db.queuePat();
     da.run(100);
-    const uint32_t react[2] = {210, 300};
-    int lastRound[2] = {-1, -1};
-    uint32_t goAt[2] = {0, 0};
-    bool patted[2] = {false, false};
-    bool fouled = false;
+    // Scripted players. A hits most balls, alternating dead-centre smashes
+    // with ordinary returns and tilting to aim; it lets every 6th ball past.
+    // B misses every 3rd ball and pats too early once.
     App* apps[2] = {&a, &b};
     sim::Driver* drv[2] = {&da, &db};
-    for (int i = 0; i < 6000 && a.mode() == App::Mode::Battle; ++i) {
+    int incoming[2] = {0, 0};
+    bool patted[2] = {false, false};
+    pong::Ball last[2] = {pong::Ball::None, pong::Ball::None};
+    for (int i = 0; i < 20000 && a.mode() == App::Mode::Pong; ++i) {
       for (int k = 0; k < 2; ++k) {
-        const battle::Game& g = apps[k]->game();
-        if (g.phase() == battle::Phase::Go && lastRound[k] != g.round()) {
-          lastRound[k] = g.round();
-          goAt[k] = ha.now;
+        const pong::Game& g = apps[k]->game();
+        if (g.ball() == pong::Ball::Incoming && last[k] != pong::Ball::Incoming) {
+          ++incoming[k];
           patted[k] = false;
+          if (k == 0) da.orient(incoming[0] % 2 ? -0.5f : 0.5f, 0.85f, 0);  // aim
         }
-        // B fouls in round 2 to show the "too early" screen.
-        if (k == 1 && g.phase() == battle::Phase::Ready && g.round() == 1 && !fouled &&
-            g.phaseElapsed(ha.now) > 900) {
-          drv[1]->queuePat();
-          fouled = true;
-        }
-        if (g.phase() == battle::Phase::Go && !patted[k] && ha.now >= goAt[k] + react[k]) {
+        last[k] = g.ball();
+        if (g.ball() != pong::Ball::Incoming || patted[k]) continue;
+        const int n = incoming[k];
+        const float y = g.ballY(ha.now);
+        float at;  // pat once the ball is this far down
+        if (k == 0) at = n % 6 == 0 ? 1e9f : (n % 2 ? pong::kPaddleY - 15 : pong::kPaddleY - 75);
+        else at = n % 3 == 0 ? 1e9f : (n == 5 ? pong::kPaddleY - 350 : pong::kPaddleY - 40);
+        if (y >= at) {
           drv[k]->queuePat();
           patted[k] = true;
         }
       }
       da.run(10);
     }
+    da.orient(0, 1, 0);
     da.run(1500);
 
     // Ignore it face-up on the desk until it dozes off.
@@ -219,13 +233,14 @@ struct Tour {
     for (int i = 0; i < 9000 && !a.wantsSleep(); ++i) da.run(10);
     da.run(500);
 
-    frames.save("tour");
+    frames.save("tour", true);
     screens.save("screens", true);
-    printf("tour: %zu frames, %zu screens, A wins %lu/%lu\n", frames.labels.size(), screens.labels.size(),
-           (unsigned long)ma.battlesWon, (unsigned long)ma.battlesPlayed);
+    printf("tour: %zu frames, %zu screens, A won %lu/%lu matches\n", frames.labels.size(), screens.labels.size(),
+           (unsigned long)ma.gamesWon, (unsigned long)ma.gamesPlayed);
   }
 
  private:
+  std::set<std::string> captured_;
   std::string pendingScreen_;
   uint32_t pendingAt_ = 0;
 };

@@ -30,14 +30,15 @@ enum class Trigger : uint8_t {
   Sleep,
   Lonely,
   LowBattery,
-  BattleSearching,
-  BattleFound,
-  BattleWinRound,
-  BattleLoseRound,
-  BattleDrawRound,
-  BattleFoul,
-  BattleWinMatch,
-  BattleLoseMatch,
+  PongSearching,
+  PongFound,
+  PongWatch,      // ball is on our pal's screen
+  PongSmash,
+  PongPointWon,
+  PongPointLost,  // let the ball past
+  PongWhiff,      // patted too early
+  PongWinMatch,
+  PongLoseMatch,
   Boot,
   Update,
   Count

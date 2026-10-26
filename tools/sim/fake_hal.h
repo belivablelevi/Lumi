@@ -41,7 +41,7 @@ class FakeHal : public Hal {
   void setContrast(uint8_t level) override { contrast = level; }
   bool radioStart() override { return radioOn = true; }
   void radioStop() override { radioOn = false; }
-  void radioSend(const battle::Packet& p) override;
+  void radioSend(const pong::Packet& p) override;
   bool updateStart() override { return updateOn = true; }
   void updateStop() override { updateOn = false; }
   const char* updateSsid() override { return "Lumi-3456"; }
@@ -54,7 +54,7 @@ struct FakeAir {
   struct Frame {
     uint32_t at;
     FakeHal* to;
-    battle::Packet p;
+    pong::Packet p;
   };
   std::vector<FakeHal*> hals;
   std::deque<Frame> frames;
@@ -69,7 +69,7 @@ struct FakeAir {
   }
 };
 
-inline void FakeHal::radioSend(const battle::Packet& p) {
+inline void FakeHal::radioSend(const pong::Packet& p) {
   if (!air) return;
   for (FakeHal* h : air->hals)
     if (h != this) air->frames.push_back({now + air->latency, h, p});

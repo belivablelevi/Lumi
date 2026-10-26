@@ -13,7 +13,7 @@ struct MoodState {
   float happy = 65;   // 0..100
   float energy = 85;  // 0..100
   uint32_t pats = 0;  // lifetime pats, for fun stats
-  uint32_t battlesWon = 0, battlesPlayed = 0;
+  uint32_t gamesWon = 0, gamesPlayed = 0;
 };
 
 class Mood {
@@ -32,9 +32,9 @@ class Mood {
   void onPatSpam() { add(-6, 0); }
   void onShake() { add(-5, 1); }
   void onFreefall() { add(-8, 2); }
-  void onBattle(bool won) {
-    ++s_->battlesPlayed;
-    if (won) ++s_->battlesWon;
+  void onGame(bool won) {
+    ++s_->gamesPlayed;
+    if (won) ++s_->gamesWon;
     add(won ? 10 : 3, -4);
   }
 

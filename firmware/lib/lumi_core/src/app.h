@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 #include "animator.h"
-#include "battle.h"
+#include "pong.h"
 #include "gestures.h"
 #include "gfx.h"
 #include "mood.h"
@@ -23,10 +23,10 @@ class Hal {
   virtual void macAddress(uint8_t mac[6]) = 0;
   virtual void setContrast(uint8_t level) = 0;
 
-  // Boop Battle radio.
+  // Boop Pong radio.
   virtual bool radioStart() = 0;
   virtual void radioStop() = 0;
-  virtual void radioSend(const battle::Packet& p) = 0;
+  virtual void radioSend(const pong::Packet& p) = 0;
 
   // Over-the-air update mode (Wi-Fi access point + upload page).
   virtual bool updateStart() = 0;
@@ -53,14 +53,14 @@ struct AppConfig {
 
 class App {
  public:
-  enum class Mode : uint8_t { Pet, Menu, Battery, Battle, Update, FallingAsleep, Sleep };
+  enum class Mode : uint8_t { Pet, Menu, Battery, Pong, Update, FallingAsleep, Sleep };
 
   App(Hal& hal, MoodState* moodState, const AppConfig& cfg = AppConfig())
       : hal_(hal), mood_(moodState), cfg_(cfg) {}
 
   void begin(WakeReason why, uint32_t sleptSeconds);
   void onAccel(float x, float y, float z, uint32_t tMs);  // call at ~100 Hz
-  void onPacket(const battle::Packet& p);
+  void onPacket(const pong::Packet& p);
   void update();                                          // call once per frame
   void render(Canvas& c);
 
@@ -71,7 +71,7 @@ class App {
   const Animator& animator() const { return anim_; }
   const Mood& mood() const { return mood_; }
   const GestureDetector& gestures() const { return gestures_; }
-  const battle::Game& game() const { return game_; }
+  const pong::Game& game() const { return game_; }
   void debugPlay(int animationIndex) { anim_.playIndex(animationIndex); }
 
   static const char* modeName(Mode m);
@@ -80,28 +80,29 @@ class App {
   void handle(const GestureEvent& e);
   void handlePet(const GestureEvent& e);
   void handleMenu(const GestureEvent& e);
-  void handleBattle(const GestureEvent& e);
+  void handlePong(const GestureEvent& e);
   void enterMode(Mode m);
   void interacted() { lastInteraction_ = hal_.millis(); interactedSinceWake_ = true; }
   void react(Trigger t) { anim_.play(t, mood_.happiness()); }
   void updatePet(uint32_t now);
-  void updateBattle(uint32_t now);
+  void updatePong(uint32_t now);
   void startSleep();
 
   void renderMenu(Canvas& c, uint32_t now);
   void renderBattery(Canvas& c, uint32_t now);
-  void renderBattle(Canvas& c, uint32_t now);
+  void renderPong(Canvas& c, uint32_t now);
+  void renderCourt(Canvas& c, uint32_t now);
   void renderUpdate(Canvas& c, uint32_t now);
   void drawCompactFace(Canvas& c, uint32_t now);
 
-  static void sendThunk(const battle::Packet& p, void* ctx);
+  static void sendThunk(const pong::Packet& p, void* ctx);
 
   Hal& hal_;
   Mood mood_;
   AppConfig cfg_;
   Animator anim_;
   GestureDetector gestures_;
-  battle::Game game_;
+  pong::Game game_;
 
   Mode mode_ = Mode::Pet;
   uint32_t modeStart_ = 0;
@@ -124,8 +125,9 @@ class App {
   uint32_t lastBatteryRead_ = 0;
   uint32_t lastLowBatteryNag_ = 0;
 
-  battle::Phase lastPhase_ = battle::Phase::Idle;
-  bool battleRecorded_ = false;
+  pong::Phase lastPhase_ = pong::Phase::Idle;
+  bool gameRecorded_ = false;
+  uint32_t smashUntil_ = 0;
 };
 
 uint8_t batteryPercent(uint16_t mv);

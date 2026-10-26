@@ -16,7 +16,7 @@
 #include "imu.h"
 #include "ssd1306.h"
 
-using lumi::battle::Packet;
+using lumi::pong::Packet;
 
 // ---------------------------------------------------------------------------
 // State that survives deep sleep. Kept as raw bytes so no constructor ever
@@ -261,8 +261,8 @@ static void serialCommands() {
       else Serial.println("unknown animation");
     } else if (strcmp(line, "m") == 0) {
       const lumi::MoodState& s = app.mood().state();
-      Serial.printf("happy=%.1f energy=%.1f pats=%lu battles=%lu/%lu mode=%s\n", s.happy, s.energy,
-                    (unsigned long)s.pats, (unsigned long)s.battlesWon, (unsigned long)s.battlesPlayed,
+      Serial.printf("happy=%.1f energy=%.1f pats=%lu games=%lu/%lu mode=%s\n", s.happy, s.energy,
+                    (unsigned long)s.pats, (unsigned long)s.gamesWon, (unsigned long)s.gamesPlayed,
                     lumi::App::modeName(app.mode()));
     } else if (strcmp(line, "b") == 0) {
       const uint16_t mv = hal.batteryMv();

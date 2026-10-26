@@ -92,16 +92,18 @@ const Key kLonelyLook[] = {K(Worried, -14, 0, None, 300, 700), K(Worried, 14, 0,
                            K(Sad, 0, 0, None, 300, 800)};
 const Key kLowBattery[] = {KF(Sleepy, 0, 0, None, 400, 2000, kFxLowBattery)};
 
-// ---- battle ---------------------------------------------------------------
+// ---- Boop Pong ------------------------------------------------------------
 const Key kSearching[] = {KF(Neutral, -14, 0, None, 250, 600, kFxQuestion),
                           KF(Neutral, 14, 0, None, 300, 600, kFxQuestion)};
 const Key kFound[] = {K(Excited, 0, 0, Hop, 100, 900)};
-const Key kWinRound[] = {KF(Joy, 0, 0, Hop, 150, 1300, kFxSparkles)};
-const Key kWinRoundSmug[] = {K(Smug, 0, 0, None, 150, 1300)};
-const Key kLoseRound[] = {K(Sad, 0, 0, None, 200, 1300)};
-const Key kLoseRoundMad[] = {K(Angry, 0, 0, Tremble, 150, 1300)};
-const Key kDrawRound[] = {K(Confused, 0, 0, None, 200, 1300)};
-const Key kFoul[] = {KO(Worried, 0, 0, Tremble, 150, 1300, 0, kKeep, kMouthWavy)};
+const Key kWatch[] = {K(Neutral, 0, -10, None, 200, 1200), K(Neutral, -6, -10, None, 300, 900),
+                      K(Neutral, 6, -10, None, 300, 900)};
+const Key kSmash[] = {KF(Excited, 0, -4, Shake, 60, 700, kFxSpeedLines)};
+const Key kPointWon[] = {KF(Joy, 0, 0, Hop, 150, 1300, kFxSparkles)};
+const Key kPointWonSmug[] = {K(Smug, 0, 0, None, 150, 1300)};
+const Key kPointLost[] = {K(Sad, 0, 0, None, 200, 1300)};
+const Key kPointLostMad[] = {K(Angry, 0, 0, Tremble, 150, 1300)};
+const Key kWhiff[] = {KO(Worried, 0, 0, Tremble, 150, 1300, 0, kKeep, kMouthWavy)};
 const Key kWinMatch[] = {K(Excited, 0, 0, Bounce, 200, 1500), KF(Laugh, 0, 0, Hop, 200, 1500, kFxSparkles)};
 const Key kLoseMatch[] = {K(Cry, 0, 0, None, 300, 2600)};
 
@@ -172,16 +174,17 @@ const Animation kAnimations[] = {
     ANIM("lonely_look", Lonely, 0, 100, kLonelyLook),
     ANIM("low_battery", LowBattery, 0, 100, kLowBattery),
 
-    ANIM("battle_searching", BattleSearching, 0, 100, kSearching),
-    ANIM("battle_found", BattleFound, 0, 100, kFound),
-    ANIM("battle_win_round", BattleWinRound, 0, 100, kWinRound),
-    ANIM("battle_win_round_smug", BattleWinRound, 0, 100, kWinRoundSmug),
-    ANIM("battle_lose_round", BattleLoseRound, 0, 100, kLoseRound),
-    ANIM("battle_lose_round_mad", BattleLoseRound, 0, 100, kLoseRoundMad),
-    ANIM("battle_draw_round", BattleDrawRound, 0, 100, kDrawRound),
-    ANIM("battle_foul", BattleFoul, 0, 100, kFoul),
-    ANIM("battle_win_match", BattleWinMatch, 0, 100, kWinMatch),
-    ANIM("battle_lose_match", BattleLoseMatch, 0, 100, kLoseMatch),
+    ANIM("pong_searching", PongSearching, 0, 100, kSearching),
+    ANIM("pong_found", PongFound, 0, 100, kFound),
+    ANIM("pong_watch", PongWatch, 0, 100, kWatch),
+    ANIM("pong_smash", PongSmash, 0, 100, kSmash),
+    ANIM("pong_point_won", PongPointWon, 0, 100, kPointWon),
+    ANIM("pong_point_won_smug", PongPointWon, 0, 100, kPointWonSmug),
+    ANIM("pong_point_lost", PongPointLost, 0, 100, kPointLost),
+    ANIM("pong_point_lost_mad", PongPointLost, 0, 100, kPointLostMad),
+    ANIM("pong_whiff", PongWhiff, 0, 100, kWhiff),
+    ANIM("pong_win_match", PongWinMatch, 0, 100, kWinMatch),
+    ANIM("pong_lose_match", PongLoseMatch, 0, 100, kLoseMatch),
 
     ANIM("boot_hello", Boot, 0, 100, kBootHello),
     ANIM("updating", Update, 0, 100, kUpdating),
@@ -215,8 +218,8 @@ const char* triggerName(Trigger t) {
       "idle",         "pat",          "double_pat",     "pat_spam",        "shake",
       "pickup",       "put_down",     "tilt_left",      "tilt_right",      "upside_down",
       "freefall",     "wake",         "sleep",          "lonely",          "low_battery",
-      "battle_searching", "battle_found", "battle_win_round", "battle_lose_round",
-      "battle_draw_round", "battle_foul", "battle_win_match", "battle_lose_match",
+      "pong_searching", "pong_found",   "pong_watch",     "pong_smash",      "pong_point_won",
+      "pong_point_lost", "pong_whiff",  "pong_win_match", "pong_lose_match",
       "boot",         "update"};
   static_assert(sizeof(kNames) / sizeof(kNames[0]) == (int)Trigger::Count, "names");
   return (int)t < (int)Trigger::Count ? kNames[(int)t] : "?";
