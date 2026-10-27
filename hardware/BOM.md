@@ -8,7 +8,7 @@ AliExpress/Amazon numbers from late 2026, so check current listings.
 | 1 | **Seeed Studio XIAO ESP32C3** | 1 | ESP32-C3 brain + USB-C + built-in LiPo charger. Keep the little u.FL antenna that ships with it. | $5 |
 | 2 | **0.96" SSD1306 OLED, 128×64, I2C, 4-pin** (GND VCC SCL SDA) | 1 | Pick the **blue** single-colour version: it reads as cyan. Avoid the yellow/blue two-tone panels. | $3 |
 | 3 | **GY-521 MPU-6050 module** | 1 | 6-axis accelerometer + gyro. MPU-6500 clones (WHO_AM_I 0x70) work too. **Remove the power LED** (see below). | $2 |
-| 4 | **LiPo 3.7 V 500 mAh, 503030** (≈5 × 30 × 30 mm) with protection PCB | 1 | Any cell up to 30.5 × 30.5 × 5.4 mm fits. Get one with a protection board. | $4 |
+| 4 | **LiPo 3.7 V, 503030** (≈5 × 30 × 30 mm) with protection PCB | 1 | Usually sold as 450 mAh. Any cell up to 30 × 30 × 5.4 mm fits. | $4 |
 | 5 | 220 kΩ resistor | 2 | Battery-voltage divider. 0603/0805 SMD or 1/8 W through-hole. | — |
 | 6 | 30 AWG silicone or Kynar wire | ~30 cm | Point-to-point wiring | — |
 | 7 | Kapton tape, thin double-sided foam tape | — | Insulation between layers, mounting the display | — |
@@ -18,6 +18,14 @@ AliExpress/Amazon numbers from late 2026, so check current listings.
 | 11 | *(optional)* tiny slide switch | 1 | In series with battery + if you want a hard off switch for storage | — |
 
 **Total: roughly $15 per Lumi**, plus filament.
+
+### Alternative controller: ESP32-S3 SuperMini
+
+Instead of the XIAO you can use an ESP32-S3 SuperMini (~$3–5). Some versions
+(e.g. HW-747) have BAT+/BAT− pads and a built-in charger; those drop straight
+in. Versions without a charger also need a **TP4056 USB-C charger board with
+protection** (~$1) and a tiny slide switch, and the case gets 5.5 mm deeper.
+Wiring for both is in [`wiring.md`](wiring.md#alternative-esp32-s3-supermini).
 
 ## Why these parts
 

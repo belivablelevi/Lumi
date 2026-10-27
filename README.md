@@ -82,6 +82,11 @@ tools/arduino_build.sh                # compile
 tools/arduino_build.sh /dev/ttyACM0   # compile + upload
 ```
 
+Using an **ESP32-S3 SuperMini** instead of the XIAO? Build with
+`pio run -e esp32s3_supermini -t upload`, and see the S3 section of
+[`hardware/wiring.md`](hardware/wiring.md#alternative-esp32-s3-supermini) for its
+pins, power options and the matching case setting.
+
 If the XIAO doesn't show up as a serial port, hold **BOOT**, tap **RESET**,
 release **BOOT**, then upload again.
 

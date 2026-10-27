@@ -10,17 +10,25 @@
 // on the bed). Glitter / "galaxy" PLA or PETG gives the sparkly shell look.
 
 part = "assembly";  // front | back | assembly | print
+// Which controller board:
+//   "xiao"      Seeed XIAO ESP32C3 (built-in charger)
+//   "s3"        ESP32-S3 SuperMini with built-in charger (BAT+/BAT- pads)
+//   "s3_tp4056" ESP32-S3 SuperMini without a charger, plus a TP4056 USB-C
+//               charger board in its own layer (case gets 5.5 mm deeper and a
+//               second USB-C opening on the left for charging)
+board = "xiao";
+has_charger_board = board == "s3_tp4056";
 
 /* [Outer shell] */
 W = 35;            // width  (X)
 H = 37;            // height (Y)
-D = 19.5;          // total depth (Z): display | XIAO | IMU | battery
+D = has_charger_board ? 25 : 19.5;  // total depth (Z): display | board | IMU | (charger) | battery
 corner_r = 7;      // corner radius seen from the front
 edge_r = 2.4;      // rounding of the front and back edges
 wall = 1.4;
-split_z = 12.4;    // where front and back meet
+split_z = has_charger_board ? 18.5 : 12.4;  // where front and back meet
 lip = 1.6;         // depth of the overlapping lip
-lip_t = 0.9;       // lip wall thickness
+lip_t = 0.75;      // lip wall thickness (leaves 30.4 mm inside for the battery)
 fit = 0.15;        // clearance per side for the lip (tune for your printer)
 
 /* [Display: 0.96in SSD1306 module, 4-pin I2C] */
@@ -33,14 +41,18 @@ window_chamfer = 0.8;
 screen_offset_y = -1.2;       // whole display shifted down a bit from case centre
 
 /* [Electronics] */
-xiao = [21.0, 17.8, 1.2];     // Seeed XIAO ESP32C3 PCB (USB-C on the +X end)
+xiao = board == "xiao" ? [21.0, 17.8, 1.2]   // Seeed XIAO ESP32C3 PCB (USB-C on the +X end)
+                       : [22.6, 18.0, 1.2];  // ESP32-S3 SuperMini PCB
 xiao_y = 3.5;                 // centre of the XIAO in Y (clears the inner corner fillet)
 xiao_z = 5.1;                 // front of the XIAO PCB (display stack + 1 mm for wires)
 usb = [9.4, 3.6];             // USB-C opening (Y height x Z thickness of the plug face)
 usb_z = 7.9;                  // centre of the USB-C receptacle in Z
-battery = [30.5, 30.5, 5.4];  // 503030 LiPo pouch, 500 mAh
+battery = [30.2, 30.2, 5.4];  // 503030 LiPo pouch (nominal 30 x 30 x 5 mm)
 imu = [20.5, 15.5, 2.6];      // GY-521 MPU-6050 board, no header, lies behind the XIAO
 imu_z = 9.7;
+charger = [27.0, 17.2, 1.6];  // TP4056 USB-C charger board (s3_tp4056 only); USB-C on its -X end
+charger_z = imu_z + imu[2] + 0.4;
+charger_usb_z = charger_z + charger[2] + 1.6;
 
 /* [Keyring bail] */
 bail_w = 10;
@@ -99,6 +111,10 @@ module whole_case() {
     // USB-C opening on the right side
     translate([W / 2 - wall / 2, xiao_y, usb_z]) rotate([0, 90, 0])
       linear_extrude(wall + 2, center = true) rounded_rect(usb[1] + 0.6, usb[0] + 0.6, (usb[1] + 0.6) / 2 - 0.01);
+    // charging port of the TP4056 board on the left side
+    if (has_charger_board)
+      translate([-W / 2 + wall / 2, 0, charger_usb_z]) rotate([0, 90, 0])
+        linear_extrude(wall + 2, center = true) rounded_rect(usb[1] + 0.6, usb[0] + 0.6, (usb[1] + 0.6) / 2 - 0.01);
   }
 }
 
@@ -180,6 +196,10 @@ module components() {
   color("steelblue") translate([W / 2 - wall - xiao[0] / 2 - 0.3, xiao_y, xiao_z + xiao[2] / 2]) cube(xiao, center = true);
   color("silver") translate([W / 2 - wall - 3.5, xiao_y, usb_z]) cube([7.4, 8.9, 3.2], center = true);
   color("purple") translate([0, 0, imu_z + imu[2] / 2]) cube(imu, center = true);
+  if (has_charger_board) {
+    color("darkgreen") translate([-W / 2 + wall + charger[0] / 2 + 0.3, 0, charger_z + charger[2] / 2]) cube(charger, center = true);
+    color("silver") translate([-W / 2 + wall + 3.5, 0, charger_usb_z]) cube([7.4, 8.9, 3.2], center = true);
+  }
   color("orange") translate([0, 0, D - wall - battery[2] / 2 - 0.2]) cube(battery, center = true);
 }
 

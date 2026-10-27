@@ -54,3 +54,36 @@ command prints live values to check against:
 | hanging from its keyring | `y = +1` |
 | lying face-up on a table | `z = +1` |
 | with its right side down | `x = −1` |
+
+## Alternative: ESP32-S3 SuperMini
+
+The firmware picks these pins automatically when built for the S3
+(`pio run -e esp32s3_supermini -t upload`). The board's silkscreen shows
+GPIO numbers.
+
+| S3 SuperMini | To | Notes |
+|---|---|---|
+| **3V3** | OLED **VCC**, GY-521 **VCC** | |
+| **GND** | OLED **GND**, GY-521 **GND**, divider bottom | |
+| **GPIO5** | OLED **SDA**, GY-521 **SDA** | I2C data |
+| **GPIO6** | OLED **SCL**, GY-521 **SCL** | I2C clock |
+| **GPIO4** | GY-521 **INT** | Wake-on-motion. Must be GPIO0–21 (RTC pins). |
+| **GPIO1** | Middle of the 220k + 220k divider from battery + | Battery voltage |
+
+Avoid GPIO0, 3, 45 and 46 (strapping pins) and GPIO48 (the RGB LED).
+
+**Power, depending on your board:**
+
+- **Board with BAT+ / BAT− pads (built-in charger, e.g. HW-747):** solder
+  the LiPo to those pads, exactly like the XIAO. Charging is through the
+  board's own USB-C. Print `stl/lumi_front_s3.stl` + `lumi_back_s3.stl` (`board="s3"`).
+- **Board without a charger:** add a TP4056 USB-C charger board with
+  protection. LiPo → TP4056 **B+ / B−**; TP4056 **OUT+** → slide switch →
+  SuperMini **5V** pin; **OUT−** → **GND**. Take the divider from **B+**.
+  Charge through the TP4056's USB-C. **Turn the switch off before plugging
+  USB into the SuperMini itself** (for flashing): otherwise its USB 5 V can
+  feed back into the battery. Day to day, use Wi-Fi updates instead. Build
+  `stl/lumi_front_s3_tp4056.stl` + `lumi_back_s3_tp4056.stl` (`board="s3_tp4056"`).
+
+Most S3 SuperMinis have an always-on power LED; remove it for decent
+standby time, just like the GY-521's.

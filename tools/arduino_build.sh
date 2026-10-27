@@ -3,6 +3,8 @@
 #
 #   tools/arduino_build.sh                 # compile
 #   tools/arduino_build.sh /dev/ttyACM0    # compile + upload
+#   LUMI_FQBN=esp32:esp32:esp32s3:CDCOnBoot=cdc,FlashSize=4M,PartitionScheme=default \
+#     tools/arduino_build.sh               # ESP32-S3 SuperMini
 #
 # Needs arduino-cli with the ESP32 core installed:
 #   arduino-cli config add board_manager.additional_urls \
@@ -28,9 +30,9 @@ EOF
 "$CLI" compile --fqbn "$FQBN" \
   --library "$ROOT/firmware/lib/lumi_core" \
   --build-property "compiler.cpp.extra_flags=-std=gnu++17 -Wall -Wextra" \
-  --output-dir "$ROOT/build/arduino/out" \
+  --output-dir "${LUMI_OUT:-$ROOT/build/arduino/out}" \
   "$SKETCH"
 
 if [[ $# -ge 1 ]]; then
-  "$CLI" upload --fqbn "$FQBN" -p "$1" --input-dir "$ROOT/build/arduino/out" "$SKETCH"
+  "$CLI" upload --fqbn "$FQBN" -p "$1" --input-dir "${LUMI_OUT:-$ROOT/build/arduino/out}" "$SKETCH"
 fi

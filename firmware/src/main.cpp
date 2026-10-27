@@ -9,6 +9,9 @@
 #include <esp_now.h>
 #include <esp_sleep.h>
 #include <esp_wifi.h>
+#if defined(CONFIG_IDF_TARGET_ESP32S3)
+#include <driver/rtc_io.h>
+#endif
 #include <time.h>
 
 #include "app.h"
@@ -228,7 +231,15 @@ static void remap(const AccelSample& s, float& x, float& y, float& z) {
   if (displayOk) display.power(false);
   if (imuOk) imu.enterMotionWake(LUMI_WAKE_THRESHOLD, LUMI_WAKE_DURATION_MS);
   time(&gSleptAt);
+#if defined(CONFIG_IDF_TARGET_ESP32S3)
+  // The S3 wakes through the RTC controller (EXT1); hold INT low if the IMU
+  // is missing so a floating pin can't wake it.
+  rtc_gpio_pullup_dis((gpio_num_t)LUMI_PIN_IMU_INT);
+  rtc_gpio_pulldown_en((gpio_num_t)LUMI_PIN_IMU_INT);
+  esp_sleep_enable_ext1_wakeup(1ULL << LUMI_PIN_IMU_INT, ESP_EXT1_WAKEUP_ANY_HIGH);
+#else
   esp_deep_sleep_enable_gpio_wakeup(1ULL << LUMI_PIN_IMU_INT, ESP_GPIO_WAKEUP_GPIO_HIGH);
+#endif
   esp_deep_sleep_start();
   for (;;) {
   }
@@ -295,7 +306,8 @@ void setup() {
 
   lumi::WakeReason why = lumi::WakeReason::PowerOn;
   uint32_t slept = 0;
-  if (esp_sleep_get_wakeup_cause() == ESP_SLEEP_WAKEUP_GPIO) {
+  const esp_sleep_wakeup_cause_t cause = esp_sleep_get_wakeup_cause();
+  if (cause == ESP_SLEEP_WAKEUP_GPIO || cause == ESP_SLEEP_WAKEUP_EXT1) {
     why = lumi::WakeReason::Motion;
     const time_t now = time(nullptr);
     slept = now > gSleptAt ? (uint32_t)(now - gSleptAt) : 0;

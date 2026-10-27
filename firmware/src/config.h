@@ -1,13 +1,24 @@
 // Board wiring and tuning. Defaults match the reference build in
-// hardware/wiring.md (Seeed Studio XIAO ESP32C3 + SSD1306 + MPU-6050).
+// hardware/wiring.md (Seeed Studio XIAO ESP32C3 + SSD1306 + MPU-6050), and
+// the ESP32-S3 SuperMini alternative when built for an ESP32-S3.
 #pragma once
 
+#if defined(CONFIG_IDF_TARGET_ESP32S3)
+// ---- Pins (ESP32-S3 SuperMini; the silkscreen shows GPIO numbers) ----------
+// Avoids the S3 strapping pins (0, 3, 45, 46) and the RGB LED on GPIO48.
+#define LUMI_PIN_SDA 5
+#define LUMI_PIN_SCL 6
+#define LUMI_PIN_IMU_INT 4   // Must be an RTC GPIO (0..21) to wake the S3 from deep sleep.
+#define LUMI_PIN_BATTERY 1   // battery+ through a 1:2 divider (2 x 220k); ADC1
+#define LUMI_PIN_USB_SENSE -1  // optional: VBUS through 100k/100k divider to GPIO2; -1 = not fitted
+#else
 // ---- Pins (XIAO ESP32C3 silkscreen names in comments) ----------------------
 #define LUMI_PIN_SDA 6       // D4
 #define LUMI_PIN_SCL 7       // D5
 #define LUMI_PIN_IMU_INT 3   // D1. Must be GPIO0..5: only those can wake the C3 from deep sleep.
 #define LUMI_PIN_BATTERY 4   // D2, battery+ through a 1:2 divider (2 x 220k)
 #define LUMI_PIN_USB_SENSE -1  // optional: VBUS through 100k/100k divider; -1 = not fitted
+#endif
 
 #define LUMI_BATTERY_DIVIDER 2.0f
 #define LUMI_I2C_HZ 400000
