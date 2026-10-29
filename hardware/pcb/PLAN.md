@@ -27,7 +27,7 @@ Side effects of one integrated board:
 | Block | Part (first choice) | Why | ≈ Unit cost |
 |---|---|---|---|
 | Brain + radio | **ESP32-C3-MINI-1-N4** module (LCSC C2838502) | Same chip as today, so the firmware barely changes. It's **pre-certified for radio**; see "Certification" below. 13.2 × 16.6 mm. | $2.0–3.0 |
-| Motion sensor | **LIS2DH12**, or the cheaper **SC7A20** clone | Lumi only uses the accelerometer (the gyro is switched off in `firmware/src/imu.cpp`). These cost a fraction of an MPU-6050, which is end-of-life. Each has a 32-sample FIFO and a motion-wake interrupt, which is what pats and wake-on-pickup need. | $0.15–0.6 |
+| Motion sensor | **LIS2DH12** (SC7A20 is a later cost-down option) | Lumi only uses the accelerometer (the gyro is switched off in `firmware/src/imu.cpp`). These cost a fraction of an MPU-6050, which is end-of-life. Each has a 32-sample FIFO and a motion-wake interrupt, which is what pats and wake-on-pickup need. | $0.15–0.6 |
 | Screen | **Bare 0.96" 128×64 SSD1306 panel** with a 30-pin FPC, on a 0.5 mm FPC connector | The same panel as the module, without the module's board. We add its few capacitors ourselves. | $1.0–1.5 |
 | Charging | **TP4054** linear LiPo charger, set to ≈250 mA | Tiny, a few cents, plenty for a 500 mAh cell. | $0.05 |
 | Battery protection | Use a cell **with its own protection board**; leave footprints for DW01A + FS8205A | Cheapest safe option. The footprints let us add protection later if the cell supplier changes. | $0–0.10 |
@@ -36,6 +36,7 @@ Side effects of one integrated board:
 | Battery level | 1 MΩ + 1 MΩ divider with 100 nF to ADC | Today's 220 kΩ pair wastes ~9 µA all the time. 1 MΩ cuts that to ~2 µA. | <$0.01 |
 | Charging sense | VBUS divider to a GPIO | So the battery screen can say "charging". It's optional on today's build and free on a PCB. | <$0.01 |
 | Buttons | **None on the outside.** Pads for BOOT (GPIO9) and EN for recovery only | Lumi stays button-free. The pads let the factory or you recover a bricked unit. | – |
+| Power switch | Tiny SPDT slide switch on battery + | For storage and shipping; see Decisions. | $0.05 |
 | Battery connector | JST-SH 2-pin, or solder pads | Pads are cheapest. A connector makes assembly and repair easier. | $0–0.05 |
 
 Estimated parts: **≈ $4–6 per unit at 1,000**. JLCPCB assembly adds setup
@@ -156,16 +157,13 @@ experienced human review before the first order is worth the cost.
   $1 per unit. It needs its own radio certification, typically
   $5,000–15,000, so it only pays off well above ~10,000 units.
 
-## Open questions for you
+## Decisions
 
-1. **Case:** keep the 35 × 37 mm front and go to ~12.5 mm thick? Or
-   shrink the front too?
-2. **Battery:** keep the 500 mAh 503030 cell? A thinner 402030 (≈250 mAh)
-   would allow ~10 mm, at about half the battery life.
-3. **Power switch** for storage and shipping: none (deep sleep only), or
-   a tiny slide switch?
-4. **Accelerometer:** LIS2DH12 (ST, well documented) or SC7A20 (cheaper,
-   less documentation)?
+| Question | Decision |
+|---|---|
+| Case | Keep the **35 × 37 mm front**, about **12.5 mm thick**, with the same 500 mAh 503030 cell |
+| Power switch | A **tiny slide switch** (SPDT, e.g. MSK-12C02 class) in series with battery +, for storage and shipping. The case gets a small slot. Charging still works with it off, because the charger sits before the switch. |
+| Motion sensor | **LIS2DH12** for the first boards. SC7A20 may be tried later as a cost-down, since it's register-compatible. |
 
 ## Sources
 
