@@ -105,3 +105,5 @@ Plug in USB and open a serial monitor at 115200 baud
 | `m` | mood, energy, lifetime stats |
 | `b` | battery voltage |
 | `s` | sleep now |
+| `id` | MAC, firmware version, name, rarity, and whether the persona is automatic or assigned |
+| `persona …` | used by Lumi Studio to provision a unit (see [studio.md](studio.md)) |

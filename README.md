@@ -37,6 +37,22 @@ Menu, battery, update and Boop Pong screens:
 A scripted session: boot, pats, shake, menu, a full Boop Pong match, falling asleep
 ([tour.gif](docs/previews/tour.gif)).
 
+## Every Lumi is one of a kind
+
+Each unit has its own eyes, highlight, accent and temperament: 108,000
+combinations, with common, uncommon, rare and legendary units. A unit gets
+its personality automatically from its chip ID. Makers can also assign
+one at the factory with **Lumi Studio**, a desktop app (Windows, macOS,
+Linux) for:
+
+- designing new faces and animations,
+- generating batches of unique units with a rarity mix you choose,
+- writing each unit's persona over USB and recording it in a manifest.
+
+See [docs/studio.md](docs/studio.md).
+
+![units](docs/previews/studio/cards-sheet.png)
+
 ## Repository layout
 
 ```
@@ -45,7 +61,10 @@ firmware/
   src/                      hardware glue: main.cpp, OLED + IMU drivers, config.h (pins & tuning)
   lib/lumi_core/src/        portable brain, no Arduino dependencies:
     face.*                    parametric face renderer + 29 expressions
-    animations.*              64 animations (data tables; add your own here)
+    animations.*              64 animations (data tables; add your own here or in Lumi Studio)
+    genes.*                   per-unit looks, temperament and rarity
+    pack.*                    emotion packs: custom faces, animations and a persona
+    serial_cmd.*              USB provisioning protocol
     animator.*                tweening, blinking, eye darts, motion layers
     gestures.*                pat / shake / tilt / pickup / freefall detection
     mood.h                    happiness + energy, persisted across deep sleep
@@ -58,10 +77,12 @@ hardware/
 docs/
   using-lumi.md             gestures, mood, menu, Boop Pong, OTA, serial console
   assembly.md               build guide + first-power-up checklist
+  studio.md                 Lumi Studio guide for makers
   previews/                 rendered images
 tests/                      desktop tests for the core (make -C tests)
 tools/
   sim/                      desktop simulator → PNG/GIF previews
+  studio/                   Lumi Studio desktop app (PySide6) + liblumicore C API + virtual Lumi
   arduino_build.sh          build with arduino-cli / Arduino IDE instead of PlatformIO
 ```
 
@@ -95,7 +116,7 @@ release **BOOT**, then upload again.
 The behaviour runs on your computer exactly as it does on the device:
 
 ```sh
-make -C tests                         # 643 checks: gestures, pong protocol, animations, app flows
+make -C tests                         # 819 checks: gestures, pong, animations, genes, packs, app flows
 python3 tools/sim/make_previews.py    # re-render docs/previews (needs Pillow)
 python3 tools/sim/make_previews.py --all-gifs   # one GIF per animation in build/sim/gifs
 ```
@@ -128,11 +149,14 @@ plus a table row saying which gesture triggers it and in which mood range.
 
 ## Status
 
-- ✅ Core logic: 643 automated checks pass (ASan/UBSan clean), including
+- ✅ Core logic: 819 automated checks pass (ASan/UBSan clean), including
   two simulated Lumis playing complete Boop Pong matches through their menus.
-- ✅ Firmware compiles and links for the ESP32-C3 (Arduino core 2.0.17,
-  `-Wall -Wextra`, no warnings in Lumi's code): 816 KB flash (62% of an OTA
-  slot), 43 KB RAM.
+- ✅ Lumi Studio: 13 tests drive every tab offscreen and provision a virtual
+  Lumi end to end. The packaged Linux app was built and started here. CI
+  builds Windows and macOS too, but they haven't been tried by a person yet.
+- ✅ Firmware compiles and links for the ESP32-C3 and ESP32-S3 (Arduino core
+  2.0.17, `-Wall -Wextra`, no warnings in Lumi's code). On the C3 it uses
+  812 KB of flash (63% of an OTA slot) and 87 KB of RAM.
 - ✅ Case renders to valid STLs at 35 × 37 mm.
 - ⚠️ **Not yet tested on real hardware.** Expect to tune the IMU axis map,
   tap threshold and wake sensitivity once it's built (see the checklist in

@@ -16,6 +16,9 @@ jobs:
 
   firmware:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        env: [xiao_esp32c3, esp32s3_supermini]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -27,8 +30,73 @@ jobs:
           key: pio-${{ hashFiles('firmware/platformio.ini') }}
       - run: pip install platformio
       - name: Build firmware
-        run: pio run -d firmware -e xiao_esp32c3
+        run: pio run -d firmware -e ${{ matrix.env }}
       - uses: actions/upload-artifact@v4
         with:
-          name: lumi-firmware
-          path: firmware/.pio/build/xiao_esp32c3/firmware.bin
+          name: lumi-firmware-${{ matrix.env }}
+          path: firmware/.pio/build/${{ matrix.env }}/firmware.bin
+
+  studio-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Qt runtime libraries
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libxkbcommon0 libfontconfig1 libdbus-1-3
+      - name: Build liblumicore and virtual_lumi
+        run: |
+          cmake -S tools/studio -B build/studio -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/studio -j4
+      - run: pip install -r tools/studio/requirements.txt pytest
+      - name: Studio tests (offscreen)
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: python -m pytest tools/studio/tests -q
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: studio-screens
+          path: build/studio/screens
+
+  studio-app:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Qt runtime libraries
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libxkbcommon0 libfontconfig1 libdbus-1-3
+      - name: Build liblumicore
+        run: |
+          cmake -S tools/studio -B build/studio -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/studio --config Release -j4
+      - run: pip install -r tools/studio/requirements.txt pyinstaller
+      - name: Package
+        run: python tools/studio/package.py
+      - name: Smoke test the packaged app
+        env:
+          QT_QPA_PLATFORM: offscreen
+          LUMI_STUDIO_SMOKE: ${{ github.workspace }}/build/studio/smoke.png
+        run: |
+          ls -la build/studio/dist
+          if [ "$RUNNER_OS" = "Windows" ]; then exe=build/studio/dist/LumiStudio.exe; else exe=build/studio/dist/LumiStudio; fi
+          "$exe"
+          test -s build/studio/smoke.png
+      - name: Zip the macOS app
+        if: runner.os == 'macOS'
+        run: cd build/studio/dist && ditto -c -k --keepParent LumiStudio.app LumiStudio-macOS.zip && rm -rf LumiStudio.app
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LumiStudio-${{ runner.os }}
+          path: build/studio/dist
