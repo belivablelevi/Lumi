@@ -13,6 +13,10 @@ jobs:
         run: make -C tests
       - name: Simulator smoke run
         run: make -C tools/sim run
+      - name: Website Boop Pong harness (native)
+        run: make -C tools/web-duel test
+      - name: Website Boop Pong builds to WebAssembly
+        run: tools/web-duel/build.sh
 
   firmware:
     runs-on: ubuntu-latest

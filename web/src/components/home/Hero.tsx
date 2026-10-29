@@ -64,7 +64,8 @@ export function Hero({ units, statusLabel }: { units: [HeroUnit, HeroUnit, HeroU
               variants={{ hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0, transition: { duration: duration.slow, ease } } }}
               className="mt-6 max-w-md text-lead text-ink-soft"
             >
-              Meet the tiny digital companions that bring a little more life to your keys and your desk.
+              Meet the tiny digital companions that bring a little more life to your keys and your desk. Every one has a
+              personality all its own: no two Lumis are alike.
             </motion.p>
             <motion.div
               variants={{ hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0, transition: { duration: duration.slow, ease } } }}

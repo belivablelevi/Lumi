@@ -2,25 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "motion/react";
-import { loadFrames, manifest } from "@/lib/lumi-frames";
+import { drawFrame, loadFrames, manifest } from "@/lib/lumi-frames";
 
 const SCALE = 4; // canvas pixels per OLED pixel (3 lit + 1 gap)
-const ON = "#3cf0ff";
 
 function draw(ctx: CanvasRenderingContext2D, frame: Uint8Array | undefined, grid: boolean) {
-  const size = grid ? SCALE - 1 : SCALE;
-  ctx.clearRect(0, 0, 128 * SCALE, 64 * SCALE);
-  if (!frame) return;
-  ctx.fillStyle = ON;
-  for (let page = 0; page < 8; page++) {
-    for (let x = 0; x < 128; x++) {
-      const bits = frame[page * 128 + x] ?? 0;
-      if (!bits) continue;
-      for (let b = 0; b < 8; b++) {
-        if (bits & (1 << b)) ctx.fillRect(x * SCALE, (page * 8 + b) * SCALE, size, size);
-      }
-    }
-  }
+  drawFrame(ctx, frame, SCALE, grid);
 }
 
 export interface OledScreenProps {

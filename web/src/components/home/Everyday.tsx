@@ -47,6 +47,7 @@ export function Everyday({ keyring, side }: { keyring: GalleryImage; side: Galle
             <figcaption className="p-6 pt-0">
               <p className="font-bold">Play with a friend</p>
               <p className="text-sm text-white/70">Boop Pong: hold two Lumis near each other and tilt to move your paddle.</p>
+              <a href="#boop-pong" className="mt-2 inline-block text-sm font-bold text-oled underline underline-offset-4">Try it here</a>
             </figcaption>
           </figure>
         </Reveal>

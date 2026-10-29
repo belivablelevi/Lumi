@@ -14,6 +14,7 @@ import { SectionHeading, Tbc } from "@/components/ui/Section";
 import { Reveal } from "@/components/ui/Reveal";
 import { OledScreen } from "@/components/lumi/OledScreen";
 import { renderImage } from "@/lib/renders";
+import { PongSection } from "@/components/pong/PongSection";
 
 export function generateStaticParams() {
   return listedProducts().map((p) => ({ slug: p.slug }));
@@ -129,6 +130,8 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
             <SectionHeading id="action-title" eyebrow="See it in action" title="Twenty-nine faces, one personality." className="mb-10" />
             <ExpressionCycler personaIds={product.personas} />
           </section>
+
+          <PongSection compact />
         </>
       ) : null}
 
