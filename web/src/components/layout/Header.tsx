@@ -56,7 +56,8 @@ export function Header() {
       ref={headerRef}
       className={clsx(
         "sticky top-0 z-40 transition-[background-color,box-shadow,backdrop-filter] duration-300",
-        scrolled || menu ? "bg-cloud/85 shadow-[0_1px_0_var(--color-line)] backdrop-blur-xl" : "bg-transparent",
+        // No backdrop blur while the menu is open: a filter would trap the fixed-position menu inside the header.
+        menu ? "bg-cloud shadow-[0_1px_0_var(--color-line)]" : scrolled ? "bg-cloud/85 shadow-[0_1px_0_var(--color-line)] backdrop-blur-xl" : "bg-transparent",
       )}
     >
       <div className={clsx("container-page flex items-center justify-between gap-4 transition-[height] duration-300", scrolled ? "h-16" : "h-20")}>

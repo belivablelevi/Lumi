@@ -69,7 +69,7 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
     <>
       {jsonLd && !product.demo ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} /> : null}
       <section className="container-page grid gap-10 pt-6 pb-16 lg:grid-cols-[1.1fr_1fr] lg:gap-16 lg:pt-10">
-        <div className="lg:sticky lg:top-24 lg:self-start">
+        <div className="min-w-0 lg:sticky lg:top-24 lg:self-start">
           {product.images.length ? (
             <Gallery images={product.images} personaId={product.personas[0]} name={product.name} />
           ) : (
@@ -102,7 +102,7 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
               <SectionHeading id="own-title" eyebrow="A personality all its own" title="Every Lumi is one of a kind."
                 lead="Each unit is made with its own combination of traits. There are 108,000 combinations, and the rarer ones are, well, rarer." />
               <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_1.4fr]">
-                <dl className="divide-y divide-line rounded-card bg-cloud ring-1 ring-line">
+                <dl className="self-start divide-y divide-line rounded-card bg-cloud ring-1 ring-line">
                   {GENES.map(([k, v]) => (
                     <div key={k} className="grid grid-cols-[7rem_1fr] gap-4 px-5 py-3.5 text-[0.9375rem]">
                       <dt className="font-bold">{k}</dt>

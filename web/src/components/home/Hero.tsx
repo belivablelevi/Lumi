@@ -79,14 +79,14 @@ export function Hero({ units, statusLabel }: { units: [HeroUnit, HeroUnit, HeroU
             </motion.div>
           </motion.div>
 
-          <div className="relative mx-auto aspect-[1.1] w-full max-w-[600px]" aria-label="Three example Lumis">
-            <Floating delay={0.25} className="absolute top-[4%] left-[-2%] w-[40%]">
+          <div className="relative mx-auto aspect-[1.05] w-full max-w-[600px] sm:aspect-[1.1]" aria-label="Three example Lumis">
+            <Floating delay={0.25} className="absolute top-[2%] left-[-4%] w-[44%] sm:left-[-2%] sm:w-[40%]">
               <DeviceFrame image={left.image} src={persona(left.persona).idle.file} label={`${persona(left.persona).name}, idling`} sizes="240px" />
             </Floating>
-            <Floating delay={0.35} className="absolute top-[0%] right-[-2%] w-[38%]">
+            <Floating delay={0.35} className="absolute top-[-2%] right-[-4%] w-[42%] sm:top-[0%] sm:right-[-2%] sm:w-[38%]">
               <DeviceFrame image={right.image} src={persona(right.persona).idle.file} label={`${persona(right.persona).name}, idling`} sizes="240px" />
             </Floating>
-            <Floating delay={0.1} className="absolute bottom-[4%] left-1/2 w-[60%] -translate-x-1/2">
+            <Floating delay={0.1} className="absolute bottom-[0%] left-1/2 w-[68%] -translate-x-1/2 sm:bottom-[4%] sm:w-[60%]">
               <DeviceFrame image={main.image} src={persona(main.persona).idle.file} label={`${persona(main.persona).name}, idling`} priority sizes="(min-width: 1024px) 360px, 60vw" />
             </Floating>
             <motion.div

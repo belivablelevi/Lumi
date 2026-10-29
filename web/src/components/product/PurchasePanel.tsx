@@ -22,7 +22,7 @@ export function PurchasePanel({ product }: { product: Product }) {
   const v = product.variants.find((x) => x.id === variant);
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       <div>
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge status={product.status} />
