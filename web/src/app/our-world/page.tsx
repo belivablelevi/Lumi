@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Our World", description: "The idea b
 const IDEAS = [
   { title: "Expressive first", text: "A Lumi's face is its whole personality. Twenty-nine expressions blend into each other, with blinks and little glances on top, so it never looks frozen." },
   { title: "No buttons, no apps", text: "You talk to a Lumi with your hands. A pat, a shake, a tilt, picking it up. It answers right away." },
-  { title: "One of a kind", text: "Every Lumi is made with its own eyes, glint, accent and temperament. Some combinations are rare, and a few are legendary." },
+  { title: "One of a kind", text: "Every Lumi gets its own eyes, glint, accent and temperament at random. No two are the same, which one you get is down to luck, and a few are legendary." },
   { title: "Better together", text: "Two Lumis can play Boop Pong: classic Pong across two little screens, steered by tilting." },
 ];
 

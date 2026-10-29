@@ -80,7 +80,7 @@ export const products: Product[] = [
     personality: "Feels every pat and shake, and no two are quite alike.",
     description: [
       "Pocket Lumi is a keychain companion with a glowing 0.96-inch screen for a face. It notices when you pat it, shake it, tilt it or pick it up, and it answers with one of 64 little animations.",
-      "Every unit is made with its own look and temperament: the shape of its eyes, the glint in them, a little accent, and whether it's cheerful, sleepy, shy, grumpy or hyper. You meet yours when it arrives.",
+      "Which Lumi you get is pure luck. The shape of its eyes, the glint in them, a little accent, and whether it's cheerful, sleepy, shy, grumpy or hyper are all picked at random when it's made, and no two are the same. You meet yours when it arrives.",
     ],
     price: tbc("Retail price in CAD"),
     variants: [],
@@ -117,7 +117,7 @@ export const products: Product[] = [
     faq: [
       {
         q: "Can I choose my Lumi's personality?",
-        a: "Each unit's look and temperament are set when it's made. You meet yours when it arrives.",
+        a: "No, and that's half the fun. Every Lumi's look and temperament are picked at random when it's made, and no two are the same. You find out who you got when it arrives.",
       },
       {
         q: "What does it do when I'm not playing with it?",

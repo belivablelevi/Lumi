@@ -36,7 +36,7 @@ export default function Home() {
             id="meet-title"
             eyebrow="Meet the Lumis"
             title="No two are quite alike."
-            lead="Every Pocket Lumi is made with its own eyes, sparkle and temperament. Here are a few we made earlier."
+            lead="Every Pocket Lumi gets its own eyes, sparkle and temperament at random, so which one you get is pure luck. Here are a few we made earlier."
           />
           <ButtonLink href="/shop" variant="outline" className="shrink-0">Shop all</ButtonLink>
         </div>
@@ -48,7 +48,7 @@ export default function Home() {
           ))}
         </div>
         <p className="mt-5 text-sm text-muted">
-          These are example units. Yours will be one of a kind, with its own look and temperament.
+          These are example units. Yours is a surprise: one of a kind, and down to luck.
         </p>
       </section>
 

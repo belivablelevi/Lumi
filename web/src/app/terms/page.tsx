@@ -12,7 +12,7 @@ export default function Page() {
         { heading: "Who we are", note: "business name and contact details." },
         { heading: "Orders and pricing", note: "prices in CAD, taxes, when a contract is formed." },
         { heading: "Pre-orders", note: "what a pre-order is, payment timing, dispatch estimates, cancellation, delays." },
-        { heading: "Personalities", note: "each unit's look and temperament are assigned when it's made." },
+        { heading: "Personalities", note: "each unit's look and temperament are picked at random when it's made; customers can't choose or swap them." },
         { heading: "Warranty", note: "warranty terms and statutory rights." },
         { heading: "Liability", note: "limits of liability as permitted by law." },
         { heading: "Governing law", note: "the province whose laws apply." },

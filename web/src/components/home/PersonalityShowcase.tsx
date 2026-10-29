@@ -25,7 +25,7 @@ export function PersonalityShowcase() {
             id="kind-title"
             eyebrow="Personality"
             title="Find your kind of Lumi."
-            lead="Every Lumi has the same 64 animations, but its own eyes and temperament change how they feel. Pick a mood and an example unit."
+            lead="Every Lumi has the same 64 animations, but the eyes and temperament it gets by luck change how they feel. Pick a mood and an example unit."
           />
           <fieldset className="mt-8">
             <legend className="text-sm font-bold text-ink">Mood</legend>

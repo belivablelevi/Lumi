@@ -100,7 +100,7 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
           <section className="bg-white py-16 lg:py-20" aria-labelledby="own-title">
             <div className="container-page">
               <SectionHeading id="own-title" eyebrow="A personality all its own" title="Every Lumi is one of a kind."
-                lead="Each unit is made with its own combination of traits. There are 108,000 combinations, and the rarer ones are, well, rarer." />
+                lead="When a Lumi is made, its traits are picked at random from 108,000 combinations, and no two units are the same. Rarer traits come up less often, so a legendary Lumi is a lucky find." />
               <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_1.4fr]">
                 <dl className="self-start divide-y divide-line rounded-card bg-cloud ring-1 ring-line">
                   {GENES.map(([k, v]) => (

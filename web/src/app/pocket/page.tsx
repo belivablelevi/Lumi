@@ -20,7 +20,7 @@ export default function PocketPage() {
       </section>
       {first ? (
         <section className="container-page py-16" aria-labelledby="examples-title">
-          <SectionHeading id="examples-title" eyebrow="Example units" title="Every one is different." lead="Here are four Pocket Lumis and their personalities. Yours will be its own." />
+          <SectionHeading id="examples-title" eyebrow="Example units" title="Every one is different." lead="Here are four Pocket Lumis and their personalities. Which one you get is luck, and yours will be its own." />
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {personaStories.map((s) => (
               <CharacterCard key={s.id} personaId={s.id} line={s.line} shell={s.shell} image={renderImage(s.render)} product={first} />
