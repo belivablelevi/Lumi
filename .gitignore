@@ -1,0 +1,6 @@
+build/
+tests/build/
+firmware/.pio/
+.vscode/
+__pycache__/
+*.pyc

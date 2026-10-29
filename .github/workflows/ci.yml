@@ -1,0 +1,137 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  core-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Desktop tests (ASan/UBSan)
+        run: make -C tests
+      - name: Simulator smoke run
+        run: make -C tools/sim run
+
+  firmware:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        env: [xiao_esp32c3, esp32s3_supermini]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: pio-${{ hashFiles('firmware/platformio.ini') }}
+      - run: pip install platformio
+      - name: Build firmware
+        run: pio run -d firmware -e ${{ matrix.env }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lumi-firmware-${{ matrix.env }}
+          path: firmware/.pio/build/${{ matrix.env }}/firmware.bin
+
+  studio-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Qt runtime libraries
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libxkbcommon0 libfontconfig1 libdbus-1-3
+      - name: Build liblumicore and virtual_lumi
+        run: |
+          cmake -S tools/studio -B build/studio -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/studio -j4
+      - run: pip install -r tools/studio/requirements.txt pytest
+      - name: Studio tests (offscreen)
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: python -m pytest tools/studio/tests -q
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: studio-screens
+          path: build/studio/screens
+
+  studio-app:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Qt runtime libraries
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libxkbcommon0 libfontconfig1 libdbus-1-3
+      - name: Build liblumicore
+        run: |
+          cmake -S tools/studio -B build/studio -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/studio --config Release -j4
+      - run: pip install -r tools/studio/requirements.txt pyinstaller
+      - name: Package
+        run: python tools/studio/package.py
+      - name: Smoke test the packaged app
+        env:
+          QT_QPA_PLATFORM: offscreen
+          LUMI_STUDIO_SMOKE: ${{ github.workspace }}/build/studio/smoke.png
+        run: |
+          ls -la build/studio/dist
+          if [ "$RUNNER_OS" = "Windows" ]; then exe=build/studio/dist/LumiStudio.exe; else exe=build/studio/dist/LumiStudio; fi
+          "$exe"
+          test -s build/studio/smoke.png
+      - name: Zip the macOS app
+        if: runner.os == 'macOS'
+        run: cd build/studio/dist && ditto -c -k --keepParent LumiStudio.app LumiStudio-macOS.zip && rm -rf LumiStudio.app
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LumiStudio-${{ runner.os }}
+          path: build/studio/dist
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - name: Build (catalogue as shipped)
+        run: npx next build
+        env:
+          NEXT_DIST_DIR: .next-e2e-site
+      - name: Build (demo catalogue)
+        run: npx next build
+        env:
+          NEXT_DIST_DIR: .next-e2e-demo
+          LUMI_DEMO_CATALOGUE: "1"
+          STRIPE_SECRET_KEY: sk_test_e2e_fake
+          STRIPE_WEBHOOK_SECRET: whsec_e2e_fake
+          SUPABASE_URL: http://127.0.0.1:9
+          SUPABASE_SERVICE_ROLE_KEY: e2e-fake
+      - run: npx playwright install --with-deps chromium
+      - name: Browser tests
+        run: |
+          E2E_MODE=site npx playwright test
+          E2E_MODE=demo npx playwright test

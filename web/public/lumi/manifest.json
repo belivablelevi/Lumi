@@ -1,0 +1,479 @@
+{
+ "frameMs": 33,
+ "width": 128,
+ "height": 64,
+ "core": "1.2.0",
+ "expressions": [
+  "neutral",
+  "happy",
+  "joy",
+  "love",
+  "sad",
+  "cry",
+  "angry",
+  "furious",
+  "surprised",
+  "shocked",
+  "sleepy",
+  "asleep",
+  "dizzy",
+  "scared",
+  "suspicious",
+  "bored",
+  "excited",
+  "smug",
+  "confused",
+  "wink",
+  "laugh",
+  "determined",
+  "worried",
+  "cute",
+  "dead",
+  "squint",
+  "blank",
+  "content",
+  "pout"
+ ],
+ "personas": [
+  {
+   "id": "yotos",
+   "name": "Yotos",
+   "seed": 340,
+   "genes": [
+    1,
+    2,
+    0,
+    1,
+    4,
+    2,
+    0
+   ],
+   "rarity": "uncommon",
+   "traits": {
+    "eyeShape": "round",
+    "eyeSize": "medium",
+    "eyeSpacing": "closest",
+    "eyeHeight": "middle",
+    "highlight": "star",
+    "accent": "brows",
+    "temperament": "cheerful"
+   },
+   "expressions": "/lumi/yotos/expressions.lumi",
+   "idle": {
+    "file": "/lumi/yotos/idle.lumi",
+    "frames": 363
+   },
+   "posters": {
+    "neutral": "/lumi/yotos/poster-neutral.png",
+    "happy": "/lumi/yotos/poster-happy.png"
+   },
+   "animations": {
+    "pat_giggle": {
+     "file": "/lumi/yotos/pat_giggle.lumi",
+     "frames": 47,
+     "trigger": "pat"
+    },
+    "yawn": {
+     "file": "/lumi/yotos/yawn.lumi",
+     "frames": 89,
+     "trigger": "idle"
+    },
+    "curious": {
+     "file": "/lumi/yotos/curious.lumi",
+     "frames": 65,
+     "trigger": "idle"
+    },
+    "pickup_surprised": {
+     "file": "/lumi/yotos/pickup_surprised.lumi",
+     "frames": 52,
+     "trigger": "pickup"
+    },
+    "smug": {
+     "file": "/lumi/yotos/smug.lumi",
+     "frames": 62,
+     "trigger": "idle"
+    },
+    "daydream": {
+     "file": "/lumi/yotos/daydream.lumi",
+     "frames": 86,
+     "trigger": "idle"
+    },
+    "double_pat_hearts": {
+     "file": "/lumi/yotos/double_pat_hearts.lumi",
+     "frames": 67,
+     "trigger": "double_pat"
+    },
+    "hum": {
+     "file": "/lumi/yotos/hum.lumi",
+     "frames": 101,
+     "trigger": "idle"
+    },
+    "sparkle": {
+     "file": "/lumi/yotos/sparkle.lumi",
+     "frames": 67,
+     "trigger": "idle"
+    },
+    "shy": {
+     "file": "/lumi/yotos/shy.lumi",
+     "frames": 65,
+     "trigger": "idle"
+    },
+    "dance": {
+     "file": "/lumi/yotos/dance.lumi",
+     "frames": 80,
+     "trigger": "idle"
+    },
+    "nod_off": {
+     "file": "/lumi/yotos/nod_off.lumi",
+     "frames": 117,
+     "trigger": "idle"
+    },
+    "pickup_hello": {
+     "file": "/lumi/yotos/pickup_hello.lumi",
+     "frames": 47,
+     "trigger": "pickup"
+    },
+    "pong_win_match": {
+     "file": "/lumi/yotos/pong_win_match.lumi",
+     "frames": 117,
+     "trigger": "pong_win_match"
+    },
+    "boot_hello": {
+     "file": "/lumi/yotos/boot_hello.lumi",
+     "frames": 74,
+     "trigger": "boot"
+    }
+   }
+  },
+  {
+   "id": "ni",
+   "name": "Ni",
+   "seed": 860,
+   "genes": [
+    6,
+    2,
+    2,
+    1,
+    2,
+    4,
+    1
+   ],
+   "rarity": "uncommon",
+   "traits": {
+    "eyeShape": "droopy",
+    "eyeSize": "medium",
+    "eyeSpacing": "normal",
+    "eyeHeight": "middle",
+    "highlight": "dot",
+    "accent": "blush",
+    "temperament": "sleepy"
+   },
+   "expressions": "/lumi/ni/expressions.lumi",
+   "idle": {
+    "file": "/lumi/ni/idle.lumi",
+    "frames": 363
+   },
+   "posters": {
+    "neutral": "/lumi/ni/poster-neutral.png",
+    "happy": "/lumi/ni/poster-happy.png"
+   },
+   "animations": {
+    "pat_giggle": {
+     "file": "/lumi/ni/pat_giggle.lumi",
+     "frames": 47,
+     "trigger": "pat"
+    },
+    "yawn": {
+     "file": "/lumi/ni/yawn.lumi",
+     "frames": 89,
+     "trigger": "idle"
+    },
+    "curious": {
+     "file": "/lumi/ni/curious.lumi",
+     "frames": 65,
+     "trigger": "idle"
+    },
+    "pickup_surprised": {
+     "file": "/lumi/ni/pickup_surprised.lumi",
+     "frames": 52,
+     "trigger": "pickup"
+    },
+    "smug": {
+     "file": "/lumi/ni/smug.lumi",
+     "frames": 62,
+     "trigger": "idle"
+    },
+    "daydream": {
+     "file": "/lumi/ni/daydream.lumi",
+     "frames": 86,
+     "trigger": "idle"
+    },
+    "double_pat_hearts": {
+     "file": "/lumi/ni/double_pat_hearts.lumi",
+     "frames": 67,
+     "trigger": "double_pat"
+    },
+    "hum": {
+     "file": "/lumi/ni/hum.lumi",
+     "frames": 101,
+     "trigger": "idle"
+    },
+    "sparkle": {
+     "file": "/lumi/ni/sparkle.lumi",
+     "frames": 67,
+     "trigger": "idle"
+    },
+    "shy": {
+     "file": "/lumi/ni/shy.lumi",
+     "frames": 65,
+     "trigger": "idle"
+    },
+    "dance": {
+     "file": "/lumi/ni/dance.lumi",
+     "frames": 80,
+     "trigger": "idle"
+    },
+    "nod_off": {
+     "file": "/lumi/ni/nod_off.lumi",
+     "frames": 117,
+     "trigger": "idle"
+    },
+    "pickup_hello": {
+     "file": "/lumi/ni/pickup_hello.lumi",
+     "frames": 47,
+     "trigger": "pickup"
+    },
+    "pong_win_match": {
+     "file": "/lumi/ni/pong_win_match.lumi",
+     "frames": 117,
+     "trigger": "pong_win_match"
+    },
+    "boot_hello": {
+     "file": "/lumi/ni/boot_hello.lumi",
+     "frames": 74,
+     "trigger": "boot"
+    }
+   }
+  },
+  {
+   "id": "katos",
+   "name": "Katos",
+   "seed": 1085,
+   "genes": [
+    5,
+    2,
+    1,
+    1,
+    5,
+    4,
+    2
+   ],
+   "rarity": "legendary",
+   "traits": {
+    "eyeShape": "almond",
+    "eyeSize": "medium",
+    "eyeSpacing": "close",
+    "eyeHeight": "middle",
+    "highlight": "ring",
+    "accent": "blush",
+    "temperament": "shy"
+   },
+   "expressions": "/lumi/katos/expressions.lumi",
+   "idle": {
+    "file": "/lumi/katos/idle.lumi",
+    "frames": 363
+   },
+   "posters": {
+    "neutral": "/lumi/katos/poster-neutral.png",
+    "happy": "/lumi/katos/poster-happy.png"
+   },
+   "animations": {
+    "pat_giggle": {
+     "file": "/lumi/katos/pat_giggle.lumi",
+     "frames": 47,
+     "trigger": "pat"
+    },
+    "yawn": {
+     "file": "/lumi/katos/yawn.lumi",
+     "frames": 89,
+     "trigger": "idle"
+    },
+    "curious": {
+     "file": "/lumi/katos/curious.lumi",
+     "frames": 65,
+     "trigger": "idle"
+    },
+    "pickup_surprised": {
+     "file": "/lumi/katos/pickup_surprised.lumi",
+     "frames": 52,
+     "trigger": "pickup"
+    },
+    "smug": {
+     "file": "/lumi/katos/smug.lumi",
+     "frames": 62,
+     "trigger": "idle"
+    },
+    "daydream": {
+     "file": "/lumi/katos/daydream.lumi",
+     "frames": 86,
+     "trigger": "idle"
+    },
+    "double_pat_hearts": {
+     "file": "/lumi/katos/double_pat_hearts.lumi",
+     "frames": 67,
+     "trigger": "double_pat"
+    },
+    "hum": {
+     "file": "/lumi/katos/hum.lumi",
+     "frames": 101,
+     "trigger": "idle"
+    },
+    "sparkle": {
+     "file": "/lumi/katos/sparkle.lumi",
+     "frames": 67,
+     "trigger": "idle"
+    },
+    "shy": {
+     "file": "/lumi/katos/shy.lumi",
+     "frames": 65,
+     "trigger": "idle"
+    },
+    "dance": {
+     "file": "/lumi/katos/dance.lumi",
+     "frames": 80,
+     "trigger": "idle"
+    },
+    "nod_off": {
+     "file": "/lumi/katos/nod_off.lumi",
+     "frames": 117,
+     "trigger": "idle"
+    },
+    "pickup_hello": {
+     "file": "/lumi/katos/pickup_hello.lumi",
+     "frames": 47,
+     "trigger": "pickup"
+    },
+    "pong_win_match": {
+     "file": "/lumi/katos/pong_win_match.lumi",
+     "frames": 117,
+     "trigger": "pong_win_match"
+    },
+    "boot_hello": {
+     "file": "/lumi/katos/boot_hello.lumi",
+     "frames": 74,
+     "trigger": "boot"
+    }
+   }
+  },
+  {
+   "id": "mimox",
+   "name": "Mimox",
+   "seed": 1879,
+   "genes": [
+    3,
+    2,
+    2,
+    1,
+    3,
+    2,
+    4
+   ],
+   "rarity": "common",
+   "traits": {
+    "eyeShape": "wide",
+    "eyeSize": "medium",
+    "eyeSpacing": "normal",
+    "eyeHeight": "middle",
+    "highlight": "double",
+    "accent": "brows",
+    "temperament": "hyper"
+   },
+   "expressions": "/lumi/mimox/expressions.lumi",
+   "idle": {
+    "file": "/lumi/mimox/idle.lumi",
+    "frames": 363
+   },
+   "posters": {
+    "neutral": "/lumi/mimox/poster-neutral.png",
+    "happy": "/lumi/mimox/poster-happy.png"
+   },
+   "animations": {
+    "pat_giggle": {
+     "file": "/lumi/mimox/pat_giggle.lumi",
+     "frames": 47,
+     "trigger": "pat"
+    },
+    "yawn": {
+     "file": "/lumi/mimox/yawn.lumi",
+     "frames": 89,
+     "trigger": "idle"
+    },
+    "curious": {
+     "file": "/lumi/mimox/curious.lumi",
+     "frames": 65,
+     "trigger": "idle"
+    },
+    "pickup_surprised": {
+     "file": "/lumi/mimox/pickup_surprised.lumi",
+     "frames": 52,
+     "trigger": "pickup"
+    },
+    "smug": {
+     "file": "/lumi/mimox/smug.lumi",
+     "frames": 62,
+     "trigger": "idle"
+    },
+    "daydream": {
+     "file": "/lumi/mimox/daydream.lumi",
+     "frames": 86,
+     "trigger": "idle"
+    },
+    "double_pat_hearts": {
+     "file": "/lumi/mimox/double_pat_hearts.lumi",
+     "frames": 67,
+     "trigger": "double_pat"
+    },
+    "hum": {
+     "file": "/lumi/mimox/hum.lumi",
+     "frames": 101,
+     "trigger": "idle"
+    },
+    "sparkle": {
+     "file": "/lumi/mimox/sparkle.lumi",
+     "frames": 67,
+     "trigger": "idle"
+    },
+    "shy": {
+     "file": "/lumi/mimox/shy.lumi",
+     "frames": 65,
+     "trigger": "idle"
+    },
+    "dance": {
+     "file": "/lumi/mimox/dance.lumi",
+     "frames": 80,
+     "trigger": "idle"
+    },
+    "nod_off": {
+     "file": "/lumi/mimox/nod_off.lumi",
+     "frames": 117,
+     "trigger": "idle"
+    },
+    "pickup_hello": {
+     "file": "/lumi/mimox/pickup_hello.lumi",
+     "frames": 47,
+     "trigger": "pickup"
+    },
+    "pong_win_match": {
+     "file": "/lumi/mimox/pong_win_match.lumi",
+     "frames": 117,
+     "trigger": "pong_win_match"
+    },
+    "boot_hello": {
+     "file": "/lumi/mimox/boot_hello.lumi",
+     "frames": 74,
+     "trigger": "boot"
+    }
+   }
+  }
+ ]
+}

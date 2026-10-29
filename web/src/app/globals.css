@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+/* ---- Design tokens -------------------------------------------------------
+   Colours, type, radii and shadows used everywhere. Components reference
+   these through Tailwind utilities (bg-cloud, text-ink, rounded-card, …). */
+@theme {
+  --color-cloud: #f9f7f3;
+  --color-lavender: #ddbbea;
+  --color-lavender-pale: #f0e7fa;
+  --color-lavender-deep: #774791;
+  --color-mint: #b6e5cf;
+  --color-mint-pale: #e5f4ea;
+  --color-mint-deep: #2f7a5b;
+  --color-peach: #ffcdb5;
+  --color-peach-pale: #fbe8e3;
+  --color-peach-deep: #a4512b;
+  --color-ink: #30263a;
+  --color-ink-soft: #4a3f55;
+  --color-muted: #685f6c;
+  --color-line: #e9e3ea;
+  --color-white: #ffffff;
+  --color-night: #17121c;
+  --color-oled: #3cf0ff;
+
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+
+  --text-display: clamp(2.75rem, 1.6rem + 4.6vw, 5.5rem);
+  --text-display--line-height: 0.98;
+  --text-display--letter-spacing: -0.035em;
+  --text-h1: clamp(2.25rem, 1.6rem + 2.6vw, 3.75rem);
+  --text-h1--line-height: 1.04;
+  --text-h1--letter-spacing: -0.03em;
+  --text-h2: clamp(1.75rem, 1.35rem + 1.6vw, 2.75rem);
+  --text-h2--line-height: 1.1;
+  --text-h2--letter-spacing: -0.025em;
+  --text-h3: 1.375rem;
+  --text-h3--line-height: 1.25;
+  --text-lead: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+  --text-lead--line-height: 1.6;
+
+  --radius-chip: 999px;
+  --radius-control: 14px;
+  --radius-card: 28px;
+  --radius-panel: 40px;
+
+  --shadow-soft: 0 1px 2px rgb(48 38 58 / 0.04), 0 8px 24px -12px rgb(48 38 58 / 0.14);
+  --shadow-lift: 0 2px 4px rgb(48 38 58 / 0.05), 0 22px 48px -20px rgb(48 38 58 / 0.28);
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+  body {
+    background: var(--color-cloud);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: clip;
+  }
+  ::selection {
+    background: var(--color-lavender);
+    color: var(--color-ink);
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-ink);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+  }
+  p { text-wrap: pretty; }
+}
+
+@layer components {
+  .container-page {
+    width: 100%;
+    max-width: 1280px;
+    margin-inline: auto;
+    padding-inline: 16px;
+  }
+  @media (min-width: 640px) {
+    .container-page { padding-inline: 28px; }
+  }
+  @media (min-width: 1024px) {
+    .container-page { padding-inline: 40px; }
+  }
+  .eyebrow {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+  /* A soft floor shadow under product renders. */
+  .floor-shadow {
+    background: radial-gradient(closest-side, rgb(48 38 58 / 0.22), transparent);
+    filter: blur(6px);
+  }
+}
+
+@keyframes lumi-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -6px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lumi-float { animation: lumi-float 5.5s ease-in-out infinite both; }
+}
