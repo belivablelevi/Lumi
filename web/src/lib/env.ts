@@ -20,11 +20,22 @@ export const env = {
   emailFrom: get("EMAIL_FROM"),
   hashSalt: get("SIGNUP_HASH_SALT") ?? "lumi-dev-salt",
   demoCatalogue: get("LUMI_DEMO_CATALOGUE") === "1",
+  demoOnProduction: get("LUMI_DEMO_ON_PRODUCTION") === "1",
   vercelEnv: get("VERCEL_ENV"),
 };
 
-/** The demo catalogue is never allowed on the production deployment. */
-export const demoMode = () => env.demoCatalogue && env.vercelEnv !== "production";
+/**
+ * Whether to show the demo catalogue (a fake price, clearly marked). Production
+ * needs a second, explicit opt-in, and a live Stripe key always turns it off,
+ * so a demo price can never be charged for real.
+ */
+export function demoAllowed(o: { demoCatalogue: boolean; demoOnProduction: boolean; vercelEnv?: string; stripeSecretKey?: string }) {
+  if (!o.demoCatalogue) return false;
+  if (o.stripeSecretKey && /^(sk|rk)_live_/.test(o.stripeSecretKey)) return false;
+  return o.vercelEnv !== "production" || o.demoOnProduction;
+}
+
+export const demoMode = () => demoAllowed(env);
 
 export interface ServiceStatus {
   checkout: boolean;

@@ -22,17 +22,16 @@ payments are possible: the checkout button says checkout isn't set up.
 1. Sign up at [vercel.com](https://vercel.com) with GitHub (the free Hobby plan).
 2. **Add New → Project**, pick this repository, and tap **Import**.
 3. **Root Directory**: Edit, then choose `web`. Leave the framework as Next.js.
-4. **Environment Variables**: add `LUMI_DEMO_CATALOGUE` = `1` for **Preview** only, then tap **Deploy**.
-   The first build is of the default branch. It fails if that branch has no `web/` folder, which is fine.
-5. **Deployments**: open the one for the branch that has `web/` (here `claude/lumi-keychain-clone`).
-   Every push to that branch builds a fresh preview automatically.
-6. To share the link, go to **Settings → Deployment Protection** and turn off Vercel Authentication.
-   Otherwise only people signed in to your Vercel team can open it.
+4. **Environment Variables**: add `LUMI_DEMO_CATALOGUE` = `1` and `LUMI_DEMO_ON_PRODUCTION` = `1`, then tap **Deploy**.
+5. Open the link Vercel shows (something like `lumi-xxxx.vercel.app`).
 
-The demo is refused on Vercel's production deployment, so it can never
-show a fake price on your real site. With no `NEXT_PUBLIC_SITE_URL` set,
-links in social previews and the sitemap use the deployment's own Vercel
-address.
+If you already created the project, add the two variables under **Settings → Environment Variables**,
+set **Settings → Build and Deployment → Root Directory** to `web`, and redeploy from **Deployments**.
+
+Before you sell for real, delete both variables. The demo also switches itself off as soon as a
+live Stripe key (`sk_live_…`) is set, so a demo price can never be charged. With no
+`NEXT_PUBLIC_SITE_URL` set, links in social previews and the sitemap use the deployment's own
+Vercel address.
 
 ## What's real and what's a placeholder
 
@@ -106,7 +105,7 @@ LUMI_DEMO_CATALOGUE=1 STRIPE_SECRET_KEY=sk_test_x STRIPE_WEBHOOK_SECRET=whsec_x 
 E2E_MODE=demo npx playwright test    # cart, checkout hand-off, success page
 ```
 
-`LUMI_DEMO_CATALOGUE=1` opens the Pocket Lumi for pre-order at a price marked **DEMO PRICE**, so you can try the whole flow with Stripe test keys. It's refused when `VERCEL_ENV=production`.
+`LUMI_DEMO_CATALOGUE=1` opens the Pocket Lumi for pre-order at a price marked **DEMO PRICE**, so you can try the whole flow with Stripe test keys. On Vercel's production deployment it also needs `LUMI_DEMO_ON_PRODUCTION=1`, and it's always refused with a live Stripe key.
 
 ## Not done yet
 

@@ -6,7 +6,8 @@ import { catalogueProblems, isListed } from "./product-state";
 /**
  * The demo catalogue opens the Pocket Lumi for pre-order with an obviously
  * fake price, so the cart and Stripe test-mode checkout can be tried on
- * local and preview deployments. It's refused in production (see env.ts).
+ * local and preview deployments, or on production with a second opt-in;
+ * a live Stripe key always turns it off (see env.ts).
  */
 function demoProducts(): Product[] {
   return products.map((p) =>
