@@ -55,6 +55,38 @@ command prints live values to check against:
 | lying face-up on a table | `z = +1` |
 | with its right side down | `x = −1` |
 
+## Trying the PCB's accelerometer (LIS2DH12) on today's build
+
+The planned Lumi PCB ([pcb/PLAN.md](pcb/PLAN.md)) uses a **LIS2DH12**
+instead of the MPU-6050. The firmware detects either one at start-up, so you
+can try it before any PCB exists.
+
+Wire a LIS2DH12 breakout board (about $2–3) in place of the GY-521. A LIS3DH
+board also works, since it has the same registers.
+
+| Breakout pin | To | Notes |
+|---|---|---|
+| **VCC / VIN** | XIAO **3V3** | |
+| **GND** | **GND** | |
+| **SDA** | **D4 / GPIO6** | |
+| **SCL** | **D5 / GPIO7** | |
+| **INT1** | **D1 / GPIO3** | Wake-on-motion, same as the GY-521's INT |
+| **CS** | **3V3** | Selects I2C mode. Many boards already pull it up. |
+| **SDO / SA0** | 3V3 (address 0x19) or GND (0x18) | Either works |
+
+Then:
+1. Remove the GY-521 or leave it unplugged. If both are fitted, the
+   MPU-6050 is used.
+2. Flash as usual. The serial monitor should print
+   `lumi: accelerometer LIS2DH12 at 0x19`.
+3. Type `i` with Lumi hanging from its keyring, lying face-up, and lying
+   right side down. Adjust `LUMI_IMU_SCREEN_*` in `firmware/src/config.h`
+   until they read `y = +1`, `z = +1` and `x = −1`. The breakout's arrows
+   are printed on it.
+4. Try pats, a double pat, a shake, and putting it to sleep and picking it
+   up. If pats feel too light or too heavy, change `tapThreshold` in
+   `firmware/lib/lumi_core/src/gestures.h`. The default is 0.45 g.
+
 ## Alternative: ESP32-S3 SuperMini
 
 The firmware picks these pins automatically when built for the S3

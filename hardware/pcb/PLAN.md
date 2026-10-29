@@ -36,7 +36,7 @@ Side effects of one integrated board:
 | Battery level | 1 MΩ + 1 MΩ divider with 100 nF to ADC | Today's 220 kΩ pair wastes ~9 µA all the time. 1 MΩ cuts that to ~2 µA. | <$0.01 |
 | Charging sense | VBUS divider to a GPIO | So the battery screen can say "charging". It's optional on today's build and free on a PCB. | <$0.01 |
 | Buttons | **None on the outside.** Pads for BOOT (GPIO9) and EN for recovery only | Lumi stays button-free. The pads let the factory or you recover a bricked unit. | – |
-| Power switch | Tiny SPDT slide switch on battery + | For storage and shipping; see Decisions. | $0.05 |
+| Power switch | Tiny slide switch on the LDO enable pin | For storage and shipping; see Decisions. | $0.05 |
 | Battery connector | JST-SH 2-pin, or solder pads | Pads are cheapest. A connector makes assembly and repair easier. | $0–0.05 |
 
 Estimated parts: **≈ $4–6 per unit at 1,000**. JLCPCB assembly adds setup
@@ -115,8 +115,8 @@ The STEP model of the board, exported from KiCad, checks the fit.
 
 | Step | What | Who |
 |---|---|---|
-| 1 | Confirm parts against live LCSC stock and prices; pick LIS2DH12 vs SC7A20 and the exact OLED panel | Me, then you approve |
-| 2 | Test the new accelerometer on a breakout with the current build: firmware driver, pats, wake-on-pickup | Me (driver), you (a $3 part + wiring) |
+| 1 | Confirm parts against live LCSC stock and prices (done: see [BOM-draft.md](BOM-draft.md)); the OLED panel connection is still open | Me, then you approve |
+| 2 | Test the new accelerometer on a breakout with the current build: firmware driver, pats, wake-on-pickup. The driver is done and tested against a register model (`make -C tests/imu`); wiring is in [../wiring.md](../wiring.md#trying-the-pcbs-accelerometer-lis2dh12-on-todays-build) | Me (driver, done), you (a $3 part + wiring) |
 | 3 | Schematic in **KiCad 8**, with electrical rule check | Me |
 | 4 | Board layout: placement, routing, ground pour, antenna keep-out; design rule check | Me, then **a review by someone who does RF/PCB work** before ordering (strongly recommended) |
 | 5 | 3D fit check against the new case, with STEP export | Me |
@@ -162,7 +162,7 @@ experienced human review before the first order is worth the cost.
 | Question | Decision |
 |---|---|
 | Case | Keep the **35 × 37 mm front**, about **12.5 mm thick**, with the same 500 mAh 503030 cell |
-| Power switch | A **tiny slide switch** (SPDT, e.g. MSK-12C02 class) in series with battery +, for storage and shipping. The case gets a small slot. Charging still works with it off, because the charger sits before the switch. |
+| Power switch | A **tiny slide switch** (MSK12C02, LCSC C431540) on the 3.3 V regulator's **enable pin**. It switches microamps, not the battery current, which matters because it's only rated 50 mA. Off = everything after the regulator is unpowered, for storage and shipping. Charging still works when it's off. The case gets a small slot. |
 | Motion sensor | **LIS2DH12** for the first boards. SC7A20 may be tried later as a cost-down, since it's register-compatible. |
 
 ## Sources

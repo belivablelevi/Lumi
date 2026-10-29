@@ -291,9 +291,9 @@ static void serialCommands() {
     if (provisioning.handle(line, serialOut, nullptr)) continue;
     if (strcmp(line, "i") == 0) {
       const lumi::GestureDetector& g = app.gestures();
-      Serial.printf("accel x=%+.2f y=%+.2f z=%+.2f  gravity x=%+.2f y=%+.2f z=%+.2f  %s  imu=0x%02X\n",
+      Serial.printf("accel x=%+.2f y=%+.2f z=%+.2f  gravity x=%+.2f y=%+.2f z=%+.2f  %s  imu=%s\n",
                     lastX, lastY, lastZ, g.gx(), g.gy(), g.gz(),
-                    lumi::GestureDetector::name(g.orientation()), imu.whoAmI());
+                    lumi::GestureDetector::name(g.orientation()), imu.kindName());
     } else if (strcmp(line, "a") == 0) {
       for (int i = 0; i < lumi::animationCount(); ++i)
         Serial.printf("%2d %-24s %s\n", i, lumi::animation(i).name,
@@ -334,8 +334,8 @@ void setup() {
   displayOk = display.begin(Wire, LUMI_OLED_ADDR, LUMI_OLED_FLIP);
   imuOk = imu.begin(Wire, LUMI_IMU_ADDR);
   if (!displayOk) Serial.println("lumi: SSD1306 not found - check SDA/SCL and address");
-  if (!imuOk) Serial.println("lumi: IMU not found - check wiring (AD0 low = 0x68)");
-  else Serial.printf("lumi: IMU WHO_AM_I=0x%02X\n", imu.whoAmI());
+  if (!imuOk) Serial.println("lumi: no accelerometer found - check wiring (MPU at 0x68/0x69 or LIS2DH12 at 0x18/0x19)");
+  else Serial.printf("lumi: accelerometer %s at 0x%02X (WHO_AM_I=0x%02X)\n", imu.kindName(), imu.address(), imu.whoAmI());
 
   lumi::WakeReason why = lumi::WakeReason::PowerOn;
   uint32_t slept = 0;

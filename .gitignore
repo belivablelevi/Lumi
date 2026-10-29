@@ -5,3 +5,4 @@ firmware/.pio/
 __pycache__/
 *.pyc
 tools/web-duel/build/
+tests/imu/build/
