@@ -44,6 +44,13 @@ describe("demo catalogue", () => {
     expect(getCatalogue().find((x) => x.slug === "pocket-lumi")!.demo).toBe(true);
   });
 
+  it("accepts the Supabase URL under the name Vercel's integration also uses", async () => {
+    vi.stubEnv("SUPABASE_URL", "");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://abc.supabase.co");
+    const { env } = await import("@/lib/env");
+    expect(env.supabaseUrl).toBe("https://abc.supabase.co");
+  });
+
   it("reports which services are missing", async () => {
     const { serviceStatus } = await import("@/lib/env");
     const s = serviceStatus();
