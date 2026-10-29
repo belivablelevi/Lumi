@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Manrope } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { brand } from "@/config/brand";
 import { listedProducts } from "@/lib/catalogue";
 import { serviceStatus } from "@/lib/env";
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Footer />
             <CartDrawer />
         </Providers>
+        <Analytics />
       </body>
     </html>
   );
