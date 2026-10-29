@@ -100,3 +100,38 @@ jobs:
         with:
           name: LumiStudio-${{ runner.os }}
           path: build/studio/dist
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - name: Build (catalogue as shipped)
+        run: npx next build
+        env:
+          NEXT_DIST_DIR: .next-e2e-site
+      - name: Build (demo catalogue)
+        run: npx next build
+        env:
+          NEXT_DIST_DIR: .next-e2e-demo
+          LUMI_DEMO_CATALOGUE: "1"
+          STRIPE_SECRET_KEY: sk_test_e2e_fake
+          STRIPE_WEBHOOK_SECRET: whsec_e2e_fake
+          SUPABASE_URL: http://127.0.0.1:9
+          SUPABASE_SERVICE_ROLE_KEY: e2e-fake
+      - run: npx playwright install --with-deps chromium
+      - name: Browser tests
+        run: |
+          E2E_MODE=site npx playwright test
+          E2E_MODE=demo npx playwright test

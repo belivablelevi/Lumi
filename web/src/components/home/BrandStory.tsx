@@ -3,7 +3,7 @@ import { Reveal } from "../ui/Reveal";
 
 export function BrandStory() {
   return (
-    <section aria-labelledby="story-title" className="container-page py-16 lg:py-24">
+    <section aria-labelledby="story-title" className="container-page py-12 lg:py-16">
       <Reveal className="mx-auto max-w-3xl text-center">
         <p className="eyebrow">Our world</p>
         <h2 id="story-title" className="mt-3 text-h1 font-extrabold">

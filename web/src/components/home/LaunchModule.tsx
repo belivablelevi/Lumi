@@ -10,7 +10,7 @@ export function LaunchModule({ launch }: { launch: Launch }) {
   const at = confirmed(launch.launchAt);
   const tz = confirmed(launch.timeZone);
   return (
-    <section aria-labelledby="launch-title" className="container-page py-16 lg:py-24">
+    <section aria-labelledby="launch-title" className="container-page py-12 lg:py-16">
       <div className="relative grid overflow-hidden rounded-panel bg-night text-white lg:grid-cols-2">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(34rem_26rem_at_0%_100%,rgb(221_187_234/0.22),transparent_70%)]" aria-hidden />
         <div className="relative p-8 sm:p-12 lg:p-16">

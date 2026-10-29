@@ -11,7 +11,7 @@ import { StatusBadge } from "../ui/StatusBadge";
 export function ChooseCompanion({ pocket, desk }: { pocket: Product; desk?: Product }) {
   const img = pocket.images.find((i) => i.src.endsWith("on-keyring.png")) ?? pocket.images[0];
   return (
-    <section aria-labelledby="choose-title" className="container-page py-16 lg:py-24">
+    <section aria-labelledby="choose-title" className="container-page py-12 lg:py-16">
       <SectionHeading id="choose-title" eyebrow="Choose your companion" title="One for your keys. One for your desk." />
       <div className="mt-10 grid gap-5 lg:grid-cols-[1.25fr_1fr]">
         <Reveal>

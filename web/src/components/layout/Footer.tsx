@@ -8,7 +8,7 @@ export function Footer() {
   const socials = brand.footer.socials.filter((s) => s.href);
   const business = confirmed(brand.legal.businessName) ?? brand.name;
   return (
-    <footer className="mt-24 bg-night text-white">
+    <footer className="mt-20 bg-night text-white">
       <div className="container-page grid gap-12 py-16 lg:grid-cols-[1.2fr_2fr] lg:py-20">
         <div className="max-w-sm">
           <div className="flex items-center gap-2.5">

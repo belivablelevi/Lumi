@@ -7,7 +7,7 @@ import { SectionHeading } from "../ui/Section";
 
 export function Everyday({ keyring, side }: { keyring: GalleryImage; side: GalleryImage }) {
   return (
-    <section aria-labelledby="everyday-title" className="container-page py-16 lg:py-24">
+    <section aria-labelledby="everyday-title" className="container-page py-12 lg:py-16">
       <SectionHeading
         id="everyday-title"
         eyebrow="Made for your everyday"

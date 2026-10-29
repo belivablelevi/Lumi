@@ -34,7 +34,7 @@ function Floating({ children, delay, className }: { children: React.ReactNode; d
 export function Hero({ units, statusLabel }: { units: [HeroUnit, HeroUnit, HeroUnit]; statusLabel: string }) {
   const [main, left, right] = units;
   return (
-    <section aria-labelledby="hero-title" className="container-page pt-2 pb-16 sm:pt-6 lg:pb-24">
+    <section aria-labelledby="hero-title" className="container-page pt-2 pb-8 sm:pt-6 lg:pb-10">
       <div className="relative overflow-hidden rounded-panel bg-gradient-to-br from-lavender-pale via-[#f6effa] to-peach-pale">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(40rem_28rem_at_85%_10%,rgb(182_229_207/0.55),transparent_70%)]" aria-hidden />
         <div className="relative grid items-center gap-6 px-6 pt-10 pb-6 sm:px-10 lg:grid-cols-[1.05fr_1fr] lg:gap-4 lg:px-16 lg:py-16">
