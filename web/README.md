@@ -13,6 +13,27 @@ It runs with no accounts set up. In that state it says plainly that
 checkout and launch emails aren't set up yet, and it never fakes an order,
 a payment or a signup.
 
+## Put it online (demo)
+
+This gives you a real link where the Pocket Lumi shows a clearly marked
+**DEMO PRICE**, so you can try the cart and the pre-order button. No
+payments are possible: the checkout button says checkout isn't set up.
+
+1. Sign up at [vercel.com](https://vercel.com) with GitHub (the free Hobby plan).
+2. **Add New → Project**, pick this repository, and tap **Import**.
+3. **Root Directory**: Edit, then choose `web`. Leave the framework as Next.js.
+4. **Environment Variables**: add `LUMI_DEMO_CATALOGUE` = `1` for **Preview** only, then tap **Deploy**.
+   The first build is of the default branch. It fails if that branch has no `web/` folder, which is fine.
+5. **Deployments**: open the one for the branch that has `web/` (here `claude/lumi-keychain-clone`).
+   Every push to that branch builds a fresh preview automatically.
+6. To share the link, go to **Settings → Deployment Protection** and turn off Vercel Authentication.
+   Otherwise only people signed in to your Vercel team can open it.
+
+The demo is refused on Vercel's production deployment, so it can never
+show a fake price on your real site. With no `NEXT_PUBLIC_SITE_URL` set,
+links in social previews and the sitemap use the deployment's own Vercel
+address.
+
 ## What's real and what's a placeholder
 
 | | |

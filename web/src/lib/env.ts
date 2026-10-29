@@ -8,7 +8,7 @@ const get = (name: string) => {
 };
 
 export const env = {
-  siteUrl: get("NEXT_PUBLIC_SITE_URL") ?? "http://localhost:3000",
+  siteUrl: brand.siteUrl,
   stripeSecretKey: get("STRIPE_SECRET_KEY"),
   stripeWebhookSecret: get("STRIPE_WEBHOOK_SECRET"),
   stripeTax: get("STRIPE_AUTOMATIC_TAX") === "1",

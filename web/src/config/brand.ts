@@ -1,4 +1,5 @@
 import { tbc, type Maybe } from "@/lib/placeholder";
+import { siteUrl } from "@/lib/site-url";
 
 /**
  * Everything brand-level in one place. The name and logo aren't final:
@@ -12,7 +13,7 @@ export const brand = {
     "Meet Lumi: expressive little companions made to travel with you, live on your desk, and make everyday moments a little more fun.",
   locale: "en-CA",
   currency: "CAD" as const,
-  siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  siteUrl: siteUrl(),
 
   announcement: {
     enabled: true,
