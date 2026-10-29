@@ -125,6 +125,14 @@ screen.position.set(0, SCREEN_Y, -0.85);
 lumi.add(screen);
 scene.add(lumi);
 
+// The XIAO's USB-C receptacle behind the side opening (lumi_case.scad: +X end, y = xiao_y, z = usb_z).
+const usbGeo = new THREE.BoxGeometry(7.4, 8.9, 3.2);
+const usb = new THREE.Mesh(usbGeo, new THREE.MeshPhysicalMaterial({ color: 0xc9ccd2, metalness: 1, roughness: 0.3 }));
+usb.position.set(17.5 - 1.4 - 3.4, 3.5, -7.9);
+const usbMouth = new THREE.Mesh(new THREE.BoxGeometry(0.02, 7.2, 1.9), new THREE.MeshBasicMaterial({ color: 0x0b0b0e }));
+usbMouth.position.set(17.5 - 1.4 - 3.4 + 3.7 + 0.21, 3.5, -7.9); // just proud of the socket face
+lumi.add(usb, usbMouth);
+
 // A keyring through the bail, for the "on your keys" shot.
 const ring = new THREE.Mesh(new THREE.TorusGeometry(11, 0.9, 32, 128),
   new THREE.MeshPhysicalMaterial({ color: 0xd9dade, metalness: 1, roughness: 0.18 }));

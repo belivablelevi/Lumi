@@ -60,7 +60,7 @@ const shots = [
     width: 1400, height: 1400, yaw: -0.62, pitch: 0.12, fov: 16, dist: 230, lookY: 3, frame: still("yotos", "happy"),
     groundY: -21, groundTilt: -Math.PI / 2 },
   { file: "usb-side.png", alt: "Pocket Lumi from the right, showing the USB-C port", color: LAVENDER,
-    width: 1400, height: 1400, yaw: 1.2, pitch: 0.1, fov: 16, dist: 230, lookY: 3, frame: still("yotos", "neutral"),
+    width: 1400, height: 1400, yaw: -1.15, pitch: 0.1, fov: 16, dist: 230, lookY: 3, frame: still("yotos", "neutral"),
     groundY: -21, groundTilt: -Math.PI / 2 },
   { file: "on-keyring.png", alt: "Pocket Lumi on a keyring", color: MINT, width: 1400, height: 1600,
     yaw: -0.35, pitch: 0.05, roll: 0.08, fov: 18, dist: 260, lookY: 10, ringOn: true, frame: still("ni", "sleepy"),
