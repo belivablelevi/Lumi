@@ -38,10 +38,10 @@ void Animator::setBase(Expr e) {
 }
 
 int Animator::play(Trigger t, uint8_t mood) {
-  int eligible[32];
+  int eligible[96];
   int n = 0;
   for (int pass = 0; pass < 2 && n == 0; ++pass) {
-    for (int i = 0; i < animationCount() && n < 32; ++i) {
+    for (int i = 0; i < animationCount() && n < 96; ++i) {
       const Animation& a = animation(i);
       if (a.trigger != t) continue;
       // Second pass ignores mood so a trigger always gets *some* reaction.
@@ -57,9 +57,33 @@ int Animator::play(Trigger t, uint8_t mood) {
       if (eligible[j] != anim_) eligible[m++] = eligible[j];
     n = m;
   }
-  const int pick = eligible[rng_.range(0, n - 1)];
+  // Weighted pick: pack animations carry a weight, favourites count 3x.
+  int total = 0;
+  for (int j = 0; j < n; ++j) total += weightOf(eligible[j]);
+  int r = rng_.range(0, total - 1);
+  int pick = eligible[n - 1];
+  for (int j = 0; j < n; ++j) {
+    r -= weightOf(eligible[j]);
+    if (r < 0) {
+      pick = eligible[j];
+      break;
+    }
+  }
   playIndex(pick);
   return pick;
+}
+
+int Animator::weightOf(int index) const {
+  int w = animation(index).weight;
+  for (int i = 0; i < favouriteCount_; ++i)
+    if (favourites_[i] == index) w *= 3;
+  return w > 0 ? w : 1;
+}
+
+void Animator::setFavourites(const int* indices, int count) {
+  favouriteCount_ = 0;
+  for (int i = 0; i < count && favouriteCount_ < kMaxFavourites; ++i)
+    if (indices[i] >= 0) favourites_[favouriteCount_++] = indices[i];
 }
 
 void Animator::playIndex(int index) {
@@ -85,7 +109,9 @@ Face Animator::target() const {
 
 void Animator::scheduleBlink() { nextBlink_ = now_ + rng_.range(2200, 6000); }
 
-void Animator::scheduleIdle() { nextIdle_ = now_ + rng_.range(3500, 9000); }
+void Animator::scheduleIdle() {
+  nextIdle_ = now_ + (uint32_t)(rng_.range(3500, 9000) * idleScale_);
+}
 
 void Animator::update(uint32_t nowMs) {
   const uint32_t dt = nowMs - now_;

@@ -37,6 +37,12 @@ enum class Mouth : uint8_t {
   Teeth,  // gritted
 };
 
+// Highlight drawn in each open eye (a unit's "gene"; most expressions keep it).
+enum class Shine : uint8_t { Square, None, Dot, Double, Star, Ring, Count };
+
+// Permanent decoration around the eyes (also a gene).
+enum class Accent : uint8_t { None, Lashes, Brows, Freckles, Blush, Mark, Count };
+
 // Overlay effects drawn on top of the face. Combine with |.
 enum Overlay : uint16_t {
   kFxNone = 0,
@@ -66,9 +72,12 @@ struct Face {
   float shine = 1;        // draw the little highlight in each eye
   float mouthW = 12, mouthOpen = 0.5f, mouthY = 54;
   float offX = 0, offY = 0;
+  float baseSlant = 0;    // added to slant: a unit's resting eye tilt (almond / droopy)
   EyeStyle styleL = EyeStyle::Normal, styleR = EyeStyle::Normal;
   Mouth mouth = Mouth::Smile;
   uint16_t fx = kFxNone;
+  Shine shineStyle = Shine::Square;
+  Accent accent = Accent::None;
 };
 
 enum class Expr : uint8_t {

@@ -2,6 +2,7 @@
 // ESP32-C3 hardware - display, accelerometer, ESP-NOW radio, Wi-Fi updater
 // and deep sleep.
 #include <Arduino.h>
+#include <Preferences.h>
 #include <Update.h>
 #include <WebServer.h>
 #include <WiFi.h>
@@ -15,6 +16,7 @@
 #include <time.h>
 
 #include "app.h"
+#include "serial_cmd.h"
 #include "config.h"
 #include "imu.h"
 #include "ssd1306.h"
@@ -178,6 +180,32 @@ class DeviceHal : public lumi::Hal {
   const char* updateAddress() override { return addr_; }
   int updateProgress() override { return progress_; }
 
+  // This unit's emotion pack / persona lives in NVS, which survives firmware
+  // updates (USB or Wi-Fi) and is only wiped by a full flash erase.
+  bool storeLoad(uint8_t* buf, size_t cap, size_t* len) override {
+    Preferences p;
+    if (!p.begin("lumi", true)) return false;
+    const size_t n = p.getBytesLength("pack");
+    const bool ok = n > 0 && n <= cap && p.getBytes("pack", buf, n) == n;
+    p.end();
+    if (ok) *len = n;
+    return ok;
+  }
+  bool storeSave(const uint8_t* data, size_t len) override {
+    Preferences p;
+    if (!p.begin("lumi", false)) return false;
+    const bool ok = p.putBytes("pack", data, len) == len;
+    p.end();
+    return ok;
+  }
+  bool storeClear() override {
+    Preferences p;
+    if (!p.begin("lumi", false)) return false;
+    const bool ok = !p.isKey("pack") || p.remove("pack");
+    p.end();
+    return ok;
+  }
+
   void poll() {
     if (server_) server_->handleClient();
   }
@@ -213,6 +241,9 @@ class DeviceHal : public lumi::Hal {
 
 static DeviceHal hal;
 static lumi::App app(hal, reinterpret_cast<lumi::MoodState*>(gMoodRaw));
+static lumi::SerialCommands provisioning(app, hal);
+
+static void serialOut(void*, const char* line) { Serial.println(line); }
 
 // ---------------------------------------------------------------------------
 
@@ -246,7 +277,7 @@ static void remap(const AccelSample& s, float& x, float& y, float& z) {
 }
 
 static void serialCommands() {
-  static char line[48];
+  static char line[lumi::SerialCommands::kMaxLine];
   static size_t len = 0;
   while (Serial.available()) {
     const char c = (char)Serial.read();
@@ -257,6 +288,7 @@ static void serialCommands() {
     line[len] = 0;
     len = 0;
     if (!line[0]) continue;
+    if (provisioning.handle(line, serialOut, nullptr)) continue;
     if (strcmp(line, "i") == 0) {
       const lumi::GestureDetector& g = app.gestures();
       Serial.printf("accel x=%+.2f y=%+.2f z=%+.2f  gravity x=%+.2f y=%+.2f z=%+.2f  %s  imu=0x%02X\n",
@@ -281,13 +313,14 @@ static void serialCommands() {
     } else if (strcmp(line, "s") == 0) {
       deepSleep();
     } else {
-      Serial.println("commands: i (imu)  a (list animations)  p <name> (play)  m (mood)  b (battery)  s (sleep)");
+      Serial.println("commands: i (imu)  a (list animations)  p <name> (play)  m (mood)  b (battery)  s (sleep)  id  persona ...");
     }
   }
 }
 
 void setup() {
   setCpuFrequencyMhz(LUMI_CPU_MHZ);
+  Serial.setRxBufferSize(1024);  // room for a whole "persona put" line
   Serial.begin(115200);
   rxQueue = xQueueCreate(16, sizeof(Packet));
 

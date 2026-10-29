@@ -49,8 +49,9 @@ void drawNormalEye(Canvas& c, float x, float y, const Face& f, float open, float
     const float rel = (px + 0.5f - x) / (w / 2);    // -1 .. 1 across the eye
     const float inner = left ? (rel + 1) / 2 : (1 - rel) / 2;  // 0 outer .. 1 inner
     float top = lidTop;
-    if (f.slant > 0) top += f.slant * inner;
-    else if (f.slant < 0) top += -f.slant * (1 - inner);
+    const float slant = f.slant + f.baseSlant;
+    if (slant > 0) top += slant * inner;
+    else if (slant < 0) top += -slant * (1 - inner);
     // Cheek: an ellipse pushing up from below the eye -> crescent smile.
     float bottom = T + H;
     if (f.cheek > 0.01f) {
@@ -62,11 +63,78 @@ void drawNormalEye(Canvas& c, float x, float y, const Face& f, float open, float
       if (py < top || py > bottom) c.pixel(px, py, false);
   }
 
-  if (f.shine > 0.5f && open > 0.55f && W > 14 && f.cheek < 0.4f) {
+  if (f.shine > 0.5f && open > 0.55f && W > 14 && f.cheek < 0.4f && f.shineStyle != Shine::None) {
+    const float slant = f.slant + f.baseSlant;
     const int s = iround(w * 0.22f);
     const int sx = iround(x - w * 0.30f);
-    const int sy = iround(lidTop + h * 0.14f + (f.slant > 0 ? f.slant * 0.5f : 0));
-    c.fillRoundRect(sx, sy, s, s, s / 3, false);
+    const int sy = iround(lidTop + h * 0.14f + (slant > 0 ? slant * 0.5f : 0));
+    const int mx = sx + s / 2, my = sy + s / 2;
+    switch (f.shineStyle) {
+      case Shine::Square:
+      case Shine::Count:
+        c.fillRoundRect(sx, sy, s, s, s / 3, false);
+        break;
+      case Shine::None:
+        break;
+      case Shine::Dot:
+        c.fillCircle(mx, my, s / 2, false);
+        break;
+      case Shine::Double:
+        c.fillCircle(mx, my, s / 2, false);
+        c.fillCircle(mx + s, my + s, s > 5 ? 2 : 1, false);
+        break;
+      case Shine::Star:
+        c.thickLine(mx - s / 2 - 1, my, mx + s / 2 + 1, my, 1, false);
+        c.thickLine(mx, my - s / 2 - 1, mx, my + s / 2 + 1, 1, false);
+        c.fillRect(mx - 1, my - 1, 3, 3, false);
+        break;
+      case Shine::Ring:
+        c.fillCircle(mx, my, s / 2 + 1, false);
+        if (s / 2 - 1 > 0) c.fillCircle(mx, my, s / 2 - 1, true);
+        break;
+    }
+  }
+}
+
+// Gene accents around one eye. `left` is the viewer's left eye.
+void drawAccent(Canvas& c, const Face& f, float x, float y, float scale, EyeStyle style,
+                float open, bool left, uint32_t t) {
+  (void)t;
+  const float w = f.eyeW * scale, h = f.eyeH * scale;
+  const float top = y - h / 2 + (style == EyeStyle::Normal ? (1 - clamp01(open)) * h : 0);
+  const float bottom = y + h / 2;
+  const int out = left ? -1 : 1;  // towards the outer edge of the face
+  switch (f.accent) {
+    case Accent::None:
+    case Accent::Count:
+      break;
+    case Accent::Lashes:
+      if (style != EyeStyle::Normal || open < 0.3f) break;
+      for (int i = 0; i < 3; ++i) {
+        const float bx = x + out * (w * 0.5f - 1 - i * 3.f);
+        const float by = top + 1 + i * 0.6f;
+        c.thickLine(iround(bx), iround(by), iround(bx + out * 3), iround(by - 3 + i * 0.5f), 1);
+      }
+      break;
+    case Accent::Brows: {
+      // Brows follow the mood: inner ends drop when angry, rise when sad.
+      const float slant = f.slant + f.baseSlant;
+      const float by = y - h / 2 - 5;
+      const float inner = by + slant * 0.45f, outer = by - slant * 0.2f;
+      const float ix = x - out * w * 0.32f, ox = x + out * w * 0.32f;
+      c.thickLine(iround(ix), iround(inner), iround(ox), iround(outer), 2);
+      break;
+    }
+    case Accent::Freckles:
+      for (int i = 0; i < 3; ++i)
+        c.pixel(iround(x + out * (w * 0.15f + i * 3.f)), iround(bottom + 3 + (i & 1)));
+      break;
+    case Accent::Blush:
+      c.ditherEllipse(iround(x + out * 6), iround(bottom + 3), 8, 3);
+      break;
+    case Accent::Mark:
+      if (!left) c.fillRect(iround(x + w * 0.45f), iround(bottom + 2), 2, 2);
+      break;
   }
 }
 
@@ -357,11 +425,14 @@ Face lerp(const Face& a, const Face& b, float t) {
   o.mouthY = lerpf(a.mouthY, b.mouthY, t);
   o.offX = lerpf(a.offX, b.offX, t);
   o.offY = lerpf(a.offY, b.offY, t);
+  o.baseSlant = lerpf(a.baseSlant, b.baseSlant, t);
   const bool late = t >= 0.5f;
   o.styleL = late ? b.styleL : a.styleL;
   o.styleR = late ? b.styleR : a.styleR;
   o.mouth = late ? b.mouth : a.mouth;
   o.fx = late ? b.fx : a.fx;
+  o.shineStyle = late ? b.shineStyle : a.shineStyle;
+  o.accent = late ? b.accent : a.accent;
   return o;
 }
 
@@ -372,6 +443,10 @@ void drawFace(Canvas& c, const Face& f, uint32_t t) {
   const float ey = f.eyeY + f.offY + f.lookY;
   drawEye(c, lx, ey, f, f.styleL, f.openL, f.scaleL, true, t);
   drawEye(c, rx, ey, f, f.styleR, f.openR, f.scaleR, false, t);
+  if (f.accent != Accent::None) {
+    drawAccent(c, f, lx, ey, f.scaleL, f.styleL, f.openL, true, t);
+    drawAccent(c, f, rx, ey, f.scaleR, f.styleR, f.openR, false, t);
+  }
   drawMouth(c, cx + f.lookX * 0.4f, f.mouthY + f.offY + f.lookY * 0.3f, f, t);
   drawOverlays(c, f, lx, rx, ey, t);
 }

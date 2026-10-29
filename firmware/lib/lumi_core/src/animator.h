@@ -36,6 +36,12 @@ class Animator {
   void setIdleEnabled(bool on) { idleEnabled_ = on; }
   void setMood(uint8_t mood) { mood_ = mood; }
 
+  // Personality: favourite animations are picked 3x as often, and the gap
+  // between idle animations is scaled (hyper Lumis fidget more).
+  static constexpr int kMaxFavourites = 8;
+  void setFavourites(const int* indices, int count);
+  void setIdleScale(float scale) { idleScale_ = scale > 0.1f ? scale : 0.1f; }
+
   void update(uint32_t nowMs);
   const Face& face() const { return out_; }
   uint32_t now() const { return now_; }
@@ -49,6 +55,10 @@ class Animator {
   Expr base_ = Expr::Neutral;
   uint8_t mood_ = 60;
   bool idleEnabled_ = true;
+  int favourites_[kMaxFavourites] = {0};
+  int favouriteCount_ = 0;
+  float idleScale_ = 1;
+  int weightOf(int index) const;
   float gazeX_ = 0, gazeY_ = 0;
 
   int anim_ = -1;

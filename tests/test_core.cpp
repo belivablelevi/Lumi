@@ -11,6 +11,9 @@
 
 #include "animations.h"
 #include "app.h"
+#include "genes.h"
+#include "pack.h"
+#include "serial_cmd.h"
 #include "fake_hal.h"
 #include "animator.h"
 #include "pong.h"
@@ -623,6 +626,287 @@ static void testApp() {
   CHECK_EQ(batteryPercent(3850), 56);
 }
 
+// ---------------------------------------------------------------------------
+// Personalities, emotion packs and factory provisioning.
+
+static std::vector<uint8_t> readFile(const char* path) {
+  std::vector<uint8_t> v;
+  FILE* f = fopen(path, "rb");
+  if (!f) return v;
+  uint8_t buf[4096];
+  size_t n;
+  while ((n = fread(buf, 1, sizeof(buf), f)) > 0) v.insert(v.end(), buf, buf + n);
+  fclose(f);
+  return v;
+}
+
+static int litPixels(const Canvas& c) {
+  int lit = 0;
+  for (int i = 0; i < kBufferSize; ++i) lit += __builtin_popcount(c.buf[i]);
+  return lit;
+}
+
+struct Lines {
+  std::vector<std::string> v;
+  static void out(void* ctx, const char* line) { static_cast<Lines*>(ctx)->v.push_back(line); }
+  const std::string& last() const { return v.back(); }
+};
+
+static void testPersonality() {
+  printf("personality\n");
+  {  // the built-in expressions look exactly as they did before genes existed
+    const std::vector<uint8_t> golden = readFile("golden/expressions.frames");
+    CHECK_EQ(golden.size(), (size_t)Expr::Count * kBufferSize);
+    for (int e = 0; e < (int)Expr::Count && golden.size() == (size_t)Expr::Count * kBufferSize; ++e) {
+      Canvas c;
+      drawFace(c, expression((Expr)e), 600);
+      CHECK(memcmp(c.buf, golden.data() + e * kBufferSize, kBufferSize) == 0);
+    }
+  }
+  {  // deterministic from a seed
+    char a[16], b[16];
+    for (uint64_t seed = 1; seed < 200; seed += 7) {
+      CHECK_EQ(genesCode(genesFromSeed(seed)), genesCode(genesFromSeed(seed)));
+      CHECK(genesValid(genesFromSeed(seed)));
+      nameFromSeed(seed, a, sizeof(a));
+      nameFromSeed(seed, b, sizeof(b));
+      CHECK(strcmp(a, b) == 0 && strlen(a) >= 2);
+    }
+    CHECK_EQ(lookCount(), 108000u);
+  }
+  {  // rarity mix and how often automatic looks repeat
+    int tiers[4] = {0};
+    std::set<uint32_t> looks;
+    const int n = 100000;
+    for (int i = 0; i < n; ++i) {
+      const Genes g = genesFromSeed(0x240AC4000000ull + (uint64_t)i * 977u);
+      ++tiers[(int)rarityOf(g)];
+      looks.insert(genesCode(g));
+    }
+    printf("  rarity %.1f/%.1f/%.1f/%.1f%%, %zu distinct looks in %d units\n", 100.0 * tiers[0] / n,
+           100.0 * tiers[1] / n, 100.0 * tiers[2] / n, 100.0 * tiers[3] / n, looks.size(), n);
+    CHECK(fabs(100.0 * tiers[0] / n - 60) < 3);
+    CHECK(fabs(100.0 * tiers[1] / n - 25) < 3);
+    CHECK(fabs(100.0 * tiers[2] / n - 12) < 2);
+    CHECK(fabs(100.0 * tiers[3] / n - 3) < 1);
+    CHECK(looks.size() > 30000);
+  }
+  {  // every eye geometry keeps every expression on screen and visible
+    int bad = 0;
+    for (int shape = 0; shape < geneOptions(kGeneEyeShape); ++shape)
+      for (int size = 0; size < geneOptions(kGeneEyeSize); ++size)
+        for (int sp = 0; sp < geneOptions(kGeneSpacing); ++sp)
+          for (int h = 0; h < geneOptions(kGeneHeight); ++h) {
+            Genes g;
+            g.eyeShape = shape;
+            g.eyeSize = size;
+            g.spacing = sp;
+            g.height = h;
+            g.shine = (shape + size) % geneOptions(kGeneShine);
+            g.accent = (sp + h + shape) % geneOptions(kGeneAccent);
+            for (int e = 0; e < (int)Expr::Count; ++e) {
+              const Face f = personalize(expression((Expr)e), g);
+              const float left = kWidth / 2.f - f.spacing / 2 - f.eyeW * f.scaleL / 2;
+              const float right = kWidth / 2.f + f.spacing / 2 + f.eyeW * f.scaleR / 2;
+              const float top = f.eyeY - f.eyeH * (f.scaleL > f.scaleR ? f.scaleL : f.scaleR) / 2;
+              const float gap = (f.spacing - f.eyeW * (f.scaleL + f.scaleR) / 2);  // between the eyes
+              Canvas c;
+              drawFace(c, f, 600);
+              if (left < 0 || right > kWidth || top < 0 || gap < 2 || litPixels(c) < 40) ++bad;
+            }
+          }
+    if (bad) printf("  %d personalized expressions off screen or blank\n", bad);
+    CHECK_EQ(bad, 0);
+  }
+
+  // A pack with two custom faces, two animations and a persona.
+  static Pack pack;
+  pack.clear();
+  Face wink = expression(Expr::Wink);
+  wink.accent = Accent::Lashes;
+  wink.eyeW = 31.5f;
+  const int fWink = pack.addFace(wink);
+  Face proud = expression(Expr::Smug);
+  proud.cheek = 0.4f;
+  proud.fx = kFxSparkles;
+  const int fProud = pack.addFace(proud);
+  const Key k1[] = {{Expr::Neutral, 0, 0, Motion::Hop, 150, 600, 0, kKeep, kKeep, pack.faces() + fWink},
+                    {Expr::Neutral, 4, -2, Motion::None, 200, 500, kFxHearts, kKeep, kKeep, pack.faces() + fProud}};
+  const Key k2[] = {{Expr::Joy, 0, 0, Motion::Bounce, 120, 800, 0, kKeep, (int8_t)Mouth::Cat, nullptr}};
+  CHECK_EQ(pack.addAnimation("signature_wink", Trigger::Pat, 40, 100, 3, k1, 2), 0);
+  CHECK_EQ(pack.addAnimation("signature_bounce", Trigger::DoublePat, 0, 100, 1, k2, 1), 1);
+  PackPersona persona;
+  persona.present = true;
+  strcpy(persona.name, "Starla");
+  strcpy(persona.serial, "LUMI-000421");
+  persona.genes.eyeShape = 2;
+  persona.genes.shine = 4;
+  persona.genes.accent = 1;
+  persona.genes.temperament = (uint8_t)Temperament::Hyper;
+  persona.favouriteCount = 1;
+  strcpy(persona.favourites[0], "signature_wink");
+  pack.setPersona(persona);
+
+  static uint8_t bytes[kPackMaxBytes], again[kPackMaxBytes];
+  const size_t len = pack.encode(bytes, sizeof(bytes));
+  CHECK(len > kPackHeaderBytes);
+  {  // round trip: decoding and re-encoding gives the same bytes
+    static Pack decoded;
+    CHECK(decoded.decode(bytes, len) == Pack::Error::None);
+    CHECK_EQ(decoded.faceCount(), 2);
+    CHECK_EQ(decoded.animationCount(), 2);
+    CHECK(decoded.persona().present && strcmp(decoded.persona().name, "Starla") == 0);
+    CHECK_EQ(genesCode(decoded.persona().genes), genesCode(persona.genes));
+    CHECK(decoded.animation(0).keys[0].face == decoded.faces() + 0);
+    CHECK(decoded.animation(1).keys[0].face == nullptr && decoded.animation(1).keys[0].expr == Expr::Joy);
+    CHECK_EQ(decoded.animation(0).weight, 3);
+    const size_t len2 = decoded.encode(again, sizeof(again));
+    CHECK_EQ(len2, len);
+    CHECK(memcmp(bytes, again, len) == 0);
+    // Quantization keeps the face the same on screen.
+    Canvas a, b;
+    drawFace(a, wink, 300);
+    drawFace(b, decoded.face(0), 300);
+    CHECK(memcmp(a.buf, b.buf, kBufferSize) == 0);
+  }
+  {  // damaged packs are refused with a reason
+    static Pack p;
+    static uint8_t bad[kPackMaxBytes];
+    memcpy(bad, bytes, len);
+    bad[len - 3] ^= 0x40;
+    CHECK(p.decode(bad, len) == Pack::Error::BadCrc);
+    CHECK(p.empty());
+    CHECK(p.decode(bytes, len - 1) == Pack::Error::BadLength);
+    CHECK(p.decode(bytes, 10) == Pack::Error::TooShort);
+    memcpy(bad, bytes, len);
+    bad[0] = 'X';
+    CHECK(p.decode(bad, len) == Pack::Error::BadMagic);
+    memcpy(bad, bytes, len);
+    bad[4] = 9;
+    CHECK(p.decode(bad, len) == Pack::Error::BadVersion);
+    CHECK(p.decode(bytes, kPackMaxBytes + 1) == Pack::Error::TooBig);
+    // Valid checksum, nonsense contents: an eye style that doesn't exist.
+    memcpy(bad, bytes, len);
+    bad[kPackHeaderBytes + 4 + 20] = 99;  // section header (3) + count (1) + styleL
+    const uint32_t crc = Pack::crc32(bad + kPackHeaderBytes, len - kPackHeaderBytes);
+    for (int i = 0; i < 4; ++i) bad[12 + i] = (uint8_t)(crc >> (8 * i));
+    CHECK(p.decode(bad, len) == Pack::Error::BadData);
+  }
+  {  // pack animations join the registry and play with their custom faces
+    const int before = animationCount();
+    registerPack(1, &pack);
+    CHECK_EQ(animationCount(), before + 2);
+    const int idx = findAnimation("signature_wink");
+    CHECK(idx >= builtinAnimationCount());
+    Animator anim;
+    anim.begin(0, 5);
+    anim.setIdleEnabled(false);
+    anim.playIndex(idx);
+    uint32_t t = 0;
+    bool sawLashes = false;
+    for (; t < 10000 && anim.busy(); t += 33) {
+      anim.update(t);
+      sawLashes |= anim.face().accent == Accent::Lashes;
+    }
+    CHECK(sawLashes);
+    CHECK(!anim.busy());
+    // Favourites are picked about 3x as often as the rest.
+    int fav = idx, hits = 0, plays = 3000, pats = 0;
+    for (int i = 0; i < animationCount(); ++i) pats += animation(i).trigger == Trigger::Pat && 60 >= animation(i).moodMin && 60 <= animation(i).moodMax;
+    anim.setFavourites(&fav, 1);
+    for (int i = 0; i < plays; ++i) {
+      anim.stop();
+      hits += anim.play(Trigger::Pat, 60) == fav;
+    }
+    // weight 3 x favourite 3 = 9 shares against 1 for each other pat animation
+    const double expected = 9.0 / (9.0 + (pats - 1));
+    printf("  favourite picked %.0f%% (expected ~%.0f%%)\n", 100.0 * hits / plays, 100 * expected);
+    CHECK(fabs((double)hits / plays - expected) < 0.05);
+    registerPack(1, nullptr);
+    CHECK_EQ(animationCount(), before);
+  }
+  {  // a unit with nothing stored gets its automatic persona from the MAC
+    sim::FakeHal hal;
+    MoodState ms;
+    App app(hal, &ms);
+    app.begin(WakeReason::PowerOn, 0);
+    uint64_t seed = 0;
+    for (int i = 0; i < 6; ++i) seed = seed << 8 | hal.mac[i];
+    char name[16];
+    nameFromSeed(seed, name, sizeof(name));
+    CHECK(!app.personaAssigned());
+    CHECK(strcmp(app.name(), name) == 0);
+    CHECK_EQ(genesCode(app.genes()), genesCode(genesFromSeed(seed)));
+
+    // Factory provisioning over the serial protocol.
+    SerialCommands cmd(app, hal);
+    Lines out;
+    CHECK(cmd.handle("id", Lines::out, &out));
+    CHECK(out.last().find("persona=auto") != std::string::npos);
+    CHECK(!cmd.handle("i", Lines::out, &out));  // not ours: the firmware's debug command
+
+    char line[SerialCommands::kMaxLine];
+    auto upload = [&](const uint8_t* data, size_t n, uint32_t crc) {
+      snprintf(line, sizeof(line), "persona begin %zu", n);
+      cmd.handle(line, Lines::out, &out);
+      for (size_t off = 0; off < n; off += 64) {
+        int p = snprintf(line, sizeof(line), "persona put %zu ", off);
+        for (size_t i = off; i < n && i < off + 64; ++i) p += snprintf(line + p, sizeof(line) - p, "%02x", data[i]);
+        cmd.handle(line, Lines::out, &out);
+      }
+      snprintf(line, sizeof(line), "persona commit %08X", crc);
+      cmd.handle(line, Lines::out, &out);
+      return out.last();
+    };
+    CHECK(upload(bytes, len, Pack::crc32(bytes, len) ^ 1).rfind("err crc mismatch", 0) == 0);
+    CHECK(!app.personaAssigned());
+    CHECK(upload(bytes, len, Pack::crc32(bytes, len)) == "ok commit");
+    CHECK(app.personaAssigned());
+    CHECK(strcmp(app.name(), "Starla") == 0);
+    CHECK(strcmp(app.serial(), "LUMI-000421") == 0);
+    CHECK(findAnimation("signature_bounce") >= 0);
+    cmd.handle("id", Lines::out, &out);
+    CHECK(out.last().find("persona=assigned name=Starla") != std::string::npos);
+
+    // Read it back byte for byte.
+    out.v.clear();
+    cmd.handle("persona get", Lines::out, &out);
+    std::string hex;
+    for (const std::string& l : out.v)
+      if (l.rfind("data ", 0) == 0) hex += l.substr(l.find(' ', 5) + 1);
+    CHECK_EQ(hex.size(), len * 2);
+    bool same = hex.size() == len * 2;
+    for (size_t i = 0; same && i < len; ++i) same = (uint8_t)strtoul(hex.substr(i * 2, 2).c_str(), nullptr, 16) == bytes[i];
+    CHECK(same);
+    CHECK(out.v.back() == "end");
+
+    // A pack with a valid checksum but broken contents is refused and the
+    // assigned persona stays.
+    static uint8_t bad[kPackMaxBytes];
+    memcpy(bad, bytes, len);
+    bad[kPackHeaderBytes + 4 + 22] = 77;  // mouth that doesn't exist
+    const uint32_t c2 = Pack::crc32(bad + kPackHeaderBytes, len - kPackHeaderBytes);
+    for (int i = 0; i < 4; ++i) bad[12 + i] = (uint8_t)(c2 >> (8 * i));
+    CHECK(upload(bad, len, Pack::crc32(bad, len)) == "err invalid contents");
+    CHECK(app.personaAssigned() && strcmp(app.name(), "Starla") == 0);
+
+    // It survives a reboot (same storage, new App).
+    App app2(hal, &ms);
+    app2.begin(WakeReason::Motion, 10);
+    CHECK(app2.personaAssigned() && strcmp(app2.name(), "Starla") == 0);
+
+    // Clearing goes back to the automatic persona.
+    cmd.handle("persona clear", Lines::out, &out);
+    CHECK(out.last() == "ok clear");
+    CHECK(!app.personaAssigned() && strcmp(app.name(), name) == 0);
+    cmd.handle("persona get", Lines::out, &out);
+    CHECK(out.last() == "persona none");
+    cmd.handle("persona put 0 00", Lines::out, &out);
+    CHECK(out.last().rfind("err", 0) == 0);
+    registerPack(1, nullptr);
+  }
+}
+
 int main() {
   testGfxAndFace();
   testGestures();
@@ -630,6 +914,7 @@ int main() {
   testAnimations();
   testMood();
   testApp();
+  testPersonality();
   printf("\n%d checks, %d failures\n", g_checks, g_failures);
   return g_failures ? 1 : 0;
 }

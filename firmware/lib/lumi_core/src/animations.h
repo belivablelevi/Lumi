@@ -52,6 +52,7 @@ struct Key {
   uint16_t fx;       // overlays added to the expression's own
   int8_t eyes;       // EyeStyle override or kKeep
   int8_t mouth;      // Mouth override or kKeep
+  const Face* face;  // custom face from an emotion pack; nullptr = use expr
 };
 
 struct Animation {
@@ -60,11 +61,18 @@ struct Animation {
   uint8_t moodMin, moodMax;  // eligible happiness range, inclusive
   const Key* keys;
   uint8_t count;
+  uint8_t weight;  // relative chance among animations for the same trigger
 };
 
+class Pack;
+
+// Built-in animations come first, then those of the registered packs
+// (slot 0: the pack built into the firmware, slot 1: this unit's own pack).
 int animationCount();
+int builtinAnimationCount();
 const Animation& animation(int index);
 int findAnimation(const char* name);  // -1 if missing
+void registerPack(int slot, const Pack* pack);  // nullptr unregisters
 uint32_t animationDuration(const Animation& a);
 const char* triggerName(Trigger t);
 

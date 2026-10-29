@@ -6,12 +6,15 @@
 #include <stdint.h>
 
 #include "animator.h"
+#include "pack.h"
 #include "pong.h"
 #include "gestures.h"
 #include "gfx.h"
 #include "mood.h"
 
 namespace lumi {
+
+constexpr const char* kFirmwareVersion = "1.2.0";
 
 class Hal {
  public:
@@ -35,6 +38,21 @@ class Hal {
   virtual const char* updatePassword() = 0;
   virtual const char* updateAddress() = 0;
   virtual int updateProgress() = 0;  // -1 idle, 0..100 while uploading
+
+  // This unit's own emotion pack / persona (NVS on the device). Units without
+  // storage simply always use the automatic persona.
+  virtual bool storeLoad(uint8_t* buf, size_t cap, size_t* len) {
+    (void)buf;
+    (void)cap;
+    (void)len;
+    return false;
+  }
+  virtual bool storeSave(const uint8_t* data, size_t len) {
+    (void)data;
+    (void)len;
+    return false;
+  }
+  virtual bool storeClear() { return false; }
 };
 
 enum class WakeReason : uint8_t { PowerOn, Motion, Other };
@@ -74,6 +92,24 @@ class App {
   const pong::Game& game() const { return game_; }
   void debugPlay(int animationIndex) { anim_.playIndex(animationIndex); }
 
+  // Personality. Assigned at the factory (a persona in this unit's pack) or
+  // derived automatically from the chip's MAC address.
+  const Genes& genes() const { return genes_; }
+  const char* name() const { return name_; }
+  const char* serial() const { return serial_; }
+  bool personaAssigned() const { return assigned_; }
+  Rarity rarity() const { return rarityOf(genes_); }
+  const Pack& unitPack() const { return unitPack_; }
+  const Pack& defaultPack() const { return defaultPack_; }
+
+  // Validates and stores a new unit pack, then applies it. On failure the
+  // previous pack stays in place and `error` says why.
+  bool installUnitPack(const uint8_t* data, size_t len, const char** error);
+  // Forgets the unit pack: back to the automatic persona.
+  void clearUnitPack();
+  // Reloads packs and persona from storage (also done by begin()).
+  void loadPersona();
+
   static const char* modeName(Mode m);
 
  private:
@@ -94,6 +130,7 @@ class App {
   void renderCourt(Canvas& c, uint32_t now);
   void renderUpdate(Canvas& c, uint32_t now);
   void drawCompactFace(Canvas& c, uint32_t now);
+  void applyPersona();
 
   static void sendThunk(const pong::Packet& p, void* ctx);
 
@@ -129,6 +166,13 @@ class App {
   bool gameRecorded_ = false;
   uint32_t smashUntil_ = 0;
   float paddle_ = kWidth / 2.f;  // smoothed paddle position
+
+  Pack defaultPack_;  // built into the firmware
+  Pack unitPack_;     // this unit's own, from storage
+  Genes genes_;
+  char name_[16] = "Lumi";
+  char serial_[kPackNameLen] = "";
+  bool assigned_ = false;
 };
 
 uint8_t batteryPercent(uint16_t mv);

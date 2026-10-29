@@ -2,14 +2,16 @@
 
 #include <string.h>
 
+#include "pack.h"
+
 namespace lumi {
 
 namespace {
 
-#define K(e, lx, ly, m, tw, hd) {Expr::e, lx, ly, Motion::m, tw, hd, 0, kKeep, kKeep}
-#define KF(e, lx, ly, m, tw, hd, fx) {Expr::e, lx, ly, Motion::m, tw, hd, fx, kKeep, kKeep}
+#define K(e, lx, ly, m, tw, hd) {Expr::e, lx, ly, Motion::m, tw, hd, 0, kKeep, kKeep, nullptr}
+#define KF(e, lx, ly, m, tw, hd, fx) {Expr::e, lx, ly, Motion::m, tw, hd, fx, kKeep, kKeep, nullptr}
 #define KO(e, lx, ly, m, tw, hd, fx, eyes, mouth) \
-  {Expr::e, lx, ly, Motion::m, tw, hd, fx, (int8_t)(eyes), (int8_t)(mouth)}
+  {Expr::e, lx, ly, Motion::m, tw, hd, fx, (int8_t)(eyes), (int8_t)(mouth), nullptr}
 
 constexpr int8_t kClosed = (int8_t)EyeStyle::Closed;
 constexpr int8_t kArc = (int8_t)EyeStyle::HappyArc;
@@ -108,7 +110,7 @@ const Key kBootHello[] = {K(Blank, 0, 0, None, 0, 400), K(Surprised, 0, 0, None,
 const Key kUpdating[] = {K(Determined, 0, 0, None, 300, 1500), K(Squint, 0, 0, Tremble, 200, 800)};
 
 #define ANIM(name, trig, lo, hi, arr) \
-  {name, Trigger::trig, lo, hi, arr, (uint8_t)(sizeof(arr) / sizeof(arr[0]))}
+  {name, Trigger::trig, lo, hi, arr, (uint8_t)(sizeof(arr) / sizeof(arr[0])), 1}
 
 const Animation kAnimations[] = {
     ANIM("look_left", Idle, 0, 100, kLookLeft),
@@ -184,18 +186,40 @@ const Animation kAnimations[] = {
 
 constexpr int kAnimationCount = sizeof(kAnimations) / sizeof(kAnimations[0]);
 
+const Pack* g_packs[2] = {nullptr, nullptr};
+
 }  // namespace
 
-int animationCount() { return kAnimationCount; }
+void registerPack(int slot, const Pack* pack) {
+  if (slot >= 0 && slot < 2) g_packs[slot] = pack;
+}
+
+int builtinAnimationCount() { return kAnimationCount; }
+
+int animationCount() {
+  int n = kAnimationCount;
+  for (const Pack* p : g_packs)
+    if (p) n += p->animationCount();
+  return n;
+}
 
 const Animation& animation(int index) {
+  if (index >= kAnimationCount) {
+    int i = index - kAnimationCount;
+    for (const Pack* p : g_packs) {
+      if (!p) continue;
+      if (i < p->animationCount()) return p->animation(i);
+      i -= p->animationCount();
+    }
+  }
   if (index < 0 || index >= kAnimationCount) index = 0;
   return kAnimations[index];
 }
 
 int findAnimation(const char* name) {
-  for (int i = 0; i < kAnimationCount; ++i)
-    if (strcmp(kAnimations[i].name, name) == 0) return i;
+  // Later entries win, so a pack can replace a built-in animation by name.
+  for (int i = animationCount() - 1; i >= 0; --i)
+    if (strcmp(animation(i).name, name) == 0) return i;
   return -1;
 }
 
@@ -218,7 +242,7 @@ const char* triggerName(Trigger t) {
 }
 
 Face keyFace(const Key& k) {
-  Face f = expression(k.expr);
+  Face f = k.face ? *k.face : expression(k.expr);
   f.lookX += k.lookX;
   f.lookY += k.lookY;
   f.fx |= k.fx;

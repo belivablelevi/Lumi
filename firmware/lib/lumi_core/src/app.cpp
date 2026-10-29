@@ -1,6 +1,9 @@
 #include "app.h"
 
 #include <stdio.h>
+#include <string.h>
+
+#include "generated/default_pack.h"
 
 namespace lumi {
 
@@ -49,6 +52,7 @@ void App::begin(WakeReason why, uint32_t sleptSeconds) {
   gestures_.reset(now);
   wakeTime_ = lastInteraction_ = lastTick_ = now;
   interactedSinceWake_ = why != WakeReason::Motion;
+  loadPersona();
   if (why == WakeReason::Motion) mood_.tickAsleep(sleptSeconds);
   anim_.setMood(mood_.happiness());
   anim_.setBase(mood_.restingExpression());
@@ -59,6 +63,85 @@ void App::begin(WakeReason why, uint32_t sleptSeconds) {
   if (why == WakeReason::PowerOn) react(Trigger::Boot);
   else if (mood_.lonely()) react(Trigger::Lonely);
   else react(Trigger::Wake);
+}
+
+namespace {
+
+// Scratch space for reading the unit pack from storage (too big for a stack).
+uint8_t g_storeBuffer[kPackMaxBytes];
+
+uint64_t macToSeed(const uint8_t mac[6]) {
+  uint64_t v = 0;
+  for (int i = 0; i < 6; ++i) v = v << 8 | mac[i];
+  return v;
+}
+
+}  // namespace
+
+void App::loadPersona() {
+  anim_.stop();  // pack animations may be about to move
+  registerPack(0, nullptr);
+  registerPack(1, nullptr);
+  if (kDefaultPackSize && defaultPack_.decode(kDefaultPack, kDefaultPackSize) == Pack::Error::None)
+    registerPack(0, &defaultPack_);
+  size_t len = 0;
+  unitPack_.clear();
+  if (hal_.storeLoad(g_storeBuffer, sizeof(g_storeBuffer), &len) &&
+      unitPack_.decode(g_storeBuffer, len) == Pack::Error::None)
+    registerPack(1, &unitPack_);
+  applyPersona();
+}
+
+void App::applyPersona() {
+  const PackPersona& p = unitPack_.persona();
+  assigned_ = p.present;
+  if (assigned_) {
+    genes_ = p.genes;
+    snprintf(name_, sizeof(name_), "%s", p.name[0] ? p.name : "Lumi");
+    snprintf(serial_, sizeof(serial_), "%s", p.serial);
+  } else {
+    uint8_t mac[6];
+    hal_.macAddress(mac);
+    const uint64_t seed = macToSeed(mac);
+    genes_ = genesFromSeed(seed);
+    nameFromSeed(seed, name_, sizeof(name_));
+    serial_[0] = 0;
+  }
+
+  const TemperamentTraits& t = traits((Temperament)genes_.temperament);
+  mood_.setTemperament((Temperament)genes_.temperament);
+  anim_.setIdleScale(t.idleInterval);
+  int favs[Animator::kMaxFavourites];
+  int n = 0;
+  for (const char* name : t.favourites)
+    if (name && n < Animator::kMaxFavourites) favs[n++] = findAnimation(name);
+  for (int i = 0; assigned_ && i < p.favouriteCount && n < Animator::kMaxFavourites; ++i)
+    favs[n++] = findAnimation(p.favourites[i]);
+  anim_.setFavourites(favs, n);
+}
+
+bool App::installUnitPack(const uint8_t* data, size_t len, const char** error) {
+  // Check it decodes before touching storage, using the live pack's slot.
+  anim_.stop();
+  registerPack(1, nullptr);
+  const Pack::Error e = unitPack_.decode(data, len);
+  if (e != Pack::Error::None) {
+    if (error) *error = Pack::errorName(e);
+    loadPersona();  // put the previous pack back
+    return false;
+  }
+  if (!hal_.storeSave(data, len)) {
+    if (error) *error = "storage write failed";
+    loadPersona();
+    return false;
+  }
+  loadPersona();
+  return true;
+}
+
+void App::clearUnitPack() {
+  hal_.storeClear();
+  loadPersona();
 }
 
 void App::enterMode(Mode m) {
@@ -423,12 +506,12 @@ void App::render(Canvas& c) {
         c.textCentered(38, "MENU", 2);
         c.rotate180();
       } else {
-        drawFace(c, anim_.face(), now);
+        drawFace(c, personalize(anim_.face(), genes_), now);
       }
       break;
     case Mode::FallingAsleep:
     case Mode::Sleep:
-      drawFace(c, anim_.face(), now);
+      drawFace(c, personalize(anim_.face(), genes_), now);
       break;
     case Mode::Menu:
       renderMenu(c, now);
@@ -468,6 +551,10 @@ void App::renderBattery(Canvas& c, uint32_t now) {
   const uint8_t pct = batteryPercent(mv);
   const bool usb = hal_.usbPowered();
 
+  char buf[40];
+  snprintf(buf, sizeof(buf), "%s - %s", name_, rarityName(rarity()));
+  c.textCentered(1, buf, 1);
+
   c.rect(6, 12, 54, 26);
   c.rect(7, 13, 52, 24);
   c.fillRect(60, 19, 4, 12);
@@ -475,7 +562,6 @@ void App::renderBattery(Canvas& c, uint32_t now) {
   if (usb) fill = (int)((now / 300) % 5) * 12;  // charging sweep
   if (fill > 0) c.fillRect(10, 16, fill, 18);
 
-  char buf[40];
   snprintf(buf, sizeof(buf), "%u%%", (unsigned)pct);
   c.text(72, 12, buf, 2);
   snprintf(buf, sizeof(buf), "%u.%02uV", mv / 1000, (mv % 1000) / 10);
@@ -488,7 +574,7 @@ void App::renderBattery(Canvas& c, uint32_t now) {
 }
 
 void App::drawCompactFace(Canvas& c, uint32_t now) {
-  Face f = anim_.face();
+  Face f = personalize(anim_.face(), genes_);
   f.eyeW *= 0.78f;
   f.eyeH *= 0.72f;
   f.eyeR *= 0.75f;

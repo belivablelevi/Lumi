@@ -48,6 +48,26 @@ class FakeHal : public Hal {
   const char* updatePassword() override { return "lumi1234"; }
   const char* updateAddress() override { return "192.168.4.1"; }
   int updateProgress() override { return progress; }
+
+  // Unit storage (NVS on the device).
+  std::vector<uint8_t> store;
+  bool hasStore = false;
+  bool storeLoad(uint8_t* buf, size_t cap, size_t* len) override {
+    if (!hasStore || store.size() > cap) return false;
+    memcpy(buf, store.data(), store.size());
+    *len = store.size();
+    return true;
+  }
+  bool storeSave(const uint8_t* data, size_t len) override {
+    store.assign(data, data + len);
+    hasStore = true;
+    return true;
+  }
+  bool storeClear() override {
+    store.clear();
+    hasStore = false;
+    return true;
+  }
 };
 
 struct FakeAir {

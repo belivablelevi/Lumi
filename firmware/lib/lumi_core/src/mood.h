@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "face.h"
+#include "genes.h"
 
 namespace lumi {
 
@@ -16,14 +17,31 @@ struct MoodState {
   uint32_t gamesWon = 0, gamesPlayed = 0;
 };
 
+// Traits before a unit's temperament is known: no shifts at all.
+inline const TemperamentTraits& neutralTraits() {
+  static const TemperamentTraits kNeutral = {65, 1.0f, 1.0f, 0, {nullptr, nullptr, nullptr, nullptr}};
+  return kNeutral;
+}
+
 class Mood {
  public:
   static constexpr uint32_t kMagic = 0x4C4D4F31;  // "LMO1"
 
-  explicit Mood(MoodState* s) : s_(s) {
+  explicit Mood(MoodState* s) : s_(s), traits_(&neutralTraits()) {
     if (s_->magic != kMagic) {
       *s_ = MoodState();
       s_->magic = kMagic;
+      fresh_ = true;
+    }
+  }
+
+  // A unit's temperament: a brand-new unit starts at its own happiness, and
+  // it shifts how quickly Lumi tires and how easily it looks happy or sad.
+  void setTemperament(Temperament t) {
+    traits_ = &traits(t);
+    if (fresh_) {
+      s_->happy = traits_->startHappy;
+      fresh_ = false;
     }
   }
 
@@ -41,7 +59,7 @@ class Mood {
   // Awake time slowly drains energy; being ignored slowly saps happiness.
   void tickAwake(uint32_t dtMs, bool ignored) {
     const float minutes = dtMs / 60000.f;
-    add(ignored ? -0.8f * minutes : 0, -0.7f * minutes);
+    add(ignored ? -0.8f * minutes : 0, -0.7f * minutes * traits_->energyDrain);
   }
   // Sleeping recharges energy; long absences make Lumi a bit lonely.
   void tickAsleep(uint32_t seconds) {
@@ -56,8 +74,8 @@ class Mood {
 
   Expr restingExpression() const {
     if (s_->energy < 20) return Expr::Sleepy;
-    if (s_->happy >= 80) return Expr::Happy;
-    if (s_->happy < 30) return Expr::Sad;
+    if (s_->happy >= 80 + traits_->happyShift) return Expr::Happy;
+    if (s_->happy < 30 + traits_->happyShift) return Expr::Sad;
     return Expr::Neutral;
   }
 
@@ -69,6 +87,8 @@ class Mood {
   static float clamp(float v, float lo, float hi) { return v < lo ? lo : (v > hi ? hi : v); }
 
   MoodState* s_;
+  const TemperamentTraits* traits_;
+  bool fresh_ = false;
 };
 
 }  // namespace lumi
