@@ -53,7 +53,7 @@ export function CharacterCard({
             sizes="(min-width: 1024px) 22vw, (min-width: 640px) 40vw, 80vw"
           />
         </div>
-        <span className="absolute top-4 left-4 rounded-chip bg-white/80 px-2.5 py-1 text-[0.6875rem] font-bold text-muted">Example unit</span>
+        <span className="absolute top-4 left-4 rounded-chip bg-white/80 px-2.5 py-1 text-[0.6875rem] font-bold text-muted">Example unit · every Lumi is unique</span>
       </Link>
       <div className="flex flex-1 flex-col p-5">
         <div className="flex items-center justify-between gap-2">

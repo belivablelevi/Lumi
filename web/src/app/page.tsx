@@ -6,6 +6,7 @@ import { renderImage } from "@/lib/renders";
 import { Hero } from "@/components/home/Hero";
 import { ChooseCompanion } from "@/components/home/ChooseCompanion";
 import { PersonalityShowcase } from "@/components/home/PersonalityShowcase";
+import { PongSection } from "@/components/pong/PongSection";
 import { Everyday } from "@/components/home/Everyday";
 import { LaunchModule } from "@/components/home/LaunchModule";
 import { BrandStory } from "@/components/home/BrandStory";
@@ -54,6 +55,7 @@ export default function Home() {
 
       <ChooseCompanion pocket={pocket} desk={desk} />
       <PersonalityShowcase />
+      <PongSection />
       <Everyday keyring={renderImage("on-keyring.png")} side={renderImage("usb-side.png")} />
       <LaunchModule launch={launch} />
       <BrandStory />

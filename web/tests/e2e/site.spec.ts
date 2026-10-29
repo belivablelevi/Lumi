@@ -104,3 +104,49 @@ test.describe("reduced motion", () => {
     expect(a).toBe(b);
   });
 });
+
+test.describe("Boop Pong", () => {
+  test("plays itself, lets you take over, and goes back to the demo after 10 s", async ({ page }) => {
+    await page.clock.install();
+    await page.goto("/");
+    const game = page.getByRole("application", { name: /Boop Pong/ });
+    await game.scrollIntoViewIfNeeded();
+    await page.clock.runFor(1500);
+    await expect(game.getByText("Demo", { exact: true })).toBeVisible();
+    // Two named, different Lumis.
+    const names = await game.locator("[data-persona-name]").allInnerTexts();
+    expect(names.filter((n) => n && n !== "…")).toHaveLength(2);
+    expect(names[0]).not.toBe(names[1]);
+    // The screens draw the game.
+    await page.clock.runFor(3000);
+    const lit = await game.locator("canvas").first().evaluate((c: HTMLCanvasElement) => {
+      const d = c.getContext("2d")!.getImageData(0, 0, c.width, c.height).data;
+      let n = 0;
+      for (let i = 3; i < d.length; i += 4) if (d[i]! > 0) n++;
+      return n;
+    });
+    expect(lit).toBeGreaterThan(200);
+
+    await game.focus();
+    await page.keyboard.down("ArrowRight");
+    await page.clock.runFor(400);
+    await page.keyboard.up("ArrowRight");
+    await expect(game.getByText("You're playing")).toBeVisible();
+    await page.clock.runFor(5000);
+    await expect(game.getByText("You're playing")).toBeVisible();
+    await page.clock.runFor(6000);
+    await expect(game.getByText("Demo", { exact: true })).toBeVisible();
+  });
+
+  test.describe("with reduced motion", () => {
+    test.use({ reducedMotion: "reduce" });
+    test("waits for a tap instead of playing itself", async ({ page }) => {
+      await page.goto("/");
+      const game = page.getByRole("application", { name: /Boop Pong/ });
+      await game.scrollIntoViewIfNeeded();
+      await expect(game.getByText("Paused")).toBeVisible();
+      await game.getByRole("button", { name: "Play the demo" }).click();
+      await expect(game.getByText(/Demo|You're playing/)).toBeVisible();
+    });
+  });
+});

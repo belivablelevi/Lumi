@@ -65,3 +65,25 @@ export function loadFrames(url: string): Promise<Uint8Array[]> {
   }
   return p;
 }
+
+export const OLED_ON = "#3cf0ff";
+
+/**
+ * Draws one 128x64 frame onto a canvas `scale` pixels per OLED pixel, with a
+ * 1 px gap between pixels when `grid` is set.
+ */
+export function drawFrame(ctx: CanvasRenderingContext2D, frame: Uint8Array | undefined, scale: number, grid: boolean) {
+  const size = grid ? scale - 1 : scale;
+  ctx.clearRect(0, 0, 128 * scale, 64 * scale);
+  if (!frame) return;
+  ctx.fillStyle = OLED_ON;
+  for (let page = 0; page < 8; page++) {
+    for (let x = 0; x < 128; x++) {
+      const bits = frame[page * 128 + x] ?? 0;
+      if (!bits) continue;
+      for (let b = 0; b < 8; b++) {
+        if (bits & (1 << b)) ctx.fillRect(x * scale, (page * 8 + b) * scale, size, size);
+      }
+    }
+  }
+}

@@ -4,3 +4,4 @@ firmware/.pio/
 .vscode/
 __pycache__/
 *.pyc
+tools/web-duel/build/
