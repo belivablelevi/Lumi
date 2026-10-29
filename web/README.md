@@ -82,6 +82,30 @@ Copy `.env.example` to `.env.local` for local work. On Vercel, put the same valu
 4. Set `SIGNUP_HASH_SALT` to a long random string and `NEXT_PUBLIC_SITE_URL` to your domain.
 5. **Vercel.** Import the repo and set **Root Directory** to `web`. Pages are prerendered, so redeploy after changing environment variables.
 
+### Using Vercel integrations
+
+The **Stripe**, **Supabase** and **Resend** integrations in Vercel's Marketplace (Project → Integrations)
+fill in most of these for you:
+
+| The site reads | Filled in by |
+|---|---|
+| `STRIPE_SECRET_KEY` | Stripe integration. It starts in a Stripe sandbox, so it's test money only. |
+| `STRIPE_WEBHOOK_SECRET` | Check whether the Stripe integration added it. If not, copy it from the webhook endpoint below. |
+| `SUPABASE_URL` (or `NEXT_PUBLIC_SUPABASE_URL`), `SUPABASE_SERVICE_ROLE_KEY` | Supabase integration |
+| `RESEND_API_KEY` | Resend integration |
+| `EMAIL_FROM` | You, e.g. `Lumi <hello@yourdomain.com>`, on a domain verified in Resend |
+
+Still to do by hand, once:
+1. Paste `supabase/migrations/0001_init.sql` into Supabase's **SQL editor** and run it.
+2. Set how many can be pre-ordered: `insert into capacity (sku, total) values ('LUMI-POCKET-01', 100);`.
+3. In Stripe, add a webhook endpoint `https://<your-site>/api/stripe/webhook` for `checkout.session.completed`,
+   `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed` and `checkout.session.expired`.
+4. Fill in `legal.businessName` and `legal.mailingAddress` in `src/config/brand.ts`. Launch emails stay closed until they're set.
+5. Redeploy, because the pages are built with the variables they had at build time.
+
+With the demo variables still set and a sandbox key, you can run the whole pre-order through Stripe's test
+checkout (card `4242 4242 4242 4242`). A live key (`sk_live_…`) switches the demo off.
+
 ### How an order works
 
 1. The browser sends only product slugs, options and quantities to `/api/checkout`.

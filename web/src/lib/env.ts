@@ -14,7 +14,8 @@ export const env = {
   stripeTax: get("STRIPE_AUTOMATIC_TAX") === "1",
   shippingRateIds: (get("STRIPE_SHIPPING_RATE_IDS") ?? "").split(",").map((s) => s.trim()).filter(Boolean),
   shippingCountries: (get("STRIPE_SHIPPING_COUNTRIES") ?? "CA").split(",").map((s) => s.trim()).filter(Boolean),
-  supabaseUrl: get("SUPABASE_URL"),
+  // The Vercel Supabase integration sets both names; either works.
+  supabaseUrl: get("SUPABASE_URL") ?? get("NEXT_PUBLIC_SUPABASE_URL"),
   supabaseServiceKey: get("SUPABASE_SERVICE_ROLE_KEY"),
   resendApiKey: get("RESEND_API_KEY"),
   emailFrom: get("EMAIL_FROM"),
