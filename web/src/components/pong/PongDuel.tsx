@@ -14,6 +14,18 @@ import { RarityDot } from "../lumi/PersonaChip";
 export const IDLE_MS = 10_000;
 const SCALE = 4;
 
+/** Steering feel. The paddle goes where you point, so these keep it calm. */
+const STEER = {
+  /** Phone tilt (degrees) that reaches the edge of the court. */
+  tiltFullDeg: 40,
+  /** Tilt ignored around level, so a hand's wobble doesn't move the paddle. */
+  tiltDeadDeg: 3,
+  /** Arrow keys: court widths per millisecond (about 1.1 s edge to edge). */
+  keyPerMs: 0.0018,
+  /** Time constant (ms) of the smoothing on every input, so a flick doesn't snap the paddle across. */
+  smoothMs: 120,
+};
+
 type Mode = "loading" | "paused" | "demo" | "playing" | "error";
 
 /** Where the keychain sits in the front renders, so the game can crop to the device itself. */
@@ -83,7 +95,7 @@ export function PongDuel({ you, pal }: { you: GalleryImage; pal: GalleryImage })
   const deviceA = useRef<HTMLDivElement>(null);
   const deviceB = useRef<HTMLDivElement>(null);
   const region = useRef<HTMLDivElement>(null);
-  const input = useRef({ target: 0, lastInput: -Infinity, pat: false, keys: { left: false, right: false }, tiltBase: null as number | null });
+  const input = useRef({ target: 0, steer: 0, lastInput: -Infinity, pat: false, keys: { left: false, right: false }, tiltBase: null as number | null });
   const visible = useRef(true);
   const modeRef = useRef<Mode>("loading");
   const setModeBoth = useCallback((m: Mode) => {
@@ -145,12 +157,13 @@ export function PongDuel({ you, pal }: { you: GalleryImage; pal: GalleryImage })
       const dt = Math.min(now - last, 100);
       last = now;
       if (i.keys.left || i.keys.right) {
-        i.target = Math.max(-1, Math.min(1, i.target + (i.keys.right ? 1 : -1) * dt * 0.0035));
+        i.target = Math.max(-1, Math.min(1, i.target + (i.keys.right ? 1 : -1) * dt * STEER.keyPerMs));
         i.lastInput = now;
       }
       if (modeRef.current === "playing" && now - i.lastInput > IDLE_MS) setModeBoth("demo");
       const auto = modeRef.current !== "playing";
-      d.step(dt, i.target, i.pat, auto);
+      i.steer += (i.target - i.steer) * (1 - Math.exp(-dt / STEER.smoothMs));
+      d.step(dt, i.steer, i.pat, auto);
       i.pat = false;
       for (const k of [0, 1] as const) {
         const c = ctx[k];
@@ -190,7 +203,9 @@ export function PongDuel({ you, pal }: { you: GalleryImage; pal: GalleryImage })
       if (e.gamma === null) return;
       const i = input.current;
       i.tiltBase ??= e.gamma;
-      const t = Math.max(-1, Math.min(1, (e.gamma - i.tiltBase) / 25));
+      const g = e.gamma - i.tiltBase;
+      const past = Math.max(0, Math.abs(g) - STEER.tiltDeadDeg) * Math.sign(g);
+      const t = Math.max(-1, Math.min(1, past / (STEER.tiltFullDeg - STEER.tiltDeadDeg)));
       // Phones report tiny wobbles at rest; only a real tilt counts as playing.
       if (Math.abs(t - i.target) > 0.08 || modeRef.current === "playing") {
         if (Math.abs(t - i.target) > 0.08) touched();
