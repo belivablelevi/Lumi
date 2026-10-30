@@ -135,6 +135,12 @@ experienced human review before the first order is worth the cost.
 
 ## Rough prototype budget (5 assembled boards)
 
+> Superseded by the detailed **[BUDGET.md](BUDGET.md)**:
+> - 5 prototypes all in (screens, batteries, cases, shipping to Canada and taxes) ≈ $189 USD / $264 CAD,
+> - 10 ≈ $269 / $376,
+> - per unit ≈ $11.70 at 100 and $8.00 at 1,000.
+> The rough table below is kept for reference.
+
 | | ≈ |
 |---|---|
 | PCBs (2-layer, 1.0 mm) | $5–15 |
