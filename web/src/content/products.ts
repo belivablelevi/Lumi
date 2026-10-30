@@ -67,6 +67,8 @@ export interface Product {
 const render = (file: string, caption?: string): GalleryImage => ({ ...renderImage(file), caption });
 
 const CONCEPT = "Render of the prototype design. Shell colours aren't final.";
+const MINI_PCB = "Mini Lumi case for the PCB: prototype design, not printed yet.";
+const MINI_2 = "Mini Lumi 2: alternative case design, untested.";
 
 export const products: Product[] = [
   {
@@ -91,6 +93,11 @@ export const products: Product[] = [
       render("usb-side.png", CONCEPT),
       render("front-mint.png", CONCEPT),
       render("front-peach.png", CONCEPT),
+      render("mini-pcb-front.png", MINI_PCB),
+      render("mini-pcb-three-quarter.png", MINI_PCB),
+      render("mini-pcb-usb.png", MINI_PCB),
+      render("mini-lumi2-front.png", MINI_2),
+      render("mini-lumi2-three-quarter.png", MINI_2),
     ],
     personas: ["yotos", "ni", "katos", "mimox"],
     specsNote:

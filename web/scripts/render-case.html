@@ -9,7 +9,7 @@
 </head>
 <body>
 <script type="module">
-// Renders the real Lumi case (hardware/enclosure/stl) with a glitter-PLA look.
+// Renders the real Lumi cases (hardware/enclosure) with a glitter-PLA look.
 // Driven by scripts/render-case.mjs: window.renderShot(options) -> { dataUrl, screen }.
 import * as THREE from "three";
 import { STLLoader } from "three/addons/loaders/STLLoader.js";
@@ -104,7 +104,7 @@ const shellMat = new THREE.MeshPhysicalMaterial({
   color: 0xddbbea, roughness: 0.5, metalness: 0.0, clearcoat: 0.35, clearcoatRoughness: 0.4,
   emissive: 0xffffff, emissiveMap: sparkle, emissiveIntensity: 0.1, side: THREE.DoubleSide,
 });
-const lumi = new THREE.Group();
+const lumi = new THREE.Group(); // the Pocket Lumi case (the default model)
 const front = new THREE.Mesh(frontG, shellMat);
 const back = new THREE.Mesh(backG, shellMat);
 front.castShadow = back.castShadow = true;
@@ -142,6 +142,96 @@ ring.rotation.y = Math.PI / 2;
 ring.castShadow = true;
 lumi.add(ring);
 
+// The Mini Lumi cases (hardware/enclosure/mini_lumi_pcb and alternatives/mini_lumi2), modelled in Blender's
+// axes: X right, Z up, -Y toward the viewer, in mm. Here: three (x, y, z) = Blender (x, z, -y).
+const BLENDER = new THREE.Matrix4().set(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1);
+
+function shell(geo) {
+  const g = toCreasedNormals(geo, Math.PI / 5);
+  boxUV(g, 1 / 24);
+  const m = new THREE.Mesh(g, shellMat);
+  m.castShadow = true;
+  return m;
+}
+
+// Split an STL holding two parts side by side into the triangles whose centre is below / above y (Blender Y).
+function splitY(geo, y) {
+  const p = geo.attributes.position.array;
+  const a = [], b = [];
+  for (let i = 0; i < p.length; i += 9) {
+    const cy = (p[i + 1] + p[i + 4] + p[i + 7]) / 3;
+    (cy < y ? a : b).push(...p.subarray(i, i + 9));
+  }
+  return [a, b].map((v) => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+    g.computeVertexNormals();
+    return g;
+  });
+}
+
+// A black OLED glass and the active area behind a window: centre and size in the model's (three) axes,
+// leaning back by `lean` degrees.
+function display(group, { centre, glassSize, lean = 0 }) {
+  const holder = new THREE.Group();
+  holder.position.set(...centre);
+  holder.rotation.x = -THREE.MathUtils.degToRad(lean);
+  // Weak highlights: leaning back, a glossy panel catches the key light head-on and reads as white.
+  const g = new THREE.Mesh(new THREE.PlaneGeometry(...glassSize), new THREE.MeshPhysicalMaterial({
+    color: 0x050608, roughness: 0.15, metalness: 0, specularIntensity: 0.05, envMapIntensity: 0.3 }));
+  const s = new THREE.Mesh(new THREE.PlaneGeometry(ACTIVE[0], ACTIVE[1]),
+    new THREE.MeshBasicMaterial({ map: screenTex, transparent: true, toneMapped: false }));
+  s.position.z = 0.05;
+  holder.add(g, s);
+  group.add(holder);
+  group.userData.screen = s;
+}
+
+// Sit a model on the same ground as the Pocket Lumi (y = -21), centred left to right.
+function settle(group) {
+  const box = new THREE.Box3().setFromObject(group);
+  group.position.set(-(box.min.x + box.max.x) / 2, -21 - box.min.y, -(box.min.z + box.max.z) / 2);
+  const outer = new THREE.Group();
+  outer.add(group);
+  outer.visible = false;
+  scene.add(outer);
+  return outer;
+}
+
+// Mini Lumi for the PCB. The body STL is the model raised by base_z; the lid STL is turned outside-down for
+// printing (mini_lumi_case.py: print = Rx(-90) then up by 13.96), so turn it back.
+const pcbBody = await loadSTL("/hw/mini_lumi_pcb/mini_lumi_pcb_body.stl");
+pcbBody.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, -21));
+const pcbLid = await loadSTL("/hw/mini_lumi_pcb/mini_lumi_pcb_lid.stl");
+pcbLid.applyMatrix4(new THREE.Matrix4().set(1, 0, 0, 0, 0, 0, -1, 13.96, 0, 1, 0, 0, 0, 0, 0, 1));
+const miniPcb = new THREE.Group();
+for (const g of [pcbBody, pcbLid]) {
+  g.applyMatrix4(BLENDER);
+  miniPcb.add(shell(g));
+}
+// OLED active area: x ±10.87, Blender z -4.43..6.43 at y -1.46 (lumi_pcb_v1_refs.json); glass 26.7 x 19.26.
+display(miniPcb, { centre: [0, 1.0, 1.4], glassSize: [26.7, 19.26] });
+// The USB-C receptacle (J1) behind the opening in the left wall: x -15.5..-7.03, Blender y 1..4.26, z -1.52..8.12.
+const pcbUsb = new THREE.Mesh(new THREE.BoxGeometry(8.47, 8.94, 3.26),
+  new THREE.MeshPhysicalMaterial({ color: 0xc9ccd2, metalness: 1, roughness: 0.3 }));
+pcbUsb.position.set(-11.27, 3.3, -2.63);
+const pcbMouth = new THREE.Mesh(new THREE.BoxGeometry(0.02, 7.6, 2.3), new THREE.MeshBasicMaterial({ color: 0x0b0b0e }));
+pcbMouth.position.set(-15.52, 3.3, -2.63);
+miniPcb.add(pcbUsb, pcbMouth);
+
+// Mini Lumi 2 (the alternative case): body and lid side by side in one STL; the lid closes 22.65 mm toward -Y.
+const [m2Body, m2Lid] = splitY(await loadSTL("/hw/alternatives/mini_lumi2/mini_lumi2.stl"), 24);
+m2Lid.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -22.65, 0));
+const mini2 = new THREE.Group();
+for (const g of [m2Body, m2Lid]) {
+  g.applyMatrix4(BLENDER);
+  mini2.add(shell(g));
+}
+// Window Z 17-31.25, x centred on 0.25; the bezel leans back about 7 degrees (Y -7.9 at the bottom, -6.1 at the top).
+display(mini2, { centre: [0.25, 24.1, 6.0], glassSize: [26.2, 15.5], lean: 7 });
+
+const models = { pocket: lumi, "mini-pcb": settle(miniPcb), mini2: settle(mini2) };
+
 const groundMat = new THREE.ShadowMaterial({ opacity: 0.16 });
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(600, 600), groundMat);
 ground.receiveShadow = true;
@@ -158,12 +248,14 @@ function drawFrame(frame) {
   screenTex.needsUpdate = true;
 }
 
-window.renderShot = ({ width, height, color, yaw = 0, pitch = 0, roll = 0, fov = 20, dist = 150, ringOn = false,
-  frame = null, lookY = 2, groundY = -40, groundZ = -10, groundTilt = -Math.PI / 2, shadow = 0.16 }) => {
+window.renderShot = ({ model = "pocket", width, height, color, yaw = 0, pitch = 0, roll = 0, fov = 20, dist = 150,
+  ringOn = false, frame = null, lookY = 2, groundY = -40, groundZ = -10, groundTilt = -Math.PI / 2, shadow = 0.16 }) => {
   renderer.setSize(width, height);
   shellMat.color.set(color);
   drawFrame(frame);
-  lumi.rotation.set(pitch, yaw, roll, "YXZ");
+  for (const [name, m] of Object.entries(models)) m.visible = name === model;
+  const obj = models[model];
+  obj.rotation.set(pitch, yaw, roll, "YXZ");
   ring.visible = ringOn;
   groundMat.opacity = shadow;
   ground.position.set(0, groundY, groundZ);
@@ -173,9 +265,10 @@ window.renderShot = ({ width, height, color, yaw = 0, pitch = 0, roll = 0, fov =
   cam.lookAt(0, lookY, 0);
   renderer.render(scene, cam);
   // Where the active area lands in the image (for overlaying the live screen on front shots).
-  screen.updateMatrixWorld(true);
+  const scr = obj === lumi ? screen : obj.children[0].userData.screen;
+  scr.updateMatrixWorld(true);
   const corners = [[-1, 1], [1, 1], [1, -1], [-1, -1]].map(([sx, sy]) => {
-    const v = new THREE.Vector3(sx * ACTIVE[0] / 2, sy * ACTIVE[1] / 2, 0).applyMatrix4(screen.matrixWorld).project(cam);
+    const v = new THREE.Vector3(sx * ACTIVE[0] / 2, sy * ACTIVE[1] / 2, 0).applyMatrix4(scr.matrixWorld).project(cam);
     return [(v.x + 1) / 2, (1 - v.y) / 2];
   });
   return { dataUrl: renderer.domElement.toDataURL("image/png"), screen: corners };
