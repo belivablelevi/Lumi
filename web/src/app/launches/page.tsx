@@ -10,7 +10,7 @@ import { LaunchSignupForm } from "@/components/forms/LaunchSignupForm";
 import { Countdown } from "@/components/home/Countdown";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 
-export const metadata: Metadata = { title: "Launches", description: "What's coming next from Lumi, and how to hear about it first." };
+export const metadata: Metadata = { title: "Launches", description: "What's coming next from Snaggo, and how to hear about it first." };
 
 function When({ iso, tz }: { iso?: string; tz?: string }) {
   if (!iso || !tz) return <span className="text-muted">To be announced</span>;

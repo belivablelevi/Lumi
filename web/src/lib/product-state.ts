@@ -54,6 +54,22 @@ export function ctaFor(p: Product): Cta {
 }
 
 /**
+ * The floating pill's button. Buying goes through the product page, so nobody
+ * pre-orders without seeing the terms. Null when there's nothing to offer.
+ */
+export function pillCta(p: Product): { label: string; shortLabel: string; href: string } | null {
+  const cta = ctaFor(p);
+  if (cta.kind === "none") return null;
+  if (cta.kind === "notify") {
+    return { label: cta.label, shortLabel: p.status === "sold_out" ? "Get notified" : cta.label, href: cta.href };
+  }
+  const href = `/products/${p.slug}`;
+  return p.status === "available"
+    ? { label: `Shop ${p.name}`, shortLabel: "Shop", href }
+    : { label: cta.label, shortLabel: "Pre-order", href };
+}
+
+/**
  * Catalogue invariants: a product can't be sold without a confirmed price,
  * and can't take pre-orders without confirmed pre-order terms.
  */

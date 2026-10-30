@@ -17,7 +17,7 @@ export default async function Page({ searchParams }: PageProps<"/signup/confirm"
         <p className="mt-2 text-muted">
           {ok ? "We'll email you about launches. Every email has an unsubscribe link." : "It may have expired or already been used. You can sign up again any time."}
         </p>
-        <ButtonLink href={ok ? "/" : "/launches"} className="mt-6">{ok ? "Back to Lumi" : "Launches"}</ButtonLink>
+        <ButtonLink href={ok ? "/" : "/launches"} className="mt-6">{ok ? "Back to Snaggo" : "Launches"}</ButtonLink>
       </div>
     </div>
   );

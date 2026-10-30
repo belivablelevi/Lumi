@@ -1,7 +1,8 @@
-# Lumi web store
+# Snaggo web store
 
-The Lumi website: a Next.js storefront for pre-ordering Lumis, with the
-real firmware's animations playing on every screen.
+The Snaggo website, at [snaggo.tech](https://snaggo.tech): a Next.js storefront
+for pre-ordering Lumis, with the real firmware's animations playing on every
+screen. Snaggo is the company and site; Lumi is the product.
 
 ```sh
 cd web
@@ -79,9 +80,9 @@ Copy `.env.example` to `.env.local` for local work. On Vercel, put the same valu
    - Add a webhook endpoint at `https://<your-domain>/api/stripe/webhook` for these events: `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed` and `checkout.session.expired`. Put its signing secret in `STRIPE_WEBHOOK_SECRET`.
    - Optional: `STRIPE_AUTOMATIC_TAX=1` (after setting up Stripe Tax for your GST/HST/PST registrations), `STRIPE_SHIPPING_RATE_IDS` and `STRIPE_SHIPPING_COUNTRIES`.
    - Test locally with `stripe listen --forward-to localhost:3000/api/stripe/webhook`.
-3. **Resend.** Verify your sending domain, then set `RESEND_API_KEY` and `EMAIL_FROM` (e.g. `Lumi <hello@yourdomain>`). Also fill in `legal.businessName` and `legal.mailingAddress` in `brand.ts`: CASL requires a mailing address in every marketing email, so signups stay closed until it's set.
-4. Set `SIGNUP_HASH_SALT` to a long random string and `NEXT_PUBLIC_SITE_URL` to your domain.
-5. **Vercel.** Import the repo and set **Root Directory** to `web`. Pages are prerendered, so redeploy after changing environment variables.
+3. **Resend.** Verify your sending domain, then set `RESEND_API_KEY` and `EMAIL_FROM` (e.g. `Snaggo <hello@snaggo.tech>`). Also fill in `legal.businessName` and `legal.mailingAddress` in `brand.ts`: CASL requires a mailing address in every marketing email, so signups stay closed until it's set.
+4. Set `SIGNUP_HASH_SALT` to a long random string and `NEXT_PUBLIC_SITE_URL` to `https://snaggo.tech`.
+5. **Vercel.** Import the repo and set **Root Directory** to `web`. Add `snaggo.tech` under **Settings → Domains** and follow its DNS instructions. Pages are prerendered, so redeploy after changing environment variables.
 
 ### Using Vercel integrations
 
@@ -94,7 +95,7 @@ fill in most of these for you:
 | `STRIPE_WEBHOOK_SECRET` | Check whether the Stripe integration added it. If not, copy it from the webhook endpoint below. |
 | `SUPABASE_URL` (or `NEXT_PUBLIC_SUPABASE_URL`), `SUPABASE_SERVICE_ROLE_KEY` | Supabase integration |
 | `RESEND_API_KEY` | Resend integration |
-| `EMAIL_FROM` | You, e.g. `Lumi <hello@yourdomain.com>`, on a domain verified in Resend |
+| `EMAIL_FROM` | You, e.g. `Snaggo <hello@snaggo.tech>`, on a domain verified in Resend |
 
 Still to do by hand, once:
 1. Paste `supabase/migrations/0001_init.sql` into Supabase's **SQL editor** and run it.

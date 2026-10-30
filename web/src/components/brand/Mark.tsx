@@ -1,8 +1,8 @@
 import type { SVGProps } from "react";
 
 /**
- * Lumi's mark, traced from the supplied jaw logo. The name isn't final:
- * swap this path (and `brand.name`) to rebrand.
+ * The site's mark, traced from the supplied jaw logo. To change it, swap this
+ * path and the copy in public/icon.svg.
  */
 export function Mark({ title, ...props }: SVGProps<SVGSVGElement> & { title?: string }) {
   return (

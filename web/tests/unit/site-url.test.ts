@@ -3,7 +3,7 @@ import { siteUrl } from "@/lib/site-url";
 
 describe("siteUrl", () => {
   it("prefers the explicit setting", () => {
-    expect(siteUrl({ NEXT_PUBLIC_SITE_URL: "https://lumi.shop/", VERCEL_URL: "x.vercel.app" })).toBe("https://lumi.shop");
+    expect(siteUrl({ NEXT_PUBLIC_SITE_URL: "https://snaggo.tech/", VERCEL_URL: "x.vercel.app" })).toBe("https://snaggo.tech");
   });
   it("uses the production domain only in production", () => {
     const vercel = { VERCEL_PROJECT_PRODUCTION_URL: "lumi.vercel.app", VERCEL_BRANCH_URL: "lumi-git-b.vercel.app", VERCEL_URL: "lumi-abc.vercel.app" };

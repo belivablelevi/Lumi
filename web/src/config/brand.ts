@@ -2,15 +2,16 @@ import { tbc, type Maybe } from "@/lib/placeholder";
 import { siteUrl } from "@/lib/site-url";
 
 /**
- * Everything brand-level in one place. The name and logo aren't final:
- * change them here (and the mark in components/brand/Mark.tsx).
+ * Everything brand-level in one place. Snaggo is the company and site; Lumi is
+ * the product, so product wording says Lumi directly instead of using `name`.
+ * The logo lives in components/brand/Mark.tsx and public/icon.svg.
  */
 export const brand = {
-  name: "Lumi",
+  name: "Snaggo",
   tagline: "Little companions. Big personality.",
   headline: "A little personality. A lot of feeling.",
   description:
-    "Meet Lumi: expressive little companions made to travel with you, live on your desk, and make everyday moments a little more fun.",
+    "Meet Lumi from Snaggo: expressive little companions made to travel with you, live on your desk, and make everyday moments a little more fun.",
   locale: "en-CA",
   currency: "CAD" as const,
   siteUrl: siteUrl(),
@@ -43,7 +44,7 @@ export const brand = {
         ],
       },
       {
-        title: "Lumi",
+        title: "Snaggo",
         links: [
           { label: "Our World", href: "/our-world" },
           { label: "FAQ", href: "/faq" },

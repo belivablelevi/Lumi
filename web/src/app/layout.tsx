@@ -1,11 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Manrope } from "next/font/google";
 import { brand } from "@/config/brand";
-import { listedProducts } from "@/lib/catalogue";
+import { listedProducts, productBySlug } from "@/lib/catalogue";
 import { serviceStatus } from "@/lib/env";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { LumiCtaPill } from "@/components/layout/LumiCtaPill";
 import { Providers } from "@/components/Providers";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import "./globals.css";
@@ -26,6 +27,7 @@ export const viewport: Viewport = { themeColor: "#f9f7f3", width: "device-width"
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const services = serviceStatus();
+  const featured = productBySlug("pocket-lumi");
   return (
     <html lang="en-CA" className={`${manrope.variable} ${bricolage.variable}`}>
       <body className="min-h-dvh antialiased">
@@ -41,6 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Header />
             <main id="main">{children}</main>
             <Footer />
+            {featured ? <LumiCtaPill product={featured} /> : null}
             <CartDrawer />
         </Providers>
       </body>

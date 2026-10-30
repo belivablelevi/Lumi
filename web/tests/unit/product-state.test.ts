@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { products } from "@/content/products";
 import { tbc } from "@/lib/placeholder";
-import { canTransition, catalogueProblems, ctaFor, isOrderable, STATUSES, TRANSITIONS } from "@/lib/product-state";
+import { canTransition, catalogueProblems, ctaFor, isOrderable, pillCta, STATUSES, TRANSITIONS } from "@/lib/product-state";
 import { testCatalogue } from "./fixtures";
 
 describe("product states", () => {
@@ -22,6 +22,11 @@ describe("product states", () => {
     expect(ctaFor({ ...now!, status: "sold_out" })).toMatchObject({ kind: "notify" });
     expect(ctaFor({ ...now!, status: "draft" }).kind).toBe("none");
     expect(isOrderable(soon!)).toBe(false);
+    // The floating pill sends buyers to the product page, where the terms are.
+    expect(pillCta(pre!)).toEqual({ label: "Pre-order your Lumi", shortLabel: "Pre-order", href: `/products/${pre!.slug}` });
+    expect(pillCta(now!)).toEqual({ label: `Shop ${now!.name}`, shortLabel: "Shop", href: `/products/${now!.slug}` });
+    expect(pillCta(soon!)?.label).toBe("Notify me");
+    expect(pillCta({ ...now!, status: "draft" })).toBeNull();
   });
 
   it("refuses to sell without a confirmed price or pre-order terms", () => {
