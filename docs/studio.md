@@ -129,8 +129,16 @@ Edit the genes directly, or press **Random unit**. The tab shows:
   broken.
 
 Type a chip MAC and press **Show its automatic persona** to see who an
-unprovisioned unit will be. **Favourite animations** (up to 4) play three
-times as often on this unit.
+unprovisioned unit will be. To try it, use one of these:
+
+| MAC | Name | Rarity |
+|---|---|---|
+| `24:0A:C4:EE:7F:1A` | Fi | common |
+| `24:0A:C4:6E:D0:8F` | Boko | uncommon |
+| `24:0A:C4:82:B7:0E` | Nobu | rare |
+| `24:0A:C4:D4:54:4A` | Kabu | legendary |
+
+**Favourite animations** (up to 4) play three times as often on this unit.
 
 ## 4. Factory batch
 
