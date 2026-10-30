@@ -1,4 +1,6 @@
-"""Lumi PCB v1 parts budget: writes BUDGET.md and budget.csv next to this file.
+"""Lumi PCB v1 parts budget: writes BUDGET.md, budget.csv and budget.xlsx
+(live formulas: edit the blue cells in Excel and the totals follow) next to
+this file.
 
 Edit the price tables below (or USD_TO_CAD) and re-run:
 
@@ -240,10 +242,303 @@ def main():
             for name, v in vol[n][0]:
                 w.writerow([f"per unit at {n}", name, f"{v:.2f}", f"{v * USD_TO_CAD:.2f}"])
             w.writerow([f"per unit at {n}", "TOTAL", f"{vol[n][1]:.2f}", f"{vol[n][1] * USD_TO_CAD:.2f}"])
+    write_xlsx(os.path.join(HERE, "budget.xlsx"))
     for n in (5, 10):
         print(f"{n} prototypes: ${proto[n][1]:.2f} USD (${proto[n][1] * USD_TO_CAD:.2f} CAD)")
     for n in (100, 1000):
         print(f"per unit at {n}: ${vol[n][1]:.2f} USD (${vol[n][1] * USD_TO_CAD:.2f} CAD)")
+
+
+# ---------------------------------------------------------------- Excel
+
+def write_xlsx(path):
+    """The same budget as a workbook with live formulas: change any blue
+    input (prices, fees, exchange rate, quantities) and the totals follow."""
+    from openpyxl import Workbook
+    from openpyxl.comments import Comment
+    from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+    from openpyxl.utils import get_column_letter
+
+    ARIAL = "Arial"
+    BLUE, GREEN = "0000FF", "008000"
+    usd = '$#,##0.00;($#,##0.00);"-"'
+    f_title = Font(name=ARIAL, size=14, bold=True)
+    f_head = Font(name=ARIAL, bold=True, color="FFFFFF")
+    f_bold = Font(name=ARIAL, bold=True)
+    f_norm = Font(name=ARIAL)
+    f_input = Font(name=ARIAL, color=BLUE)
+    f_link = Font(name=ARIAL, color=GREEN)
+    f_note = Font(name=ARIAL, italic=True, color="666666", size=9)
+    head_fill = PatternFill("solid", fgColor="3B3F6B")
+    key_fill = PatternFill("solid", fgColor="FFFF00")
+    total_fill = PatternFill("solid", fgColor="E8EAF6")
+    thin = Side(style="thin", color="999999")
+    top_line = Border(top=thin)
+
+    wb = Workbook()
+    summary = wb.active
+    summary.title = "Summary"
+    inputs = wb.create_sheet("Inputs")
+    parts = wb.create_sheet("Parts")
+    proto_ws = wb.create_sheet("Prototypes")
+    unit_ws = wb.create_sheet("Per unit")
+    src_ws = wb.create_sheet("Sources")
+
+    def put(ws, ref, value, font=f_norm, fmt=None, fill=None, bold=False, note=None):
+        c = ws[ref]
+        c.value = value
+        c.font = Font(name=ARIAL, bold=True, color=font.color) if bold else font
+        if fmt:
+            c.number_format = fmt
+        if fill:
+            c.fill = fill
+        if note:
+            c.comment = Comment(note, "budget.py")
+        return c
+
+    def header(ws, row, labels, col=1):
+        for i, label in enumerate(labels):
+            c = ws.cell(row=row, column=col + i, value=label)
+            c.font = f_head
+            c.fill = head_fill
+            c.alignment = Alignment(horizontal="center" if i else "left", wrap_text=True)
+
+    def widths(ws, cols):
+        for i, w in enumerate(cols, start=1):
+            ws.column_dimensions[get_column_letter(i)].width = w
+
+    # ---- Inputs
+    widths(inputs, [44, 14, 70])
+    put(inputs, "A1", "Inputs: edit the blue cells", f_title)
+    put(inputs, "A2", f"Prices in USD, checked {CHECKED}. Yellow = key assumptions.", f_note)
+    header(inputs, 4, ["Assumption", "Value", "Note"])
+    rows = [
+        ("fx", "Exchange rate (CAD per 1 USD)", USD_TO_CAD, "0.00", True,
+         "About 1.40-1.43 through October 2026 (moneyexchangerate.org)."),
+        ("gst", "GST on imports", GST, "0.0%", True,
+         "Federal GST. HST provinces pay 13-15% instead: change this."),
+        ("broker", "Courier brokerage per parcel (CAD)", BROKERAGE_CAD, usd, False,
+         "Forum reports of DHL/UPS clearance fees for Canada."),
+        ("parcels", "Courier parcels per prototype run", 2, "0", False,
+         "JLCPCB boards + screens; batteries come by ground post."),
+        (None, "JLCPCB assembly", None, None, False, None),
+        ("setup", "Economic assembly setup (per order)", ASSEMBLY_SETUP, usd, False, "JLCPCB help: PCB assembly price."),
+        ("stencil", "Stencil (per order)", STENCIL, usd, False, "JLCPCB help: PCB assembly price."),
+        ("ext_n", "Extended part types on the board", EXTENDED, "0", False, "U1-U4, D1, J1, J2, SW1."),
+        ("ext_fee", "Fee per Extended part type", EXTENDED_FEE, usd, False,
+         "Official FAQ says $3; one source says $1.50 since Dec 2025."),
+        ("hand_setup", "Hand-soldering setup (USB-C shell legs)", HAND_SOLDER_SETUP, usd, False, "JLCPCB help."),
+        ("vol_setup", "Standard assembly setup (100+ runs)", VOLUME_SETUP, usd, False, "JLCPCB help (older price page)."),
+        ("joints", "SMT solder joints per board", JOINTS, "0", False, "Counted from the board's pads (approx.)."),
+        ("joint_cost", "Cost per SMT joint", JOINT_COST, "$0.0000", False, "JLCPCB Economic assembly."),
+        ("hand_joints", "Hand-soldered joints per board", HAND_JOINTS, "0", False, "USB-C shell legs."),
+        ("hand_cost", "Cost per hand-soldered joint", HAND_JOINT_COST, "$0.0000", False, "JLCPCB help."),
+        (None, "Bare boards (31 x 33 mm, 2 layers, 1.0 mm)", None, None, False, None),
+        ("pcb5", "Order of 5 boards", PCB_ORDER[5], usd, False, "Estimate; $2 offer is for 1.6 mm boards."),
+        ("pcb10", "Order of 10 boards", PCB_ORDER[10], usd, False, "Estimate."),
+        ("pcb100", "Per board at 100", PCB_PER_BOARD["100"], usd, False, "Estimate."),
+        ("pcb1000", "Per board at 1,000", PCB_PER_BOARD["1000"], usd, False, "Estimate."),
+        (None, "Shipping", None, None, False, None),
+        ("ship_jlc", "JLCPCB boards to Canada (DHL)", SHIP_PROTO["JLCPCB boards (DHL)"], usd, False,
+         "Forum reports: ~$17-25 for small orders."),
+        ("ship_oled", "Screens from BuyDisplay", SHIP_PROTO["Screens from BuyDisplay"], usd, False, "Estimate."),
+        ("ship_bat", "Batteries (AliExpress, ground)", SHIP_PROTO["Batteries (AliExpress, ground)"], usd, False,
+         "Estimate."),
+        ("ship100", "Shipping share per unit at 100", SHIP_PER_UNIT["100"], usd, False, "Estimate (air freight)."),
+        ("ship1000", "Shipping share per unit at 1,000", SHIP_PER_UNIT["1000"], usd, False, "Estimate (air freight)."),
+    ]
+    ref = {}
+    r = 5
+    for key, label, value, fmt, key_cell, note in rows:
+        if key is None:
+            r += 1
+            put(inputs, f"A{r}", label, f_bold)
+            r += 1
+            continue
+        put(inputs, f"A{r}", label)
+        put(inputs, f"B{r}", value, f_input, fmt, key_fill if key_cell else None)
+        put(inputs, f"C{r}", note, f_note)
+        ref[key] = f"Inputs!$B${r}"
+        r += 1
+
+    # ---- Parts
+    widths(parts, [10, 46, 12, 13, 13, 13, 11, 40])
+    put(parts, "A1", "Parts: price each (USD) by how many you buy", f_title)
+    put(parts, "A2", "Blue = edit. Prices from LCSC/JLCPCB listings; 'Yes' in Estimate = no live quote seen.", f_note)
+    header(parts, 4, ["Ref", "Part", "LCSC", "5-10 boards", "100", "1,000", "Estimate?", "Note"])
+    r = 5
+    for pref, name, lcsc, pr, est in BOARD_PARTS:
+        put(parts, f"A{r}", pref)
+        put(parts, f"B{r}", name)
+        put(parts, f"C{r}", lcsc)
+        for j, v in enumerate(pr):
+            put(parts, f"{'DEF'[j]}{r}", v, f_input, usd)
+        put(parts, f"G{r}", "Yes" if est else "No")
+        r += 1
+    board_first, board_last = 5, r - 1
+    put(parts, f"B{r}", "Board parts, per board", f_bold)
+    for col in "DEF":
+        c = put(parts, f"{col}{r}", f"=SUM({col}{board_first}:{col}{board_last})", f_bold, usd, total_fill)
+        c.border = top_line
+    ref["board_total"] = r
+    r += 2
+    header(parts, r, ["Item", "Part", "", "5-10 units", "100", "1,000", "", "Note"])
+    r += 1
+    other_rows = {}
+    for name, desc, pr, note in OTHER_PARTS:
+        put(parts, f"A{r}", name)
+        put(parts, f"B{r}", desc)
+        for j, v in enumerate(pr):
+            put(parts, f"{'DEF'[j]}{r}", v, f_input, usd)
+        put(parts, f"H{r}", note, f_note)
+        other_rows[name] = r
+        r += 1
+
+    def part(tier_col, row):
+        return f"Parts!${tier_col}${row}"
+
+    # ---- Prototypes
+    widths(proto_ws, [46, 15, 15, 15, 15])
+    put(proto_ws, "A1", "Prototype runs, all in", f_title)
+    put(proto_ws, "A2", "Edit the quantities in row 4 (blue). Bare-board order prices are on Inputs.", f_note)
+    header(proto_ws, 3, ["", "Run A (USD)", "Run A (CAD)", "Run B (USD)", "Run B (CAD)"])
+    put(proto_ws, "A4", "Boards in the run", f_bold)
+    put(proto_ws, "B4", 5, f_input, "0")
+    put(proto_ws, "D4", 10, f_input, "0")
+    labels = ["Board parts", "Assembly (solder joints)", "Bare boards (one order)",
+              "Assembly setup, stencil, Extended-part fees", "Screens", "Batteries",
+              "Cases (printed) and sundries", "Shipping: JLCPCB boards (DHL)",
+              "Shipping: screens", "Shipping: batteries", "GST on imports",
+              "Courier brokerage"]
+    first = 5
+    for i, label in enumerate(labels):
+        put(proto_ws, f"A{first + i}", label)
+    last_goods = first + 9          # rows taxed by GST: first..last_goods
+    gst_row, broker_row = first + 10, first + 11
+    total_row, each_row = first + 12, first + 13
+    put(proto_ws, f"A{total_row}", "Total", f_bold)
+    put(proto_ws, f"A{each_row}", "Per prototype", f_bold)
+    for ucol, ccol, pcb in (("B", "C", ref["pcb5"]), ("D", "E", ref["pcb10"])):
+        n = f"${ucol}$4"
+        f = [
+            f"={n}*{part('D', ref['board_total'])}",
+            f"={n}*({ref['joints']}*{ref['joint_cost']}+{ref['hand_joints']}*{ref['hand_cost']})",
+            f"={pcb}",
+            f"={ref['setup']}+{ref['stencil']}+{ref['ext_n']}*{ref['ext_fee']}+{ref['hand_setup']}",
+            f"={n}*{part('D', other_rows['Screen'])}",
+            f"={n}*{part('D', other_rows['Battery'])}",
+            f"={n}*({part('D', other_rows['Case'])}+{part('D', other_rows['Sundries'])})",
+            f"={ref['ship_jlc']}",
+            f"={ref['ship_oled']}",
+            f"={ref['ship_bat']}",
+            f"={ref['gst']}*SUM({ucol}{first}:{ucol}{last_goods})",
+            f"={ref['parcels']}*{ref['broker']}/{ref['fx']}",
+        ]
+        for i, formula in enumerate(f):
+            row = first + i
+            linky = formula.count("!") == 1 and not any(op in formula[1:] for op in "+-*/(")
+            put(proto_ws, f"{ucol}{row}", formula, f_link if linky else f_norm, usd)
+            put(proto_ws, f"{ccol}{row}", f"={ucol}{row}*{ref['fx']}", f_norm, usd)
+        for col in (ucol, ccol):
+            c = put(proto_ws, f"{col}{total_row}", f"=SUM({col}{first}:{col}{broker_row})", f_bold, usd, total_fill)
+            c.border = top_line
+            put(proto_ws, f"{col}{each_row}", f"=IFERROR({col}{total_row}/{n},0)", f_bold, usd)
+    put(proto_ws, f"A{each_row + 2}",
+        "Fixed costs (setup, stencil, Extended-part fees, shipping) are the same for any run size, "
+        "which is why 10 boards cost far less than twice 5.", f_note)
+    ref["proto"] = (total_row, each_row)
+
+    # ---- Per unit
+    widths(unit_ws, [46, 15, 15, 15, 15])
+    put(unit_ws, "A1", "Cost of one Lumi at volume", f_title)
+    put(unit_ws, "A2", "Uses the 100 and 1,000 price columns on Parts. Edit run sizes in row 4.", f_note)
+    header(unit_ws, 3, ["", "100 run (USD)", "100 run (CAD)", "1,000 run (USD)", "1,000 run (CAD)"])
+    put(unit_ws, "A4", "Units in the run", f_bold)
+    put(unit_ws, "B4", 100, f_input, "#,##0")
+    put(unit_ws, "D4", 1000, f_input, "#,##0")
+    ulabels = ["Board parts", "Bare board", "Assembly (solder joints)", "Assembly setup and fees, shared",
+               "Screen", "Battery", "Case and sundries", "Shipping share", "GST on imports"]
+    for i, label in enumerate(ulabels):
+        put(unit_ws, f"A{first + i}", label)
+    ugst = first + 8
+    utotal, urun = first + 9, first + 10
+    put(unit_ws, f"A{utotal}", "Per unit", f_bold)
+    put(unit_ws, f"A{urun}", "Whole run", f_bold)
+    for ucol, ccol, tier, pcb, ship in (("B", "C", "E", ref["pcb100"], ref["ship100"]),
+                                        ("D", "E", "F", ref["pcb1000"], ref["ship1000"])):
+        n = f"${ucol}$4"
+        f = [
+            f"={part(tier, ref['board_total'])}",
+            f"={pcb}",
+            f"={ref['joints']}*{ref['joint_cost']}+{ref['hand_joints']}*{ref['hand_cost']}",
+            f"=IFERROR(({ref['vol_setup']}+{ref['stencil']}+{ref['ext_n']}*{ref['ext_fee']}+{ref['hand_setup']})/{n},0)",
+            f"={part(tier, other_rows['Screen'])}",
+            f"={part(tier, other_rows['Battery'])}",
+            f"={part(tier, other_rows['Case'])}+{part(tier, other_rows['Sundries'])}",
+            f"={ship}",
+            f"={ref['gst']}*SUM({ucol}{first}:{ucol}{ugst - 1})",
+        ]
+        for i, formula in enumerate(f):
+            row = first + i
+            linky = formula.count("!") == 1 and not any(op in formula[1:] for op in "+-*/(")
+            put(unit_ws, f"{ucol}{row}", formula, f_link if linky else f_norm, usd)
+            put(unit_ws, f"{ccol}{row}", f"={ucol}{row}*{ref['fx']}", f_norm, usd)
+        for col in (ucol, ccol):
+            c = put(unit_ws, f"{col}{utotal}", f"=SUM({col}{first}:{col}{ugst})", f_bold, usd, total_fill)
+            c.border = top_line
+            put(unit_ws, f"{col}{urun}", f"={col}{utotal}*{n}", f_bold, '$#,##0;($#,##0);"-"')
+    ref["unit"] = utotal
+
+    # ---- Summary
+    widths(summary, [40, 16, 16])
+    put(summary, "A1", "Lumi PCB v1: budget", f_title)
+    put(summary, "A2", f"Prices checked {CHECKED}. Change inputs on the Inputs and Parts tabs; "
+                       "everything here updates.", f_note)
+    header(summary, 4, ["", "USD", "CAD"])
+    srows = [
+        ("Prototype run A, all in", f"Prototypes!B{total_row}", f"Prototypes!C{total_row}"),
+        ("... per prototype", f"Prototypes!B{each_row}", f"Prototypes!C{each_row}"),
+        ("Prototype run B, all in", f"Prototypes!D{total_row}", f"Prototypes!E{total_row}"),
+        ("... per prototype", f"Prototypes!D{each_row}", f"Prototypes!E{each_row}"),
+        ("One Lumi in a 100 run", f"'Per unit'!B{utotal}", f"'Per unit'!C{utotal}"),
+        ("One Lumi in a 1,000 run", f"'Per unit'!D{utotal}", f"'Per unit'!E{utotal}"),
+    ]
+    for i, (label, u, c) in enumerate(srows):
+        row = 5 + i
+        put(summary, f"A{row}", label, f_bold if not label.startswith("...") else f_norm)
+        put(summary, f"B{row}", f"={u}", f_link, usd)
+        put(summary, f"C{row}", f"={c}", f_link, usd)
+    put(summary, "A12", "Run A boards", f_norm)
+    put(summary, "B12", "=Prototypes!B4", f_link, "0")
+    put(summary, "A13", "Run B boards", f_norm)
+    put(summary, "B13", "=Prototypes!D4", f_link, "0")
+    put(summary, "A14", "Exchange rate (CAD per USD)", f_norm)
+    put(summary, "B14", f"={ref['fx']}", f_link, "0.00")
+    put(summary, "A15", "GST on imports", f_norm)
+    put(summary, "B15", f"={ref['gst']}", f_link, "0.0%")
+    put(summary, "A17", "Colour key", f_bold)
+    put(summary, "A18", "Blue text: an input you can change", f_input)
+    put(summary, "A19", "Black text: a formula", f_norm)
+    put(summary, "A20", "Green text: a value pulled from another tab", f_link)
+    c = put(summary, "A21", "Yellow fill: key assumption", f_norm)
+    c.fill = key_fill
+    put(summary, "A23", "Includes: board built by JLCPCB, screen, battery, printed case,", f_note)
+    put(summary, "A24", "shipping to Canada, GST and courier brokerage.", f_note)
+    put(summary, "A25", "Excludes: tools, certification, packaging and your time.", f_note)
+
+    # ---- Sources
+    widths(src_ws, [60, 90])
+    put(src_ws, "A1", "Sources", f_title)
+    header(src_ws, 3, ["What", "Link"])
+    for i, (title, url) in enumerate(SOURCES):
+        put(src_ws, f"A{4 + i}", title)
+        c = put(src_ws, f"B{4 + i}", url, Font(name=ARIAL, color=BLUE, underline="single"))
+        c.hyperlink = url
+
+    for ws in wb.worksheets:
+        ws.sheet_view.showGridLines = False
+    wb.calculation.fullCalcOnLoad = True  # Excel computes every formula on open
+    wb.save(path)
 
 
 if __name__ == "__main__":
