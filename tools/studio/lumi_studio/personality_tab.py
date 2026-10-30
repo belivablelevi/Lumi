@@ -53,8 +53,9 @@ class PersonalityTab(QWidget):
         self.look = QLabel()
         self.look.setStyleSheet("color: #8a97a3;")
 
-        rand = QPushButton("🎲  Random unit")
-        rand.clicked.connect(self.randomize)
+        self.random_btn = rand = QPushButton("🎲  Random unit")
+        # clicked() sends checked=False, which randomize() would take as seed 0: the same unit every press.
+        rand.clicked.connect(lambda: self.randomize())
         self.mac = QLineEdit()
         self.mac.setPlaceholderText("chip MAC, e.g. 24:0A:C4:12:34:56")
         auto = QPushButton("Show its automatic persona")

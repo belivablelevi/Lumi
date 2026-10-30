@@ -93,6 +93,11 @@ def test_design_to_factory(app, win, tmp_path):
 
     # Personality: a random unit, then the automatic persona for a MAC.
     win.tabs.setCurrentWidget(win.personality)
+    looks = set()
+    for _ in range(3):  # every press of the button is a new unit
+        win.personality.random_btn.click()
+        looks.add((s.persona.name, tuple(s.persona.genes)))
+    assert len(looks) == 3
     win.personality.randomize(seed=987654)
     assert s.persona.genes == native.genes_from_seed(987654)
     win.personality.mac.setText("24:0A:C4:12:34:56")
