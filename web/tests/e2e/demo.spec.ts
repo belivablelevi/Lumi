@@ -6,6 +6,20 @@ test("the demo catalogue is clearly marked", async ({ page }) => {
   await expect(page.getByLabel("Pre-order terms")).toContainText("Demo only");
 });
 
+test("the pill marks a demo price in full and leads to the terms", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.goto("/");
+  await page.evaluate(() => window.scrollTo({ top: document.querySelector("main > section")!.getBoundingClientRect().bottom + window.scrollY + 40, behavior: "instant" }));
+  const pill = page.getByRole("complementary", { name: "Pocket Lumi" });
+  const tag = pill.getByText("DEMO PRICE");
+  await expect(tag).toBeVisible();
+  const [tagBox, linkBox] = [await tag.boundingBox(), await pill.getByRole("link").boundingBox()];
+  expect(tagBox!.x + tagBox!.width).toBeLessThanOrEqual(linkBox!.x);
+  await pill.getByRole("link", { name: /^Pre-order/ }).click();
+  await expect(page).toHaveURL(/\/products\/pocket-lumi$/);
+  await expect(page.getByLabel("Pre-order terms")).toBeVisible();
+});
+
 test("add to cart, change quantity, survive a reload, remove", async ({ page }) => {
   await page.goto("/products/pocket-lumi");
   await page.getByRole("button", { name: "Increase quantity" }).click();

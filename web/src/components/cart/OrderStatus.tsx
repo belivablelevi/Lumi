@@ -56,7 +56,7 @@ export function OrderStatus({ order, session }: { order: string; session: string
         <h1 className="mt-4 text-h2 font-bold">{s.preorder ? "Your pre-order is confirmed" : "Your order is confirmed"}</h1>
         <ul className="mt-4 text-ink-soft">{s.items.map((i) => <li key={i.name}>{i.qty} × {i.name}</li>)}</ul>
         <p className="mt-4 text-muted">We&apos;ve emailed you a confirmation.{s.preorder ? " We'll be in touch before it ships." : ""}</p>
-        <ButtonLink href="/" className="mt-6">Back to Lumi</ButtonLink>
+        <ButtonLink href="/" className="mt-6">Back to Snaggo</ButtonLink>
       </div>
     );
   }

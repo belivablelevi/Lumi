@@ -2,7 +2,6 @@
 
 import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
-import { brand } from "@/config/brand";
 import type { GalleryImage } from "@/content/products";
 import { persona } from "@/lib/lumi-frames";
 import { ease, duration } from "@/lib/motion";
@@ -101,7 +100,7 @@ export function Hero({ units, statusLabel }: { units: [HeroUnit, HeroUnit, HeroU
           </div>
         </div>
         <p className="relative px-6 pb-6 text-xs text-muted sm:px-10 lg:px-16">
-          Renders of the prototype design. The screens play {brand.name}&apos;s real firmware animations; the faces are example units.
+          Renders of the prototype design. The screens play Lumi&apos;s real firmware animations; the faces are example units.
         </p>
       </div>
     </section>

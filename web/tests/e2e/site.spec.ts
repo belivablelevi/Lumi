@@ -18,6 +18,46 @@ test("every page loads with no errors, no horizontal scroll and no accessibility
   expect(errors).toEqual([]);
 });
 
+test("the Lumi pill waits for the page head to scroll off, offers only what's real and steps aside at the footer", async ({ page }) => {
+  const pill = page.getByRole("complementary", { name: "Pocket Lumi" });
+  const headBottom = () => page.evaluate(() => document.querySelector("main > section")!.getBoundingClientRect().bottom + window.scrollY);
+  const scrollTo = (top: number) => page.evaluate((y) => window.scrollTo({ top: y, behavior: "instant" }), top);
+
+  await page.goto("/");
+  await expect(pill).toHaveCount(0);
+  await scrollTo((await headBottom()) - 40); // the last of the hero is still showing
+  await page.waitForTimeout(400);
+  await expect(pill).toHaveCount(0);
+  await scrollTo((await headBottom()) + 40);
+  await expect(pill).toBeVisible();
+
+  await page.goto("/products/pocket-lumi");
+  await scrollTo((await headBottom()) - 40);
+  await page.waitForTimeout(400);
+  await expect(pill).toHaveCount(0);
+  await scrollTo((await headBottom()) + 40);
+  await expect(pill).toBeVisible();
+
+  // Moving to another page starts over, at that page's own head.
+  await page.locator('header a[href="/"]').first().click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.locator("#hero-title")).toBeVisible();
+  await expect(pill).toHaveCount(0);
+  await scrollTo((await headBottom()) + 40);
+  await expect(pill).toBeVisible();
+  await expect(pill.getByText("Coming soon")).toBeVisible();
+  await expect(pill.getByRole("link", { name: /^Notify me/ })).toHaveAttribute("href", "/launches#pocket-first-run");
+  const axe = await new AxeBuilder({ page }).include("aside").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+  expect(axe.violations.map((v) => v.id)).toEqual([]);
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(overflow).toBeLessThanOrEqual(0);
+  await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "instant" }));
+  await expect(pill).toHaveCount(0);
+  await page.goto("/cart");
+  await page.evaluate(() => window.scrollTo({ top: 900, behavior: "instant" }));
+  await expect(pill).toHaveCount(0);
+});
+
 test("unknown pages get a friendly 404", async ({ page }) => {
   const res = await page.goto("/no-such-lumi");
   expect(res?.status()).toBe(404);
