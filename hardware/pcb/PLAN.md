@@ -1,8 +1,10 @@
 # Lumi PCB: plan
 
-Status: **planning**. Nothing has been drawn, ordered or tested yet. Prices
-are rough single-batch estimates from late 2026. Check LCSC/JLCPCB before
-committing to any part.
+Status: **draft board drawn, not reviewed**. The schematic, routed board and
+JLCPCB files are in [kicad/](kicad/), with a review checklist, ordering
+steps and a bring-up sheet in [GUIDE.md](GUIDE.md). Nothing has been
+ordered or tested yet. Prices are rough single-batch estimates from late
+2026. Check LCSC/JLCPCB before committing to any part.
 
 ## Goal
 
@@ -26,7 +28,7 @@ Side effects of one integrated board:
 
 | Block | Part (first choice) | Why | ≈ Unit cost |
 |---|---|---|---|
-| Brain + radio | **ESP32-C3-MINI-1-N4** module (LCSC C2838502) | Same chip as today, so the firmware barely changes. It's **pre-certified for radio**; see "Certification" below. 13.2 × 16.6 mm. | $2.0–3.0 |
+| Brain + radio | **ESP32-C3-MINI-1-N4** module (LCSC C2838502). The draft board uses the **WROOM-02** instead; see [GUIDE.md](GUIDE.md#two-changes-from-the-plan) | Same chip as today, so the firmware barely changes. It's **pre-certified for radio**; see "Certification" below. 13.2 × 16.6 mm. | $2.0–3.0 |
 | Motion sensor | **LIS2DH12** (SC7A20 is a later cost-down option) | Lumi only uses the accelerometer (the gyro is switched off in `firmware/src/imu.cpp`). These cost a fraction of an MPU-6050, which is end-of-life. Each has a 32-sample FIFO and a motion-wake interrupt, which is what pats and wake-on-pickup need. | $0.15–0.6 |
 | Screen | **Bare 0.96" 128×64 SSD1306 panel** with a 30-pin FPC, on a 0.5 mm FPC connector | The same panel as the module, without the module's board. We add its few capacitors ourselves. | $1.0–1.5 |
 | Charging | **TP4054** linear LiPo charger, set to ≈250 mA | Tiny, a few cents, plenty for a 500 mAh cell. | $0.05 |
@@ -117,10 +119,10 @@ The STEP model of the board, exported from KiCad, checks the fit.
 |---|---|---|
 | 1 | Confirm parts against live LCSC stock and prices (done: see [BOM-draft.md](BOM-draft.md)); the OLED panel connection is still open | Me, then you approve |
 | 2 | Test the new accelerometer on a breakout with the current build: firmware driver, pats, wake-on-pickup. The driver is done and tested against a register model (`make -C tests/imu`); wiring is in [../wiring.md](../wiring.md#trying-the-pcbs-accelerometer-lis2dh12-on-todays-build) | Me (driver, done), you (a $3 part + wiring) |
-| 3 | Schematic in **KiCad 8**, with electrical rule check | Me |
-| 4 | Board layout: placement, routing, ground pour, antenna keep-out; design rule check | Me, then **a review by someone who does RF/PCB work** before ordering (strongly recommended) |
-| 5 | 3D fit check against the new case, with STEP export | Me |
-| 6 | Factory files: Gerbers, BOM, pick-and-place (CPL) in JLCPCB format; their DFM check | Me |
+| 3 | Schematic (draft done: [kicad/lumi/lumi.kicad_sch](kicad/lumi/lumi.kicad_sch), generated from [kicad/design.py](kicad/design.py) and checked pin by pin against it) | Me |
+| 4 | Board layout: placement, routing, ground pour, antenna keep-out; design rule check (draft done: KiCad's DRC is clean, nothing unrouted) | Me, then **a review by someone who does RF/PCB work** before ordering (strongly recommended) |
+| 5 | 3D fit check against the new case, with STEP export (draft done: `kicad/fab/fit.txt`, plus Blender references in [../enclosure/blender/](../enclosure/blender/); the case itself is still to model) | Me |
+| 6 | Factory files: Gerbers, BOM, pick-and-place (CPL) in JLCPCB format (draft done: `kicad/fab/`); their DFM check | Me |
 | 7 | Order 5–10 assembled boards | You |
 | 8 | Bring-up with a step-by-step test sheet | You, with me reading the results |
 

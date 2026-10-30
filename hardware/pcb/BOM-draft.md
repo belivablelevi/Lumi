@@ -7,6 +7,12 @@ a one-off loading fee per unique part to each JLCPCB assembly order
 
 ## Main parts
 
+> The draft board in [kicad/](kicad/) uses the **ESP32-C3-WROOM-02-N4**
+> ([C2934560](https://jlcpcb.com/partdetail/3281215-ESP32_C3_WROOM_02N4/C2934560), Extended; 18 × 20 × 3.2 mm) for U1,
+> because KiCad 7 has no MINI-1 footprint. It also uses Hirose FH12-30S-0.5SH ([C506793](https://lcsc.com/product-detail/FFC-FPC-Flat-Flexible-Connector-Assemblies_HRS-Hirose-FH12-30S-0-5SH-55_C506793.html))
+> for J2 and USBLC6-2SC6 ([C7519](https://jlcpcb.com/partdetail/C7519)) for D1. The full list the factory
+> builds from is [kicad/fab/lumi-bom.csv](kicad/fab/lumi-bom.csv).
+
 | Ref | Part | LCSC # | JLCPCB class | ≈ Price (1 → 1k) | Notes |
 |---|---|---|---|---|---|
 | U1 | **ESP32-C3-MINI-1-N4** (4 MB flash, PCB antenna) | [C2838502](https://www.lcsc.com/product-detail/C2838502.html) | [Extended](https://jlcpcb.com/partdetail/ESP32-C3-MINI-1-N4/C2838502) | $3.00 → $2.03 | Radio-certified module. The antenna goes at the board edge, toward the keyring. |

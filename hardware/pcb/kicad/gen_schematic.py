@@ -1,0 +1,201 @@
+"""Draw lumi.kicad_sch (and its symbol library) from design.py.
+
+Every part is a labelled box: each pin ends in a net label, so the drawing
+reads like a netlist grouped by function. Pin numbers and names match the
+footprints, which is what the factory builds from.
+
+Usage: python3 gen_schematic.py <out-dir>
+"""
+
+import os
+import sys
+import uuid
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import design  # noqa: E402
+
+G = 2.54  # grid
+NS = uuid.UUID("6c7b1d2e-0f4a-4c51-9d3e-1a2b3c4d5e6f")
+
+
+def uid(*parts):
+    """Stable UUIDs so regenerating doesn't churn the file."""
+    return str(uuid.uuid5(NS, "/".join(map(str, parts))))
+
+
+def q(s):
+    return '"' + str(s).replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+def f(v):
+    return f"{v:.2f}".rstrip("0").rstrip(".")
+
+
+FONT = "(effects (font (size 1.27 1.27)))"
+FONT_HIDE = "(effects (font (size 1.27 1.27)) hide)"
+
+
+def symbol_name(part):
+    return f"{part.ref}_{part.value}".replace(" ", "_").replace("/", "_")
+
+
+def layout(part):
+    """Pins split into left and right columns (sorted), box half-size."""
+    pads = list(part.pins)
+    two_pin = len(pads) <= 2
+    if two_pin:
+        left, right = pads[:1], pads[1:]
+    else:
+        half = (len(pads) + 1) // 2
+        left, right = pads[:half], pads[half:]
+    rows = max(len(left), len(right))
+    hw = 2 * G if two_pin else 7 * G
+    hh = (rows + 1) * G / 2
+    return left, right, hw, hh
+
+
+def pin_points(part):
+    """pad -> (dx, dy, side) of the pin's connection point, schematic axes
+    (y down), relative to the symbol origin."""
+    left, right, hw, hh = layout(part)
+    pts = {}
+    for i, pad in enumerate(left):
+        pts[pad] = (-hw - G, -hh + (i + 1) * G, "L")
+    for i, pad in enumerate(right):
+        pts[pad] = (hw + G, -hh + (i + 1) * G, "R")
+    return pts
+
+
+def lib_symbol(part, prefix=""):
+    name = symbol_name(part)
+    left, right, hw, hh = layout(part)
+    out = [f"  (symbol {q(prefix + name)} (pin_names (offset 0.508)) (in_bom yes) (on_board yes)"]
+    out.append(f"    (property \"Reference\" {q(part.ref.rstrip('0123456789'))} (at 0 {f(hh + 1.27)} 0) {FONT})")
+    out.append(f"    (property \"Value\" {q(part.value)} (at 0 {f(-hh - 1.27)} 0) {FONT})")
+    out.append(f"    (property \"Footprint\" {q(part.footprint)} (at 0 0 0) {FONT_HIDE})")
+    out.append(f"    (property \"Datasheet\" \"\" (at 0 0 0) {FONT_HIDE})")
+    out.append(f"    (symbol {q(name + '_0_1')}")
+    out.append(f"      (rectangle (start {f(-hw)} {f(hh)}) (end {f(hw)} {f(-hh)})"
+               " (stroke (width 0.254) (type default)) (fill (type background)))")
+    out.append("    )")
+    out.append(f"    (symbol {q(name + '_1_1')}")
+    show_names = len(part.pins) > 2
+    for pad, (dx, dy, side) in pin_points(part).items():
+        # Library symbols use y up.
+        x, y, rot = dx, -dy, 0 if side == "L" else 180
+        pname = part.names.get(pad, pad) if show_names else "~"
+        out.append(f"      (pin passive line (at {f(x)} {f(y)} {rot}) (length {f(G)})"
+                   f" (name {q(pname)} {FONT}) (number {q(pad)} {FONT}))")
+    out.append("    )")
+    out.append("  )")
+    return "\n".join(out)
+
+
+BLOCKS = [
+    ("Power", "Charger, battery, power switch"),
+    ("USB", "USB-C: CC pull-downs, ESD"),
+    ("MCU", "ESP32-C3 module, decoupling, straps"),
+    ("Motion", "LIS2DH12 (0x19), I2C pull-ups"),
+    ("Screen", "OLED FPC, I2C 0x3C (VERIFY pinout)"),
+    ("Sense", "Battery level, USB present"),
+    ("Test", "Front test pads"),
+]
+
+
+def place():
+    """ref -> (x, y) on an A3 sheet, block by block in columns."""
+    pos = {}
+    texts = []
+    col_x = [30.48, 132.08, 233.68, 335.28]
+    col_y = [25.4] * len(col_x)
+    col = 0
+    for block, title in BLOCKS:
+        parts = [p for p in design.PARTS if p.block == block]
+        if not parts:
+            continue
+        need = sum(layout(p)[3] * 2 + 3 * G for p in parts) + 3 * G
+        if col_y[col] + need > 280 and col_y[col] > 25.4:
+            col += 1
+        x, y = col_x[col], col_y[col]
+        texts.append((title, x - 12.7, y))
+        y += 2 * G
+        for p in parts:
+            _, _, hw, hh = layout(p)
+            y += hh + G
+            gy = round(y / G) * G
+            pos[p.ref] = (x + 7 * G if hw < 3 * G else x + 10 * G, gy)
+            y = gy + hh + 2 * G
+        col_y[col] = y + 2 * G
+    return pos, texts
+
+
+def main(out):
+    os.makedirs(out, exist_ok=True)
+    root = uid("sheet")
+    seen = {}
+    for p in design.PARTS:
+        seen.setdefault(symbol_name(p), p)
+
+    lib = ["(kicad_symbol_lib (version 20220914) (generator lumi_gen_schematic)"]
+    lib += [lib_symbol(p) for p in seen.values()]
+    lib.append(")")
+    with open(os.path.join(out, "lumi.kicad_sym"), "w") as fh:
+        fh.write("\n".join(lib) + "\n")
+    with open(os.path.join(out, "sym-lib-table"), "w") as fh:
+        fh.write('(sym_lib_table\n  (lib (name "lumi")(type "KiCad")(uri "${KIPRJMOD}/lumi.kicad_sym")'
+                 '(options "")(descr "Generated by gen_schematic.py"))\n)\n')
+
+    pos, texts = place()
+    s = [f"(kicad_sch (version 20230121) (generator lumi_gen_schematic)",
+         f"  (uuid {root})",
+         '  (paper "A3")',
+         "  (title_block (title \"Lumi PCB v1 (DRAFT, not reviewed)\") (date \"2026-10-30\")"
+         " (rev \"0.1\") (comment 1 \"Generated from design.py by gen_schematic.py; edit design.py, not this file\")"
+         " (comment 2 \"Pinouts marked VERIFY must be checked against datasheets before ordering\"))",
+         "  (lib_symbols"]
+    s += [lib_symbol(p, "lumi:") for p in seen.values()]
+    s.append("  )")
+
+    for title, x, y in texts:
+        s.append(f"  (text {q(title)} (at {f(x)} {f(y)} 0)"
+                 f" (effects (font (size 2 2) bold) (justify left bottom)) (uuid {uid('text', title)}))")
+
+    for p in design.PARTS:
+        x, y = pos[p.ref]
+        _, _, hw, hh = layout(p)
+        name = symbol_name(p)
+        s.append(f"  (symbol (lib_id {q('lumi:' + name)}) (at {f(x)} {f(y)} 0) (unit 1)"
+                 f" (in_bom {'yes' if p.bom else 'no'}) (on_board yes) (dnp no)")
+        s.append(f"    (uuid {uid('sym', p.ref)})")
+        s.append(f"    (property \"Reference\" {q(p.ref)} (at {f(x)} {f(y - hh - 1.27)} 0) {FONT})")
+        s.append(f"    (property \"Value\" {q(p.value)} (at {f(x)} {f(y + hh + 1.27)} 0) {FONT})")
+        s.append(f"    (property \"Footprint\" {q(p.footprint)} (at {f(x)} {f(y)} 0) {FONT_HIDE})")
+        s.append(f"    (property \"Datasheet\" \"\" (at {f(x)} {f(y)} 0) {FONT_HIDE})")
+        if p.lcsc:
+            s.append(f"    (property \"LCSC\" {q(p.lcsc)} (at {f(x)} {f(y)} 0) {FONT_HIDE})")
+        if p.note:
+            s.append(f"    (property \"Note\" {q(p.note)} (at {f(x)} {f(y)} 0) {FONT_HIDE})")
+        for pad in p.pins:
+            s.append(f"    (pin {q(pad)} (uuid {uid('pin', p.ref, pad)}))")
+        s.append(f"    (instances (project \"lumi\" (path \"/{root}\" (reference {q(p.ref)}) (unit 1))))")
+        s.append("  )")
+        for pad, (dx, dy, side) in pin_points(p).items():
+            px, py = x + dx, y + dy
+            net = p.pins[pad]
+            if net is None:
+                s.append(f"  (no_connect (at {f(px)} {f(py)}) (uuid {uid('nc', p.ref, pad)}))")
+                continue
+            rot, just = (180, "right") if side == "L" else (0, "left")
+            s.append(f"  (label {q(net)} (at {f(px)} {f(py)} {rot}) (fields_autoplaced)"
+                     f" (effects (font (size 1.27 1.27)) (justify {just} bottom))"
+                     f" (uuid {uid('label', p.ref, pad)}))")
+
+    s.append(f'  (sheet_instances (path "/" (page "1")))')
+    s.append(")")
+    with open(os.path.join(out, "lumi.kicad_sch"), "w") as fh:
+        fh.write("\n".join(s) + "\n")
+    print(f"wrote {out}/lumi.kicad_sch: {len(design.PARTS)} symbols")
+
+
+if __name__ == "__main__":
+    main(sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file__), "lumi"))

@@ -1,0 +1,22 @@
+Lumi PCB v1: case height stack (front to back), mm
+
+  front wall                                    1.40
+  OLED glass (ER-OLED0.96-1)                    1.45
+  PCB                                           1.00
+  tallest part on the back (J1)                 3.26
+  clearance                                     0.30
+  503030 LiPo (pouch, swells a little)          5.40
+  back wall                                     1.40
+  clearances, foam tape                         0.40
+  --------------------------------------------------
+  total                                        14.61
+  plan target                                  12.50
+
+Over the 12.5 mm target by 2.11 mm.
+
+Tallest parts:
+  J1    3.26 mm
+  U1    3.20 mm
+  J2    2.00 mm
+  SW1   1.50 mm
+  U4    1.45 mm

@@ -6,3 +6,15 @@ __pycache__/
 *.pyc
 tools/web-duel/build/
 tests/imu/build/
+
+# KiCad / Freerouting scratch (hardware/pcb/kicad/build.sh)
+hardware/pcb/kicad/lumi/*.kicad_prl
+hardware/pcb/kicad/lumi/*-backups/
+hardware/pcb/kicad/lumi/fp-info-cache
+hardware/pcb/kicad/lumi/*.dsn
+hardware/pcb/kicad/lumi/*.ses
+hardware/pcb/kicad/lumi/*.log
+hardware/pcb/kicad/lumi/*.rpt
+hardware/pcb/kicad/lumi/logs/
+hardware/pcb/kicad/__pycache__/
+logs/freerouting.log
