@@ -50,8 +50,25 @@ The unit shows its name and rarity on the battery screen (menu → battery).
 
 ## Install
 
-**Packaged app:** download `LumiStudio` for Windows, macOS or Linux from the
-artifacts of the latest CI run (Actions → ci → *LumiStudio-…*).
+**Download:** get the latest version from the repository's
+[**Releases** page](https://github.com/belivablelevi/Lumi/releases/latest).
+
+On **Windows**:
+1. Download `LumiStudio-Windows.zip`.
+2. Right-click it and choose **Extract All**.
+3. Double-click `LumiStudio.exe`.
+4. The app isn't code-signed yet, so the first time Windows may show "Windows protected your PC". Click **More info**, then **Run anyway**.
+5. To set up a real Lumi, plug it in with a USB-C data cable and pick its port on the **Provision** tab. No driver is needed: the ESP32-C3 shows up as a USB serial port.
+
+On **Mac**:
+1. Download `LumiStudio-macOS.zip` and unzip it.
+2. The first time, right-click **LumiStudio**, choose **Open**, then **Open** again.
+
+On **Linux**: extract `LumiStudio-Linux.tar.gz` and run `./LumiStudio`.
+
+New versions are published by pushing a tag like `studio-v0.2.0`, or from the Actions tab: **studio-release → Run workflow**.
+
+**Latest build without a release:** the artifacts of the newest CI run (Actions → ci → *LumiStudio-…*).
 
 **From source** (any OS with Python 3.9+ and a C++17 compiler):
 
