@@ -19,358 +19,6 @@
    "note": "31 x 33 mm, 1 mm thick, 2 layers"
   },
   {
-   "name": "TP3 EN",
-   "kind": "test pad",
-   "min": [
-    -14.6,
-    -0.05,
-    -15.2
-   ],
-   "max": [
-    -13.6,
-    0,
-    -14.2
-   ]
-  },
-  {
-   "name": "TP2 GND",
-   "kind": "test pad",
-   "min": [
-    -12.4,
-    -0.05,
-    -12.6
-   ],
-   "max": [
-    -11.4,
-    0,
-    -11.6
-   ]
-  },
-  {
-   "name": "TP6 RXD",
-   "kind": "test pad",
-   "min": [
-    11.8,
-    -0.05,
-    -14.0
-   ],
-   "max": [
-    12.8,
-    0,
-    -13.0
-   ]
-  },
-  {
-   "name": "TP5 TXD",
-   "kind": "test pad",
-   "min": [
-    9.6,
-    -0.05,
-    -14.0
-   ],
-   "max": [
-    10.6,
-    0,
-    -13.0
-   ]
-  },
-  {
-   "name": "TP4 BOOT",
-   "kind": "test pad",
-   "min": [
-    -12.4,
-    -0.05,
-    -15.2
-   ],
-   "max": [
-    -11.4,
-    0,
-    -14.2
-   ],
-   "note": "Hold BOOT to GND while resetting to force download mode."
-  },
-  {
-   "name": "TP1 3V3",
-   "kind": "test pad",
-   "min": [
-    -14.6,
-    -0.05,
-    -12.6
-   ],
-   "max": [
-    -13.6,
-    0,
-    -11.6
-   ]
-  },
-  {
-   "name": "TP7 VBAT",
-   "kind": "test pad",
-   "min": [
-    9.6,
-    -0.05,
-    -16.1
-   ],
-   "max": [
-    10.6,
-    0,
-    -15.1
-   ]
-  },
-  {
-   "name": "C8 1uF",
-   "kind": "passive",
-   "min": [
-    8.84,
-    1.0,
-    -7.71
-   ],
-   "max": [
-    10.36,
-    1.5,
-    -7.09
-   ],
-   "note": "EN delay (with R11)"
-  },
-  {
-   "name": "R13 10k",
-   "kind": "passive",
-   "min": [
-    4.22,
-    1.0,
-    -4.92
-   ],
-   "max": [
-    5.78,
-    1.5,
-    -4.28
-   ],
-   "note": "GPIO8 strap: high"
-  },
-  {
-   "name": "U4 RT9080-33GJ5",
-   "kind": "chip",
-   "min": [
-    -14.4,
-    1.0,
-    -10.7
-   ],
-   "max": [
-    -11.4,
-    2.45,
-    -7.1
-   ],
-   "note": "3.3 V LDO, 2 uA standby. VERIFY pinout."
-  },
-  {
-   "name": "SW1 MSK12C02",
-   "kind": "switch",
-   "min": [
-    11.12,
-    1.0,
-    -14.15
-   ],
-   "max": [
-    16.5,
-    2.5,
-    -5.85
-   ],
-   "note": "Power switch on the LDO enable (microamps), not on the battery. VERIFY the MSK12C02 matches the PCM12 footprint."
-  },
-  {
-   "name": "C10 1uF",
-   "kind": "passive",
-   "min": [
-    4.24,
-    1.0,
-    -7.71
-   ],
-   "max": [
-    5.76,
-    1.5,
-    -7.09
-   ],
-   "note": "Charge-pump flying cap 1"
-  },
-  {
-   "name": "C3 1uF",
-   "kind": "passive",
-   "min": [
-    -13.66,
-    1.0,
-    -12.31
-   ],
-   "max": [
-    -12.14,
-    1.5,
-    -11.69
-   ],
-   "note": "LDO input"
-  },
-  {
-   "name": "C6 100nF",
-   "kind": "passive",
-   "min": [
-    11.14,
-    1.0,
-    -4.91
-   ],
-   "max": [
-    12.66,
-    1.5,
-    -4.29
-   ]
-  },
-  {
-   "name": "R9 4.7k",
-   "kind": "passive",
-   "min": [
-    -3.28,
-    1.0,
-    -4.92
-   ],
-   "max": [
-    -1.72,
-    1.5,
-    -4.28
-   ],
-   "note": "I2C pull-up"
-  },
-  {
-   "name": "C11 1uF",
-   "kind": "passive",
-   "min": [
-    6.54,
-    1.0,
-    -7.71
-   ],
-   "max": [
-    8.06,
-    1.5,
-    -7.09
-   ],
-   "note": "Charge-pump flying cap 2"
-  },
-  {
-   "name": "D1 USBLC6-2SC6",
-   "kind": "chip",
-   "min": [
-    -14.4,
-    1.0,
-    -6.2
-   ],
-   "max": [
-    -11.4,
-    2.45,
-    -2.6
-   ],
-   "note": "USB ESD protection."
-  },
-  {
-   "name": "R6 1M",
-   "kind": "passive",
-   "min": [
-    -13.68,
-    1.0,
-    -16.12
-   ],
-   "max": [
-    -12.12,
-    1.5,
-    -15.48
-   ],
-   "note": "Battery divider bottom"
-  },
-  {
-   "name": "J2 FH12-30S-0.5SH",
-   "kind": "connector",
-   "min": [
-    -10.05,
-    1.0,
-    -15.9
-   ],
-   "max": [
-    10.05,
-    3.0,
-    -8.95
-   ],
-   "note": "30-pin 0.5 mm ZIF for the plug-in OLED. VERIFY contact side and pin 1 end."
-  },
-  {
-   "name": "R8 100k",
-   "kind": "passive",
-   "min": [
-    -12.43,
-    1.0,
-    9.08
-   ],
-   "max": [
-    -10.87,
-    1.5,
-    9.72
-   ],
-   "note": "USB sense divider bottom"
-  },
-  {
-   "name": "U2 LIS2DH12TR",
-   "kind": "chip",
-   "min": [
-    -0.95,
-    1.0,
-    -7.05
-   ],
-   "max": [
-    1.15,
-    2.0,
-    -4.95
-   ],
-   "note": "CS high = I2C. SA0 high = address 0x19. RES must go to GND."
-  },
-  {
-   "name": "R15 390k",
-   "kind": "passive",
-   "min": [
-    -9.08,
-    1.0,
-    -7.72
-   ],
-   "max": [
-    -7.52,
-    1.5,
-    -7.08
-   ],
-   "note": "IREF ~12 uA"
-  },
-  {
-   "name": "R2 5.1k",
-   "kind": "passive",
-   "min": [
-    -6.22,
-    1.0,
-    4.42
-   ],
-   "max": [
-    -5.58,
-    1.5,
-    5.98
-   ]
-  },
-  {
-   "name": "R7 100k",
-   "kind": "passive",
-   "min": [
-    -14.68,
-    1.0,
-    9.08
-   ],
-   "max": [
-    -13.12,
-    1.5,
-    9.72
-   ],
-   "note": "USB sense divider top"
-  },
-  {
    "name": "BT1 BAT+",
    "kind": "battery pad",
    "min": [
@@ -384,63 +32,6 @@
     15.95
    ],
    "note": "Battery red wire (protected 503030 LiPo)."
-  },
-  {
-   "name": "R5 1M",
-   "kind": "passive",
-   "min": [
-    -13.68,
-    1.0,
-    -14.92
-   ],
-   "max": [
-    -12.12,
-    1.5,
-    -14.28
-   ],
-   "note": "Battery divider top"
-  },
-  {
-   "name": "R1 5.1k",
-   "kind": "passive",
-   "min": [
-    -6.22,
-    1.0,
-    1.12
-   ],
-   "max": [
-    -5.58,
-    1.5,
-    2.68
-   ]
-  },
-  {
-   "name": "C9 100nF",
-   "kind": "passive",
-   "min": [
-    6.54,
-    1.0,
-    -4.91
-   ],
-   "max": [
-    8.06,
-    1.5,
-    -4.29
-   ]
-  },
-  {
-   "name": "C5 10uF",
-   "kind": "passive",
-   "min": [
-    8.84,
-    1.0,
-    -4.91
-   ],
-   "max": [
-    10.36,
-    1.5,
-    -4.29
-   ]
   },
   {
    "name": "BT2 BAT-",
@@ -458,34 +49,49 @@
    "note": "Battery black wire."
   },
   {
-   "name": "C14 1uF",
+   "name": "C1 1uF",
    "kind": "passive",
    "min": [
-    1.94,
+    -12.11,
+    1.0,
+    10.34
+   ],
+   "max": [
+    -11.49,
+    1.5,
+    11.86
+   ],
+   "note": "Charger input"
+  },
+  {
+   "name": "C10 1uF",
+   "kind": "passive",
+   "min": [
+    4.24,
     1.0,
     -7.71
    ],
    "max": [
-    3.46,
+    5.76,
     1.5,
     -7.09
    ],
-   "note": "Panel VDD/VBAT"
+   "note": "Charge-pump flying cap 1"
   },
   {
-   "name": "U1 ESP32-C3-WROOM-02-N4",
-   "kind": "module",
+   "name": "C11 1uF",
+   "kind": "passive",
    "min": [
-    -4.1,
+    6.54,
     1.0,
-    -3.55
+    -7.71
    ],
    "max": [
-    14.9,
-    4.2,
-    16.55
+    8.06,
+    1.5,
+    -7.09
    ],
-   "note": "Radio-certified module. Antenna at the keyring edge; keep copper out of the marked area."
+   "note": "Charge-pump flying cap 2"
   },
   {
    "name": "C12 2.2uF",
@@ -518,6 +124,21 @@
    "note": "VCOMH: 0603, 16 V+"
   },
   {
+   "name": "C14 1uF",
+   "kind": "passive",
+   "min": [
+    1.94,
+    1.0,
+    -7.71
+   ],
+   "max": [
+    3.46,
+    1.5,
+    -7.09
+   ],
+   "note": "Panel VDD/VBAT"
+  },
+  {
    "name": "C2 1uF",
    "kind": "passive",
    "min": [
@@ -533,6 +154,123 @@
    "note": "Charger output / battery"
   },
   {
+   "name": "C3 1uF",
+   "kind": "passive",
+   "min": [
+    -13.66,
+    1.0,
+    -12.31
+   ],
+   "max": [
+    -12.14,
+    1.5,
+    -11.69
+   ],
+   "note": "LDO input"
+  },
+  {
+   "name": "C4 1uF",
+   "kind": "passive",
+   "min": [
+    -13.66,
+    1.0,
+    -13.61
+   ],
+   "max": [
+    -12.14,
+    1.5,
+    -12.99
+   ],
+   "note": "LDO output"
+  },
+  {
+   "name": "C5 10uF",
+   "kind": "passive",
+   "min": [
+    8.84,
+    1.0,
+    -4.91
+   ],
+   "max": [
+    10.36,
+    1.5,
+    -4.29
+   ]
+  },
+  {
+   "name": "C6 100nF",
+   "kind": "passive",
+   "min": [
+    11.14,
+    1.0,
+    -4.91
+   ],
+   "max": [
+    12.66,
+    1.5,
+    -4.29
+   ]
+  },
+  {
+   "name": "C7 100nF",
+   "kind": "passive",
+   "min": [
+    1.94,
+    1.0,
+    -4.91
+   ],
+   "max": [
+    3.46,
+    1.5,
+    -4.29
+   ],
+   "note": "LIS2DH12 decoupling"
+  },
+  {
+   "name": "C8 1uF",
+   "kind": "passive",
+   "min": [
+    8.84,
+    1.0,
+    -7.71
+   ],
+   "max": [
+    10.36,
+    1.5,
+    -7.09
+   ],
+   "note": "EN delay (with R11)"
+  },
+  {
+   "name": "C9 100nF",
+   "kind": "passive",
+   "min": [
+    6.54,
+    1.0,
+    -4.91
+   ],
+   "max": [
+    8.06,
+    1.5,
+    -4.29
+   ]
+  },
+  {
+   "name": "D1 USBLC6-2SC6",
+   "kind": "chip",
+   "min": [
+    -14.4,
+    1.0,
+    -6.2
+   ],
+   "max": [
+    -11.4,
+    2.45,
+    -2.6
+   ],
+   "note": "USB ESD protection."
+  },
+  {
    "name": "J1 USB-C 16P",
    "kind": "connector",
    "min": [
@@ -544,6 +282,124 @@
     -7.03,
     4.26,
     8.12
+   ]
+  },
+  {
+   "name": "J2 FH12-30S-0.5SH",
+   "kind": "connector",
+   "min": [
+    -10.05,
+    1.0,
+    -15.9
+   ],
+   "max": [
+    10.05,
+    3.0,
+    -8.95
+   ],
+   "note": "30-pin 0.5 mm ZIF for the plug-in OLED. VERIFY contact side and pin 1 end."
+  },
+  {
+   "name": "R1 5.1k",
+   "kind": "passive",
+   "min": [
+    -6.22,
+    1.0,
+    1.12
+   ],
+   "max": [
+    -5.58,
+    1.5,
+    2.68
+   ]
+  },
+  {
+   "name": "R10 4.7k",
+   "kind": "passive",
+   "min": [
+    -3.28,
+    1.0,
+    -7.72
+   ],
+   "max": [
+    -1.72,
+    1.5,
+    -7.08
+   ],
+   "note": "I2C pull-up"
+  },
+  {
+   "name": "R11 10k",
+   "kind": "passive",
+   "min": [
+    13.42,
+    1.0,
+    -4.92
+   ],
+   "max": [
+    14.98,
+    1.5,
+    -4.28
+   ],
+   "note": "EN pull-up"
+  },
+  {
+   "name": "R12 10k",
+   "kind": "passive",
+   "min": [
+    -10.18,
+    1.0,
+    9.08
+   ],
+   "max": [
+    -8.62,
+    1.5,
+    9.72
+   ],
+   "note": "GPIO2 strap: high"
+  },
+  {
+   "name": "R13 10k",
+   "kind": "passive",
+   "min": [
+    4.22,
+    1.0,
+    -4.92
+   ],
+   "max": [
+    5.78,
+    1.5,
+    -4.28
+   ],
+   "note": "GPIO8 strap: high"
+  },
+  {
+   "name": "R15 390k",
+   "kind": "passive",
+   "min": [
+    -9.08,
+    1.0,
+    -7.72
+   ],
+   "max": [
+    -7.52,
+    1.5,
+    -7.08
+   ],
+   "note": "IREF ~12 uA"
+  },
+  {
+   "name": "R2 5.1k",
+   "kind": "passive",
+   "min": [
+    -6.22,
+    1.0,
+    4.42
+   ],
+   "max": [
+    -5.58,
+    1.5,
+    5.98
    ]
   },
   {
@@ -562,49 +418,223 @@
    "note": "Charge current = 1000 V / R = 256 mA"
   },
   {
-   "name": "C1 1uF",
+   "name": "R5 1M",
    "kind": "passive",
    "min": [
-    -12.11,
+    -13.68,
     1.0,
-    10.34
+    -14.92
    ],
    "max": [
-    -11.49,
+    -12.12,
     1.5,
-    11.86
+    -14.28
    ],
-   "note": "Charger input"
+   "note": "Battery divider top"
   },
   {
-   "name": "C4 1uF",
+   "name": "R6 1M",
    "kind": "passive",
    "min": [
-    -13.66,
+    -13.68,
     1.0,
-    -13.61
+    -16.12
    ],
    "max": [
-    -12.14,
+    -12.12,
     1.5,
-    -12.99
+    -15.48
    ],
-   "note": "LDO output"
+   "note": "Battery divider bottom"
   },
   {
-   "name": "R10 4.7k",
+   "name": "R7 100k",
+   "kind": "passive",
+   "min": [
+    -14.68,
+    1.0,
+    9.08
+   ],
+   "max": [
+    -13.12,
+    1.5,
+    9.72
+   ],
+   "note": "USB sense divider top"
+  },
+  {
+   "name": "R8 100k",
+   "kind": "passive",
+   "min": [
+    -12.43,
+    1.0,
+    9.08
+   ],
+   "max": [
+    -10.87,
+    1.5,
+    9.72
+   ],
+   "note": "USB sense divider bottom"
+  },
+  {
+   "name": "R9 4.7k",
    "kind": "passive",
    "min": [
     -3.28,
     1.0,
-    -7.72
+    -4.92
    ],
    "max": [
     -1.72,
     1.5,
-    -7.08
+    -4.28
    ],
    "note": "I2C pull-up"
+  },
+  {
+   "name": "SW1 MSK12C02",
+   "kind": "switch",
+   "min": [
+    11.12,
+    1.0,
+    -14.15
+   ],
+   "max": [
+    16.5,
+    2.5,
+    -5.85
+   ],
+   "note": "Power switch on the LDO enable (microamps), not on the battery. VERIFY the MSK12C02 matches the PCM12 footprint."
+  },
+  {
+   "name": "TP1 3V3",
+   "kind": "test pad",
+   "min": [
+    -14.6,
+    -0.05,
+    -12.6
+   ],
+   "max": [
+    -13.6,
+    0,
+    -11.6
+   ]
+  },
+  {
+   "name": "TP2 GND",
+   "kind": "test pad",
+   "min": [
+    -12.4,
+    -0.05,
+    -12.6
+   ],
+   "max": [
+    -11.4,
+    0,
+    -11.6
+   ]
+  },
+  {
+   "name": "TP3 EN",
+   "kind": "test pad",
+   "min": [
+    -14.6,
+    -0.05,
+    -15.2
+   ],
+   "max": [
+    -13.6,
+    0,
+    -14.2
+   ]
+  },
+  {
+   "name": "TP4 BOOT",
+   "kind": "test pad",
+   "min": [
+    -12.4,
+    -0.05,
+    -15.2
+   ],
+   "max": [
+    -11.4,
+    0,
+    -14.2
+   ],
+   "note": "Hold BOOT to GND while resetting to force download mode."
+  },
+  {
+   "name": "TP5 TXD",
+   "kind": "test pad",
+   "min": [
+    9.6,
+    -0.05,
+    -14.0
+   ],
+   "max": [
+    10.6,
+    0,
+    -13.0
+   ]
+  },
+  {
+   "name": "TP6 RXD",
+   "kind": "test pad",
+   "min": [
+    11.8,
+    -0.05,
+    -14.0
+   ],
+   "max": [
+    12.8,
+    0,
+    -13.0
+   ]
+  },
+  {
+   "name": "TP7 VBAT",
+   "kind": "test pad",
+   "min": [
+    9.6,
+    -0.05,
+    -16.1
+   ],
+   "max": [
+    10.6,
+    0,
+    -15.1
+   ]
+  },
+  {
+   "name": "U1 ESP32-C3-WROOM-02-N4",
+   "kind": "module",
+   "min": [
+    -4.1,
+    1.0,
+    -3.55
+   ],
+   "max": [
+    14.9,
+    4.2,
+    16.55
+   ],
+   "note": "Radio-certified module. Antenna at the keyring edge; keep copper out of the marked area."
+  },
+  {
+   "name": "U2 LIS2DH12TR",
+   "kind": "chip",
+   "min": [
+    -0.95,
+    1.0,
+    -7.05
+   ],
+   "max": [
+    1.15,
+    2.0,
+    -4.95
+   ],
+   "note": "CS high = I2C. SA0 high = address 0x19. RES must go to GND."
   },
   {
    "name": "U3 TP4054",
@@ -622,49 +652,19 @@
    "note": "LiPo charger. CHRG is open-drain: firmware enables the IO1 pull-up. VERIFY pinout."
   },
   {
-   "name": "C7 100nF",
-   "kind": "passive",
+   "name": "U4 RT9080-33GJ5",
+   "kind": "chip",
    "min": [
-    1.94,
+    -14.4,
     1.0,
-    -4.91
+    -10.7
    ],
    "max": [
-    3.46,
-    1.5,
-    -4.29
+    -11.4,
+    2.45,
+    -7.1
    ],
-   "note": "LIS2DH12 decoupling"
-  },
-  {
-   "name": "R12 10k",
-   "kind": "passive",
-   "min": [
-    -10.18,
-    1.0,
-    9.08
-   ],
-   "max": [
-    -8.62,
-    1.5,
-    9.72
-   ],
-   "note": "GPIO2 strap: high"
-  },
-  {
-   "name": "R11 10k",
-   "kind": "passive",
-   "min": [
-    13.42,
-    1.0,
-    -4.92
-   ],
-   "max": [
-    14.98,
-    1.5,
-    -4.28
-   ],
-   "note": "EN pull-up"
+   "note": "3.3 V LDO, 2 uA standby. VERIFY pinout."
   },
   {
    "name": "OLED glass",
