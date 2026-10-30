@@ -13,6 +13,8 @@ jobs:
         run: make -C tests
       - name: Simulator smoke run
         run: make -C tools/sim run
+      - name: Accelerometer driver against register models
+        run: make -C tests/imu
       - name: Website Boop Pong harness (native)
         run: make -C tools/web-duel test
       - name: Website Boop Pong builds to WebAssembly
