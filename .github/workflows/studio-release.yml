@@ -1,0 +1,98 @@
+name: studio-release
+
+# Publishes Lumi Studio as a GitHub Release with Windows, macOS and Linux
+# downloads. Run it by pushing a tag like studio-v0.1.0, or from the
+# Actions tab (Run workflow) with a version.
+on:
+  push:
+    tags: ["studio-v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version, e.g. 0.1.0 (becomes tag studio-v0.1.0)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - os: windows-latest
+            asset: LumiStudio-Windows.zip
+          - os: macos-latest
+            asset: LumiStudio-macOS.zip
+          - os: ubuntu-latest
+            asset: LumiStudio-Linux.tar.gz
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Qt runtime libraries
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libxkbcommon0 libfontconfig1 libdbus-1-3
+      - name: Build liblumicore
+        run: |
+          cmake -S tools/studio -B build/studio -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/studio --config Release -j4
+      - run: pip install -r tools/studio/requirements.txt pyinstaller
+      - name: Package
+        run: python tools/studio/package.py
+      - name: Smoke test (the app starts and draws its window)
+        env:
+          QT_QPA_PLATFORM: offscreen
+          LUMI_STUDIO_SMOKE: ${{ github.workspace }}/build/studio/smoke.png
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then exe=build/studio/dist/LumiStudio.exe; else exe=build/studio/dist/LumiStudio; fi
+          "$exe"
+          test -s build/studio/smoke.png
+      - name: Pack the download
+        run: |
+          mkdir -p release
+          cd build/studio/dist
+          case "$RUNNER_OS" in
+            Windows) 7z a "../../../release/${{ matrix.asset }}" LumiStudio.exe ;;
+            macOS)   ditto -c -k --keepParent LumiStudio.app "../../../release/${{ matrix.asset }}" ;;
+            Linux)   tar -czf "../../../release/${{ matrix.asset }}" LumiStudio ;;
+          esac
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: release/${{ matrix.asset }}
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: release
+          merge-multiple: true
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          if [ -n "$INPUT_VERSION" ]; then tag="studio-v$INPUT_VERSION"; else tag="$GITHUB_REF_NAME"; fi
+          version="${tag#studio-v}"
+          cat > notes.md <<EOF
+          Lumi Studio $version: design faces, personalities and animations, and set up a Lumi over USB.
+
+          ## Download
+          - **Windows:** LumiStudio-Windows.zip. Unzip it, then double-click LumiStudio.exe.
+          - **Mac:** LumiStudio-macOS.zip. Unzip it, then right-click LumiStudio > Open the first time.
+          - **Linux:** LumiStudio-Linux.tar.gz. Extract it, then run ./LumiStudio.
+
+          The app isn't code-signed yet, so Windows and macOS show a warning the first time.
+          Install steps and screenshots: https://github.com/${GITHUB_REPOSITORY}/blob/main/docs/studio.md
+          EOF
+          gh release create "$tag" release/* --title "Lumi Studio $version" --notes-file notes.md --target "$GITHUB_SHA"
