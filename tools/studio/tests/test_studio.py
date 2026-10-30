@@ -220,3 +220,20 @@ def test_provisioning_end_to_end(virtual_lumi):
     finally:
         proc.kill()
         proc.wait()
+
+
+def test_odds_card_numbers_add_up_and_both_pdfs_have_two_pages(tmp_path):
+    from PySide6.QtWidgets import QApplication
+    from lumi_studio import odds_card
+    app = QApplication.instance() or QApplication([])  # noqa: F841 (fonts and PDFs need one; the UI tests reuse it)
+
+    rarity = odds_card.rarity_odds()
+    assert sum(rarity.values()) == pytest.approx(1.0)
+    assert odds_card.percents(list(rarity.values())) == [60, 25, 12, 3]  # the split genes.cpp is tuned for
+    for gene in range(len(native.gene_names())):
+        assert sum(odds_card.percents([s for _, s in odds_card.gene_odds(gene)])) == 100
+    assert odds_card.percents([0.333, 0.333, 0.334]) == [33, 33, 34]
+
+    for pdf in odds_card.export(str(tmp_path)):
+        data = open(pdf, "rb").read()
+        assert data.startswith(b"%PDF-") and data.count(b"/Type /Page\n") == 2  # front and back

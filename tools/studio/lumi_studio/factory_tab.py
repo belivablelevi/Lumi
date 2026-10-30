@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (QAbstractItemView, QDoubleSpinBox, QFileDialog, Q
                                QLabel, QLineEdit, QMessageBox, QPushButton, QSpinBox, QSplitter, QTableWidget,
                                QTableWidgetItem, QVBoxLayout, QWidget)
 
-from . import factory, native
+from . import factory, native, odds_card
 from .model import RARITIES
 from .widgets import BEZEL, RARITY_COLOURS, OledView, frame_image
 
@@ -125,10 +125,13 @@ class FactoryTab(QWidget):
         open_btn.clicked.connect(self.open_manifest)
         cards = QPushButton("Export cards…")
         cards.clicked.connect(self.export_cards)
+        odds = QPushButton("Export odds card…")
+        odds.setToolTip("A 4 × 6 in printable insert showing how likely each rarity, temperament and look is")
+        odds.clicked.connect(self.export_odds_card)
         to_persona = QPushButton("Show in Personality tab")
         to_persona.clicked.connect(self.show_selected)
         brow = QHBoxLayout()
-        for b in (gen, save, open_btn, cards, to_persona):
+        for b in (gen, save, open_btn, cards, odds, to_persona):
             brow.addWidget(b)
         brow.addStretch(1)
         self.summary = QLabel()
@@ -263,6 +266,16 @@ class FactoryTab(QWidget):
             card_image(row).save(os.path.join(folder, f"{row['serial']}.png"))
         contact_sheet(rows[:60]).save(os.path.join(folder, "sheet.png"))
         return folder
+
+    def export_odds_card(self, folder=None):
+        """The personality-odds insert for the box: the card for a print shop, and 2 per Letter sheet."""
+        if not folder:
+            folder = QFileDialog.getExistingDirectory(self, "Folder for the odds card")
+        if not folder:
+            return
+        paths = odds_card.export(folder)
+        self.manifest_label.setText("Odds card saved: " + ", ".join(os.path.basename(p) for p in paths))
+        return paths
 
     # ---- selection ----
     def preview(self, r):

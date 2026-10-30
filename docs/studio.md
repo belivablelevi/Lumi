@@ -152,6 +152,12 @@ inserts, plus a contact sheet:
 
 ![cards](previews/studio/cards-sheet.png)
 
+**Export odds card** writes the personality-odds insert for the box: a 4 × 6 in
+two-sided card showing how likely each rarity tier, temperament, eye shape,
+highlight and accent is. You get one PDF for a print shop and one with two cards
+per Letter sheet for home printing. The odds come from the firmware's gene
+weights, so re-export after you change them. See [print/](print/README.md).
+
 ## 5. Provision
 
 ![Provision tab](previews/studio/5-provision.png)

@@ -35,6 +35,7 @@ def main():
         "--specpath", os.path.join(BUILD, "pyinstaller"),
         "--paths", HERE,
         "--add-binary", f"{lib}{os.pathsep}lumi_studio",
+        "--add-data", f"{os.path.join(HERE, 'lumi_studio', 'fonts')}{os.pathsep}lumi_studio/fonts",
         "--collect-data", "esptool",
         "--collect-submodules", "esptool",
         "--hidden-import", "serial.tools.list_ports",

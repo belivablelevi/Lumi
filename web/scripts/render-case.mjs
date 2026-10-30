@@ -3,7 +3,7 @@
 //
 //   node scripts/render-case.mjs
 //
-// Uses the STLs in hardware/enclosure/stl and frames exported by
+// Uses the STLs in hardware/enclosure (the Pocket Lumi case in stl/, and the Mini Lumi cases) and frames exported by
 // tools/studio/export_web_assets.py. These are renders of the CAD model, not photos.
 import { createServer } from "node:http";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
@@ -37,6 +37,7 @@ const types = { ".html": "text/html", ".js": "text/javascript", ".stl": "model/s
 const server = createServer((req, res) => {
   const url = decodeURIComponent(req.url.split("?")[0]);
   const path = url.startsWith("/stl/") ? join(REPO, "hardware", "enclosure", "stl", url.slice(5))
+    : url.startsWith("/hw/") ? join(REPO, "hardware", "enclosure", url.slice(4))
     : url === "/" ? join(WEB, "scripts", "render-case.html") : join(WEB, url);
   try {
     res.writeHead(200, { "content-type": types[extname(path)] ?? "application/octet-stream" });
@@ -67,6 +68,20 @@ const shots = [
     groundY: -21, groundTilt: -Math.PI / 2 },
   { file: "trio.png", alt: "", color: PEACH, width: 1400, height: 1400, yaw: 0.5, pitch: 0.12, fov: 16, dist: 230,
     lookY: 3, frame: still("katos", "love"), groundY: -21, groundTilt: -Math.PI / 2 },
+  // The Mini Lumi cases: prototype designs that aren't printed yet.
+  { model: "mini-pcb", file: "mini-pcb-front.png", alt: "Mini Lumi case for the PCB, front", color: MINT,
+    width: 1400, height: 1400, fov: 16, dist: 190, lookY: 0, groundY: -21, shadow: 0, live: true },
+  { model: "mini-pcb", file: "mini-pcb-three-quarter.png", alt: "Mini Lumi case for the PCB, from the side",
+    color: MINT, width: 1400, height: 1400, yaw: -0.62, pitch: 0.12, fov: 16, dist: 250, lookY: 0,
+    frame: still("yotos", "happy"), groundY: -21, groundTilt: -Math.PI / 2 },
+  { model: "mini-pcb", file: "mini-pcb-usb.png", alt: "Mini Lumi case for the PCB from the left, showing the USB-C port",
+    color: MINT, width: 1400, height: 1400, yaw: 1.15, pitch: 0.1, fov: 16, dist: 250, lookY: 0,
+    frame: still("ni", "neutral"), groundY: -21, groundTilt: -Math.PI / 2 },
+  { model: "mini2", file: "mini-lumi2-front.png", alt: "Mini Lumi 2 case, front", color: PEACH,
+    width: 1400, height: 1400, fov: 16, dist: 190, lookY: 0, groundY: -21, shadow: 0, live: true },
+  { model: "mini2", file: "mini-lumi2-three-quarter.png", alt: "Mini Lumi 2 case, from the side", color: PEACH,
+    width: 1400, height: 1400, yaw: -0.62, pitch: 0.12, fov: 16, dist: 250, lookY: 0,
+    frame: still("katos", "happy"), groundY: -21, groundTilt: -Math.PI / 2 },
 ];
 
 const browser = await chromium.launch({ args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
