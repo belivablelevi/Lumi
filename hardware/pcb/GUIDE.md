@@ -171,7 +171,7 @@ Test in this order, and stop at the first failure.
 | 9 | Pats and wake | Pat the case. Let it sleep, then pick it up. | Reacts to pats; wakes on pickup |
 | 10 | Charging | Plug USB in with the battery fitted | The battery screen says "charging"; VBAT rises toward 4.2 V |
 | 11 | Sleep current | Let it deep-sleep, meter in series with the battery | Target under 30 µA total |
-| 12 | Radio | Pair with the phone app, walk 5–10 m away | Stays connected. If range is poor, see the antenna items above. |
+| 12 | Radio | Start Boop Pong against a second Lumi and walk apart. Also pick **UPDATE** and join the `Lumi-XXXX` Wi-Fi from a phone. | A Pong match keeps working 10 m or more apart, and the phone reaches `http://192.168.4.1`. If range is poor, see the antenna items above. |
 
 Send me the serial log and the numbers from tests 4 and 11, and I'll go through them with you.
 
