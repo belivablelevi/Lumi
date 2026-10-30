@@ -75,6 +75,8 @@ It also colours them red. Modifiers count, so a Solidify or Boolean is checked a
 
 [`../alternatives/mini_lumi2/`](../alternatives/mini_lumi2/README.md) is a worked example.
 
+**A finished case:** [`mini_lumi_case.py`](mini_lumi_case.py) builds the Mini Lumi desk case around the PCB from these references, with no hand modelling: the body, the lid, the openings, and the ledges that hold the board. It's checked and exported automatically. See [`../mini_lumi_pcb/`](../mini_lumi_pcb/README.md).
+
 ## Tips for modelling
 
 - **Shell.** Start from a rounded box (Add > Mesh > Cube, then a **Bevel** modifier for the corners) and hollow it with a **Solidify** modifier (1.4 mm, like today's case). Keep modifiers live until you export.
@@ -108,4 +110,5 @@ blender --background --python hardware/enclosure/blender/render_preview.py
 | `lumi_pcb_v1_refs.json` | The reference boxes, outlines and warnings (generated) |
 | `lumi_pcb_v1_refs.obj`, `.mtl` | The same boxes for a plain OBJ import (generated) |
 | `check_fit.py` | Checks the Case collection against the references |
+| `mini_lumi_case.py` | Builds the Mini Lumi case for the PCB (see `../mini_lumi_pcb/`) |
 | `render_preview.py` | Renders `preview_front.png` and `preview_back.png` |
