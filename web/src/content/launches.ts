@@ -19,7 +19,7 @@ export const launches: Launch[] = [
     name: "Pocket Lumi: the first run",
     description:
       "The first Pocket Lumis, each made with its own look and temperament. Sign up and we'll email you when pre-orders open.",
-    image: { src: "/renders/three-quarter.png", alt: "Pocket Lumi render", width: 1400, height: 1400 },
+    image: { src: "/renders/three-quarter.png", alt: "Pocket Lumi render", width: 2000, height: 2000 },
     launchAt: tbc("Launch date and time"),
     preorderOpensAt: tbc("When pre-orders open"),
     timeZone: tbc("Time zone for launch times, e.g. America/Toronto"),

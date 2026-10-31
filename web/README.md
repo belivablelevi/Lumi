@@ -40,7 +40,7 @@ Vercel address.
 |---|---|
 | **Animations** | Real. `public/lumi/` holds frames rendered by the firmware's own code (`python3 tools/studio/export_web_assets.py`). The site draws them on a canvas, pixel for pixel. |
 | **Boop Pong** | Real. The homepage game runs the firmware itself, compiled to WebAssembly (`tools/web-duel/build.sh` → `public/duel/lumi-duel.wasm`). Each match makes two new Lumis from random chip IDs, so the personalities shown are the ones the firmware would give real units. |
-| **Product images** | Renders of the actual case STLs (`node scripts/render-case.mjs`), labelled as renders. Add photos to `public/` and list them in `src/content/products.ts` once units exist. |
+| **Product images** | Renders of the actual case STLs, path traced in Blender (`blender --background --python web/scripts/render_products.py` from the repo root), labelled as renders. Add photos to `public/` and list them in `src/content/products.ts` once units exist. |
 | **Specs** | The open-source prototype design, labelled "prototype specification". |
 | **Price, pre-order terms, shipping, battery life, materials, warranty, contact email, business address** | Placeholders (`tbc(...)` in `src/content/products.ts` and `src/config/brand.ts`). Pages show "To be confirmed". The catalogue refuses to sell a product without a confirmed price, and refuses pre-orders without confirmed terms, so the build fails instead of showing invented facts. |
 | **Policy pages** | Outlines with the headings Canadian law expects (PIPEDA, CASL), marked as placeholders. |

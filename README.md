@@ -55,7 +55,7 @@ See [docs/studio.md](docs/studio.md).
 
 ## The website
 
-`web/` is the Lumi storefront. It's a Next.js site with pre-orders through Stripe, launch emails, and the
+`web/` is the Snaggo storefront for Lumi, at [snaggo.tech](https://snaggo.tech). It's a Next.js site with pre-orders through Stripe, launch emails, and the
 firmware's real animations playing on every screen. See [web/README.md](web/README.md).
 
 ## Repository layout
@@ -88,7 +88,7 @@ tests/                      desktop tests for the core (make -C tests)
 tools/
   sim/                      desktop simulator → PNG/GIF previews
   studio/                   Lumi Studio desktop app (PySide6) + liblumicore C API + virtual Lumi
-web/                        the Lumi website (Next.js storefront, pre-orders, launch signups)
+web/                        the Snaggo website (Next.js storefront, pre-orders, launch signups)
   arduino_build.sh          build with arduino-cli / Arduino IDE instead of PlatformIO
 ```
 
