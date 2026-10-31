@@ -56,6 +56,10 @@ P = {
     "lip": 1.5,            # lid/body lip joint depth
     "fit": 0.15,           # sliding clearance per side for the lip
     "badge": 0.6,          # raised height of the "Lumi" letters
+    "tab_w": 10.0,         # keyring tab, centred on the roof
+    "tab_h": 8.5,          # how far it stands above the roof: keeps the metal ring out of the antenna keep-out
+    "tab_t": 5.0,          # thickness front-to-back
+    "tab_hole": 3.4,       # the split ring goes through front-to-back
 }
 
 
@@ -74,6 +78,13 @@ def ref_box(doc, prefix):
     raise KeyError(prefix)
 
 
+def board_box(doc):
+    """The whole board: its outline is notched, so it's more than one box."""
+    boxes = [b for b in doc["boxes"] if b["kind"] == "board"]
+    return ([min(b["min"][i] for b in boxes) for i in range(3)],
+            [max(b["max"][i] for b in boxes) for i in range(3)])
+
+
 def mesh_box(name, x1, x2, y1, y2, z1, z2, chamfer=0.0, col=None):
     bm = bmesh.new()
     bmesh.ops.create_cube(bm, size=1.0)
@@ -88,6 +99,34 @@ def mesh_box(name, x1, x2, y1, y2, z1, z2, chamfer=0.0, col=None):
     obj = bpy.data.objects.new(name, me)
     (col or bpy.context.scene.collection).objects.link(obj)
     return obj
+
+
+def prism_y(name, outline, y1, y2, chamfer=0.0, col=None):
+    """Extrude a closed (x, z) outline from y1 to y2."""
+    bm = bmesh.new()
+    front = [bm.verts.new((x, y1, z)) for x, z in outline]
+    back = [bm.verts.new((x, y2, z)) for x, z in outline]
+    caps = [bm.faces.new(front), bm.faces.new(back)]
+    for i in range(len(outline)):
+        j = (i + 1) % len(outline)
+        bm.faces.new((front[i], front[j], back[j], back[i]))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    if chamfer:
+        edges = [e for cap in caps for e in cap.edges]
+        bmesh.ops.bevel(bm, geom=edges, offset=chamfer, segments=1, affect="EDGES",
+                        profile=0.5, clamp_overlap=True)
+    me = bpy.data.meshes.new(name)
+    bm.to_mesh(me)
+    bm.free()
+    obj = bpy.data.objects.new(name, me)
+    (col or bpy.context.scene.collection).objects.link(obj)
+    return obj
+
+
+def arc(cx, cz, r, start, end, steps=48):
+    """Points on a circle, from start to end degrees."""
+    return [(cx + r * math.cos(math.radians(start + (end - start) * i / steps)),
+             cz + r * math.sin(math.radians(start + (end - start) * i / steps))) for i in range(steps + 1)]
 
 
 def boolean(target, cutter, op="DIFFERENCE"):
@@ -161,7 +200,7 @@ def text_badge(name, text, size, depth, at, col):
 
 def build(doc, col):
     p = P
-    (bx1, _, bz1), (bx2, by2, bz2) = ref_box(doc, "PCB")
+    (bx1, _, bz1), (bx2, by2, bz2) = board_box(doc)
     (gx1, gy1, gz1), (gx2, _, gz2) = ref_box(doc, "OLED glass")
     (ax1, _, az1), (ax2, _, az2) = ref_box(doc, "OLED active area")
     (cx1, _, cz1), _ = ref_box(doc, "OLED cable, bend")
@@ -251,6 +290,20 @@ def build(doc, col):
     for a in adds:
         boolean(body, a, "UNION")
 
+    # Keyring tab, centred on the part of the roof that belongs to the body.
+    # It's plain plastic, sunk 1 mm into the roof and clear of the inside.
+    tab_r = p["tab_w"] / 2
+    tab_z = zo_hi + p["tab_h"] - tab_r
+    tab_y = (y_face_top + y_body_back + p["lip"]) / 2
+    tab = prism_y("keyring tab", [(-tab_r, zo_hi - 1.0), (tab_r, zo_hi - 1.0), *arc(0, tab_z, tab_r, 0, 180)],
+                  tab_y - p["tab_t"] / 2, tab_y + p["tab_t"] / 2, chamfer=0.4, col=col)
+    tab_hole = prism_y("cut keyring hole", arc(0, tab_z, p["tab_hole"] / 2, 0, 360)[:-1],
+                       tab_y - p["tab_t"], tab_y + p["tab_t"], col=col)
+    boolean(tab, tab_hole)
+    apply_all(tab)
+    remove(tab_hole)
+    boolean(body, tab, "UNION")
+
     # Badge on the chin, plus three grooves like the original.
     chin_mid = (zo_lo + p["chin_top"]) / 2
     badge = text_badge("Lumi badge", "Lumi", 6.0, p["badge"] + 0.3,
@@ -262,7 +315,7 @@ def build(doc, col):
         boolean(body, g)
         cutters.append(g)
     apply_all(body)
-    remove(*cutters, *adds, badge)
+    remove(*cutters, *adds, badge, tab)
 
     # Lid: rim carrying the walls on, plate, the inner lip that slides into
     # the body's sleeve, and three vents.
@@ -287,7 +340,9 @@ def build(doc, col):
     remove(lip_ring, lip_hole, lid_inside, *vents)
 
     sizes = {
-        "outside": (round(2 * xo, 2), round(y_lid_back - y_chin + p["badge"], 2), round(zo_hi - zo_lo, 2)),
+        "outside": (round(2 * xo, 2), round(y_lid_back - y_chin + p["badge"], 2), round(zo_hi + p["tab_h"] - zo_lo, 2)),
+        "keyring_hole": {"x": 0.0, "y": round(tab_y, 2), "z": round(tab_z, 2), "above_roof": round(tab_z - zo_hi, 2),
+                         "diameter": p["tab_hole"]},
         "inside": (round(2 * xi, 2), round(yi_back - yi_front, 2), round(zi_hi - zi_lo, 2)),
         "window": (round(2 * wx, 2), round(wz2 - wz1, 2)),
         "lid_offset_y": round(y_body_back, 3),
@@ -380,6 +435,10 @@ def main():
         if bad or vol <= 0:
             problems.append(f"{obj.name} isn't a closed solid ({bad} open edges, volume {vol:.0f})")
     problems += fit["check"](case_name=refs["CASE"])
+    hole = sizes["keyring_hole"]
+    _, (_, _, keepout_top) = ref_box(doc, "Antenna keep-out")
+    if hole["z"] - hole["diameter"] / 2 < keepout_top:
+        problems.append(f"Keyring hole dips below the antenna keep-out (top at Z = {keepout_top})")
 
     os.makedirs(OUT, exist_ok=True)
     # Body prints as modelled, base on the bed; the lid prints outside face down.
