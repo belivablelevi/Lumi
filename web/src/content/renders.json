@@ -2,115 +2,115 @@
   {
     "src": "/renders/front-lavender.png",
     "alt": "Pocket Lumi, front",
-    "width": 1400,
-    "height": 1400,
+    "width": 2000,
+    "height": 2000,
     "color": "#c99be0",
     "screen": {
-      "left": 0.267254261417339,
-      "top": 0.4860567069051862,
-      "width": 0.465491477165322,
-      "height": 0.23381829958995448
+      "left": 0.27674445509910583,
+      "top": 0.4969136714935303,
+      "width": 0.4465111196041107,
+      "height": 0.22428438067436218
     }
   },
   {
     "src": "/renders/front-mint.png",
     "alt": "Pocket Lumi in a mint shell, front",
-    "width": 1400,
-    "height": 1400,
+    "width": 2000,
+    "height": 2000,
     "color": "#8fd6b6",
     "screen": {
-      "left": 0.267254261417339,
-      "top": 0.4860567069051862,
-      "width": 0.465491477165322,
-      "height": 0.23381829958995448
+      "left": 0.27674445509910583,
+      "top": 0.4969136714935303,
+      "width": 0.4465111196041107,
+      "height": 0.22428438067436218
     }
   },
   {
     "src": "/renders/front-peach.png",
     "alt": "Pocket Lumi in a peach shell, front",
-    "width": 1400,
-    "height": 1400,
+    "width": 2000,
+    "height": 2000,
     "color": "#ffb592",
     "screen": {
-      "left": 0.267254261417339,
-      "top": 0.4860567069051862,
-      "width": 0.465491477165322,
-      "height": 0.23381829958995448
+      "left": 0.27674445509910583,
+      "top": 0.4969136714935303,
+      "width": 0.4465111196041107,
+      "height": 0.22428438067436218
     }
   },
   {
     "src": "/renders/three-quarter.png",
     "alt": "Pocket Lumi from the side, showing its face",
-    "width": 1400,
-    "height": 1400,
+    "width": 2000,
+    "height": 2000,
     "color": "#c99be0"
   },
   {
     "src": "/renders/usb-side.png",
-    "alt": "Pocket Lumi from the right, showing the USB-C port",
-    "width": 1400,
-    "height": 1400,
+    "alt": "Pocket Lumi from the left, showing the USB-C port",
+    "width": 2000,
+    "height": 2000,
     "color": "#c99be0"
   },
   {
     "src": "/renders/on-keyring.png",
     "alt": "Pocket Lumi on a keyring",
-    "width": 1400,
-    "height": 1600,
+    "width": 2000,
+    "height": 2285,
     "color": "#8fd6b6"
   },
   {
     "src": "/renders/trio.png",
     "alt": "",
-    "width": 1400,
-    "height": 1400,
+    "width": 2000,
+    "height": 2000,
     "color": "#ffb592"
   },
   {
     "src": "/renders/mini-pcb-front.png",
     "alt": "Mini Lumi case for the PCB, front",
-    "width": 1400,
-    "height": 1400,
+    "width": 2000,
+    "height": 2000,
     "color": "#8fd6b6",
     "screen": {
-      "left": 0.2947141408350842,
-      "top": 0.37796370584205463,
-      "width": 0.41057171832983164,
-      "height": 0.20623187694908596
+      "left": 0.3098710775375366,
+      "top": 0.4658295512199402,
+      "width": 0.38025784492492676,
+      "height": 0.19100505113601685
     }
   },
   {
     "src": "/renders/mini-pcb-three-quarter.png",
     "alt": "Mini Lumi case for the PCB, from the side",
-    "width": 1400,
-    "height": 1400,
+    "width": 2000,
+    "height": 2000,
     "color": "#8fd6b6"
   },
   {
     "src": "/renders/mini-pcb-usb.png",
     "alt": "Mini Lumi case for the PCB from the left, showing the USB-C port",
-    "width": 1400,
-    "height": 1400,
+    "width": 2000,
+    "height": 2000,
     "color": "#8fd6b6"
   },
   {
     "src": "/renders/mini-lumi2-front.png",
     "alt": "Mini Lumi 2 case, front",
-    "width": 1400,
-    "height": 1400,
+    "width": 2000,
+    "height": 2000,
     "color": "#ffb592",
     "screen": {
-      "left": 0.2884699937033589,
-      "top": 0.31751233532304335,
-      "width": 0.4230600125932822,
-      "height": 0.20959241923041683
+      "left": 0.2885274887084961,
+      "top": 0.31767964363098145,
+      "width": 0.4229450225830078,
+      "height": 0.20953664183616638
     }
   },
   {
     "src": "/renders/mini-lumi2-three-quarter.png",
     "alt": "Mini Lumi 2 case, from the side",
-    "width": 1400,
-    "height": 1400,
+    "width": 2000,
+    "height": 2000,
     "color": "#ffb592"
   }
 ]

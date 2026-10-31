@@ -15,7 +15,9 @@ openscad -D 'part="back"'  --export-format binstl -o stl/lumi_back.stl  lumi_cas
 ```
 
 - Material: PLA or PETG. Glitter/"galaxy" filament gives the sparkly shell.
-- 0.2 mm layers, 3 walls, 20% infill, **no supports**.
+- 0.2 mm layers, 3 walls, 20% infill. **Support only under the keyring tab**
+  (support from the build plate is enough), since it's centred on the top
+  and stands clear of the bed.
 - Front half: screen side down on the bed. Back half: outside face down.
 - Check the lip fit before assembly. If it's too tight or loose, change
   `fit` (clearance per side, default 0.15 mm) and reprint the back.

@@ -25,19 +25,22 @@ import pcbnew
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import design  # noqa: E402
 from fab import HEIGHTS  # noqa: E402
-from gen_board import H, KEEPOUT, W, X0, Y0  # noqa: E402
+from gen_board import H, KEEPOUT, NOTCH, W, X0, Y0  # noqa: E402
 
 CX, CY = X0 + W / 2, Y0 + H / 2
 PCB_T = 1.0
 
-# Plug-in OLED, BuyDisplay ER-OLED0.96-1 (outline from the listing; the
-# active-area position and cable size are typical values: VERIFY against
-# the panel's drawing).
+# Plug-in OLED, BuyDisplay ER-OLED0.96-1.3 (datasheet rev 2.0, drawing 1.4.2).
 GLASS = (26.70, 19.26, 1.45)
 ACTIVE = (21.74, 10.86)
-ACTIVE_UP = 1.0      # active area's centre above the glass centre (approx.)
-FPC_W = 12.0         # cable width (approx.)
-FPC_BEND = 0.8       # bend radius around the board's bottom edge (approx.)
+ACTIVE_UP = 2.1      # active area's centre above the glass centre
+FPC_W = 15.5         # cable width at the contacts
+FPC_LEN = 12.0       # cable length past the glass
+FPC_BEND = 0.8       # bend radius around the board's bottom edge (estimate)
+# The glass sits this far below the board's centre so the 12 mm cable reaches
+# J2. It also puts the pixels in the middle of the case.
+GLASS_DROP = 2.6
+J2_ENTRY = 4.0       # how far the cable enters J2 from its mouth (estimate)
 BATTERY = (30.2, 30.2, 5.4)  # 503030 pouch with swelling allowance
 CLEAR = 0.3          # gap between the tallest part and the battery
 
@@ -101,8 +104,12 @@ def main(proj, out):
     os.makedirs(out, exist_ok=True)
     board = pcbnew.LoadBoard(os.path.join(proj, "lumi.kicad_pcb"))
     by_ref = {p.ref: p for p in design.PARTS}
-    items = [box("PCB", "board", -W / 2, W / 2, 0, PCB_T, -H / 2, H / 2,
-                 f"{W:g} x {H:g} mm, {PCB_T:g} mm thick, 2 layers")]
+    nx, _ = bx(NOTCH[0], NOTCH[1])
+    _, nz = bx(NOTCH[2], NOTCH[3])
+    items = [box("PCB", "board", -W / 2, W / 2, 0, PCB_T, -H / 2, nz,
+                 f"{W:g} x {H:g} mm overall, {PCB_T:g} mm thick, 2 layers"),
+             box("PCB, corner beside the antenna", "board", -W / 2, nx, 0, PCB_T, nz, H / 2,
+                 "The board is cut away under the module's antenna")]
 
     tallest = 0.0
     centres = {}
@@ -126,21 +133,26 @@ def main(proj, out):
     # Screen glass on the front, its active area, and the cable wrapping
     # round the bottom edge to J2 on the back.
     gw, gh, gt = GLASS
-    items.append(box("OLED glass", "screen", -gw / 2, gw / 2, -gt, 0, -gh / 2, gh / 2,
-                     "BuyDisplay ER-OLED0.96-1, 26.70 x 19.26 x 1.45 mm"))
+    gz = -GLASS_DROP
+    items.append(box("OLED glass", "screen", -gw / 2, gw / 2, -gt, 0, gz - gh / 2, gz + gh / 2,
+                     "BuyDisplay ER-OLED0.96-1.3, 26.70 x 19.26 x 1.45 mm"))
     aw, ah = ACTIVE
-    items.append(box("OLED active area (approx.)", "screen-active", -aw / 2, aw / 2, -gt - 0.01, -gt,
-                     ACTIVE_UP - ah / 2, ACTIVE_UP + ah / 2,
-                     "Where the pixels are; size 21.74 x 10.86 mm, position VERIFY"))
+    az = gz + ACTIVE_UP
+    items.append(box("OLED active area", "screen-active", -aw / 2, aw / 2, -gt - 0.01, -gt,
+                     az - ah / 2, az + ah / 2, "Where the pixels are, 21.74 x 10.86 mm"))
     j2 = [i for i in items if i["name"].startswith("J2 ")][0]
     zb = -H / 2
+    glass_bottom = gz - gh / 2
+    tip_z = j2["min"][2] + J2_ENTRY
+    bend = math.pi * (PCB_T + 0.4) / 2
+    fpc_slack = FPC_LEN - ((glass_bottom - zb) + bend + (tip_z - zb))
     items += [
-        box("OLED cable, front run", "screen-cable", -FPC_W / 2, FPC_W / 2, -0.3, 0, zb, -gh / 2,
-            "Approximate: check the panel drawing"),
+        box("OLED cable, front run", "screen-cable", -FPC_W / 2, FPC_W / 2, -0.3, 0, zb, glass_bottom,
+            "From the panel's drawing"),
         box("OLED cable, bend", "screen-cable", -FPC_W / 2, FPC_W / 2, -0.3, PCB_T + 0.3,
             zb - FPC_BEND - 0.3, zb, "Leave room for the bend below the board"),
         box("OLED cable, back run", "screen-cable", -FPC_W / 2, FPC_W / 2, PCB_T, PCB_T + 0.3,
-            zb - FPC_BEND, j2["min"][2], ""),
+            zb, tip_z, "Contacts face away from the board"),
     ]
 
     # Battery behind the parts.
@@ -187,6 +199,9 @@ def main(proj, out):
         warnings.append(f"The battery reaches {batt['max'][2] - kz2:.1f} mm into the antenna zone; "
                         "expect some loss of range. A shorter cell, or a taller case with the battery "
                         "below the antenna, avoids it.")
+    if fpc_slack < 0.3:
+        warnings.append(f"The screen cable has only {fpc_slack:.2f} mm of slack reaching J2; "
+                        "the panel's tolerance is 0.3 mm.")
     depth = 2 * CASE_WALL + gt + PCB_T + tallest + CLEAR + bt + 0.4
     if depth > 12.5:
         warnings.append(f"Inside stack is about {depth:.1f} mm deep with walls, not the plan's 12.5 mm.")
@@ -203,6 +218,7 @@ def main(proj, out):
             "today's case, inside": rounded_rect(iw, ih, irad),
         },
         "stack_depth_mm": round(depth, 2),
+        "screen_cable_slack_mm": round(fpc_slack, 2),
         "warnings": warnings,
     }
     with open(os.path.join(out, "lumi_pcb_v1_refs.json"), "w") as fh:

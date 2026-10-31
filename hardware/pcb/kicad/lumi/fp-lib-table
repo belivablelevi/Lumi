@@ -1,0 +1,3 @@
+(fp_lib_table
+  (lib (name "lumi")(type "KiCad")(uri "${KIPRJMOD}/../lumi.pretty")(options "")(descr "Parts KiCad's own library lacks"))
+)

@@ -9,7 +9,7 @@ a one-off loading fee per unique part to each JLCPCB assembly order
 
 > The draft board in [kicad/](kicad/) uses the **ESP32-C3-WROOM-02-N4**
 > ([C2934560](https://jlcpcb.com/partdetail/3281215-ESP32_C3_WROOM_02N4/C2934560), Extended; 18 × 20 × 3.2 mm) for U1,
-> because KiCad 7 has no MINI-1 footprint. It also uses Hirose FH12-30S-0.5SH ([C506793](https://lcsc.com/product-detail/FFC-FPC-Flat-Flexible-Connector-Assemblies_HRS-Hirose-FH12-30S-0-5SH-55_C506793.html))
+> because KiCad 7 has no MINI-1 footprint. It also uses the top-contact JUSHUO AFC07-S30ECC-00 ([C11095](https://lcsc.com/product-detail/FFC-FPC-Flat-Flexible-Connector-Assemblies_JUSHUO-AFC07-S30ECC-00_C11095.html))
 > for J2 and USBLC6-2SC6 ([C7519](https://jlcpcb.com/partdetail/C7519)) for D1. The full list the factory
 > builds from is [kicad/fab/lumi-bom.csv](kicad/fab/lumi-bom.csv).
 
@@ -21,7 +21,7 @@ a one-off loading fee per unique part to each JLCPCB assembly order
 | U4 | **RT9080-33GJ5** 3.3 V LDO, 2 µA standby | [C841192](https://www.lcsc.com/product-detail/C841192.html) (Richtek); 2nd source [C7528830](https://www.lcsc.com/product-detail/Linear-Voltage-Regulators-LDO_MSKSEMI-RT9080-33GJ5-MS_C7528830.html) | check | ≈ $0.06 | 600 mA is plenty: the C3 peaks at ~350 mA when transmitting. |
 | J1 | **USB-C receptacle**, 16-pin SMD, TYPE-C-31-M-12 | [C165948](https://lcsc.com/product-detail/USB-Connectors_Korean-Hroparts-Elec-TYPE-C-31-M-12_C165948.html) | check | ≈ $0.10 | Mid-mount is preferred, to keep the stack thin. Recheck the height against the case. |
 | SW1 | **MSK12C02** SPDT slide switch, 8 × 2.8 mm | [C431540](https://jlcpcb.com/partdetail/SHOUHAN-MSK12C02/C431540) | Extended | ≈ $0.05 | **Drives the LDO's EN pin**, not the battery current. The switch is rated only 50 mA, but the radio peaks around 350 mA. Switched to EN, it carries microamps. "Off" means the 3.3 V rail is off, leaving well under 1 µA of drain, and charging still works. |
-| J2 | **30-pin 0.5 mm ZIF FPC connector** for the plug-in panel (see Screen below) | [C2856808](https://www.lcsc.com/product-detail/C2856808.html) (bottom contact) or a top-contact variant | check | ≈ $0.05–0.10 | |
+| J2 | **30-pin 0.5 mm top-contact ZIF FPC connector** for the plug-in panel (see Screen below) | [C11095](https://jlcpcb.com/partdetail/C11095) | Extended | check | Top contact, because the panel's contacts face away from the board after the cable wraps round it. |
 | D1 | ESD protection on USB D+/D− and VBUS (e.g. USBLC6-2SC6 or a low-cost equivalent) | TBD | – | ≈ $0.05 | |
 | BT1 | 503030 LiPo, 3.7 V ~450–500 mAh, **with protection PCB**, on pads or a JST-SH 2-pin | outside JLCPCB | – | ≈ $1.5–3 | Buy with UN38.3 and IEC 62133 reports. |
 
@@ -32,7 +32,7 @@ and the charge-pump and VCOMH capacitors the bare SSD1306 needs.
 
 ## Screen: plug-in panel (chosen candidate)
 
-**Candidate:** [BuyDisplay ER-OLED0.96-1 (blue 128×64, SSD1306)](https://buydisplay.com/blue-128x64-0-96-inch-oled-display-top-contact-connector-fpc-ssd1306),
+**Candidate:** [BuyDisplay ER-OLED0.96-1.3B (blue 128×64, SSD1306)](https://buydisplay.com/blue-128x64-0-96-inch-oled-display-top-contact-connector-fpc-ssd1306),
 a bare panel with a **plug-in 30-pin, 0.5 mm FPC**, top-contact. They offer
 an optional matching ZIF connector.
 - Outline: 26.70 × 19.26 × 1.45 mm.
@@ -49,32 +49,26 @@ closed, like a phone screen. No soldering, and a panel can be swapped.
 The common LCSC bare panel ([Wisevision N096-2864KSWEG01-H30, C2890596](https://www.lcsc.com/product-detail/C2890596.html))
 is solder-type and listed as discontinued, so it's out.
 
-**Connector:** the XUNPU 30-pin 0.5 mm ZIF ([FPC-05F-30PH20, C2856808](https://www.lcsc.com/product-detail/C2856808.html))
-is **bottom-contact**. Which contact side we need depends on how the cable
-folds from the glass to the back of the board, and that's decided in
-layout. A top-contact variant may be needed. Choose it once the panel's
-mechanical drawing is in hand.
+**Connector:** the JUSHUO AFC07-S30ECC-00 ([C11095](https://jlcpcb.com/partdetail/C11095))
+is **top-contact**, which is what this panel needs. The panel's drawing puts
+its contacts on the viewing side, so they face away from the board once the
+cable wraps round the bottom edge. Its own PDF is still to check.
 
-**Expected wiring in I2C mode.** This is the usual 30-pin SSD1306 panel
-layout and must be **checked against this panel's own datasheet** before
-the schematic is final:
+**Wiring in I2C mode**, from the panel's datasheet (rev 2.0):
 - BS0 = 0, BS1 = 1, BS2 = 0 (I2C).
 - D0 = SCL. D1 and D2 tied together = SDA.
 - D/C# low = address 0x3C. CS# low.
 - RES# to GPIO10. R/W#, E/RD# and D3–D7 to GND.
-- VDD = 3.3 V. VBAT from the battery rail (3.3–4.2 V) feeds the internal
-  charge pump.
+- VDD = 3.3 V. VBAT from the battery rail feeds the internal charge pump,
+  which needs 3.5–4.2 V.
 - Capacitors: 2 × 1 µF on C1P/C1N and C2P/C2N, 2.2 µF on VCC, 4.7 µF on
   VCOMH. IREF to GND through ~390 kΩ.
 
 The firmware already turns on the SSD1306's internal charge pump (the
 modules use it too), so only the reset pin is new.
 
-**Still to get:** the panel's datasheet and mechanical drawing (pinout,
-FPC length, fold radius), and the ZIF connector's datasheet. They're linked
-from the BuyDisplay page. This session can't open buydisplay.com or
-lcsc.com, so either download the PDFs and send them to me, or allow those
-sites in the session's network settings.
+**Still to get:** the AFC07-S30ECC-00's own PDF (entry depth, drawer travel),
+linked from its LCSC page. Automated downloads of it were blocked.
 
 ## Rough cost per unit at 1,000
 

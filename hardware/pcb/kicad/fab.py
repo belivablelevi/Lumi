@@ -29,7 +29,7 @@ LAYERS = "F.Cu,B.Cu,F.Paste,B.Paste,F.SilkS,B.SilkS,F.Mask,B.Mask,Edge.Cuts"
 HEIGHTS = {
     "RF_Module:ESP32-C3-WROOM-02": 3.2,
     "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12": 3.26,
-    "Connector_FFC-FPC:Hirose_FH12-30S-0.5SH_1x30-1MP_P0.50mm_Horizontal": 2.0,
+    "lumi:JUSHUO_AFC07-S30ECC-00": 2.0,
     "Button_Switch_SMD:SW_SPDT_PCM12": 1.5,
     "Package_TO_SOT_SMD:SOT-23-5": 1.45,
     "Package_TO_SOT_SMD:SOT-23-6": 1.45,

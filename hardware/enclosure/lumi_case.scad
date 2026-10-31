@@ -1,4 +1,4 @@
-// Lumi keychain case - parametric, two parts, prints without supports.
+// Lumi keychain case - parametric, two parts. Only the keyring tab needs support.
 //
 //   openscad -D 'part="front"' -o front.stl lumi_case.scad
 //   openscad -D 'part="back"'  -o back.stl  lumi_case.scad
@@ -56,9 +56,10 @@ charger_usb_z = charger_z + charger[2] + 1.6;
 
 /* [Keyring bail] */
 bail_w = 10;
-bail_h = 6.5;      // how far it sticks out above the case
+bail_h = 7.5;      // how far it sticks out above the case
 bail_t = 5;        // thickness front-to-back
 bail_hole = 3.4;
+bail_z = D / 2 - bail_t / 2;  // front of the tab: centred on the top, wholly in the front part
 
 $fn = 48;
 
@@ -82,15 +83,15 @@ module inner_cavity() {
     shell_solid(W - 2 * wall, H - 2 * wall, D - 2 * wall, corner_r - wall, max(edge_r - wall, 0.4));
 }
 
-// Flat tab on top of the front half; the split ring goes through front-to-back.
-// It starts on the build plate, so it prints without supports.
+// Flat tab centred on top of the case; the split ring goes through front-to-back.
+// It stands clear of the build plate, so give it support from the plate when printing.
 module bail() {
   difference() {
-    hull() {
+    translate([0, 0, bail_z]) hull() {
       translate([-bail_w / 2, H / 2 - 3, 0]) cube([bail_w, 1, bail_t]);
       translate([0, H / 2 + bail_h - bail_w / 2, 0]) cylinder(d = bail_w, h = bail_t);
     }
-    translate([0, H / 2 + bail_h - bail_w / 2, -1]) cylinder(d = bail_hole, h = bail_t + 2);
+    translate([0, H / 2 + bail_h - bail_w / 2, bail_z - 1]) cylinder(d = bail_hole, h = bail_t + 2);
     inner_cavity();
   }
 }
