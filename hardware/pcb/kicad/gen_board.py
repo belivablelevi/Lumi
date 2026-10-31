@@ -19,9 +19,14 @@ import pcbnew
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import design  # noqa: E402
 
-FP_DIR = "/usr/share/kicad/footprints"
+HERE = os.path.dirname(os.path.abspath(__file__))
+FP_DIRS = {"lumi": HERE}  # library name -> folder holding <name>.pretty
 
 X0, Y0, W, H = 100.0, 100.0, 31.0, 33.0
+
+# The board stops short of the module's antenna: Espressif's layout guide
+# recommends cutting the base board away under it.
+NOTCH = (106.9, Y0, X0 + W, 105.9)
 
 # ref -> (x, y, orientation, side). Orientation is KiCad's value for the
 # footprint *after* it has been flipped to the back: 180 keeps the part
@@ -34,7 +39,7 @@ PLACE = {
     "J1": (103.7, 113.2, 90, "B"),
     # Screen ZIF, opening toward the bottom edge where the panel's cable
     # wraps around from the front.
-    "J2": (115.5, 127.95, 180, "B"),
+    "J2": (115.5, 128.6, 180, "B"),
     # Slide switch, lever out of the right edge.
     "SW1": (128.8, 126.5, 270, "B"),
     # Top-left corner: battery pads and charger (outside the antenna area).
@@ -60,31 +65,38 @@ PLACE = {
     "R5": (102.6, 131.1, 0, "B"),
     "R6": (102.6, 132.3, 0, "B"),
     # Strip between the module and the ZIF.
-    "C12": (106.9, 121.1, 0, "B"),
-    "C13": (110.1, 121.1, 0, "B"),
+    "R13": (110.1, 121.1, 0, "B"),
     "R9": (113.0, 121.1, 0, "B"),
     "U2": (115.6, 122.5, 0, "B"),
-    "C7": (118.2, 121.1, 0, "B"),
-    "R13": (120.5, 121.1, 0, "B"),
-    "C9": (122.8, 121.1, 0, "B"),
+    "C7": (118.0, 121.1, 0, "B"),
+    "C13": (120.5, 121.1, 0, "B"),
+    "C9": (123.0, 121.1, 0, "B"),
     "C5": (125.1, 121.1, 0, "B"),
     "C6": (127.4, 121.1, 0, "B"),
     "R11": (129.7, 121.1, 0, "B"),
-    "R15": (107.2, 123.9, 0, "B"),
-    "R10": (113.0, 123.9, 0, "B"),
-    "C14": (118.2, 123.9, 0, "B"),
-    "C10": (120.5, 123.9, 0, "B"),
-    "C11": (122.8, 123.9, 0, "B"),
+    # Screen parts sit above the J2 pins they serve: panel pin N is at
+    # x = 108.25 + (N - 1) * 0.5.
+    "C11": (107.3, 123.9, 0, "B"),
+    "C10": (109.3, 123.9, 0, "B"),
+    "C15": (111.3, 123.9, 0, "B"),
+    "C14": (113.3, 123.9, 0, "B"),
+    "R10": (117.9, 123.9, 0, "B"),
+    "R15": (119.8, 123.9, 0, "B"),
+    "C12": (122.3, 123.9, 0, "B"),
     "C8": (125.1, 123.9, 0, "B"),
-    # Front test pads in the bottom corners, outside the screen glass.
-    "TP1": (101.4, 128.6, 0, "F"),
-    "TP2": (103.6, 128.6, 0, "F"),
-    "TP3": (101.4, 131.2, 0, "F"),
-    "TP4": (103.6, 131.2, 0, "F"),
-    "TP5": (125.6, 130.0, 0, "F"),
-    "TP6": (127.8, 130.0, 0, "F"),
-    "TP7": (125.6, 132.1, 0, "F"),
+    # Front test pads in the bottom corners, below the screen glass.
+    "TP1": (101.4, 129.6, 0, "F"),
+    "TP2": (103.6, 129.6, 0, "F"),
+    "TP3": (101.4, 131.75, 0, "F"),
+    "TP4": (103.6, 131.75, 0, "F"),
+    "TP5": (125.6, 129.6, 0, "F"),
+    "TP6": (127.8, 129.6, 0, "F"),
+    "TP7": (125.6, 131.75, 0, "F"),
 }
+
+# Test pad labels, as (x, y) offsets from the pad.
+TP_LABEL = {"TP1": (0, 1.07), "TP2": (0, 1.07), "TP3": (0, 0.85), "TP4": (0, 0.85),
+            "TP5": (0, 1.07), "TP6": (0, 1.07), "TP7": (1.9, 0)}
 
 # Antenna keep-out (from the module footprint, clipped to the board): no
 # copper on any layer above this line, for the module's width plus margin.
@@ -105,7 +117,8 @@ def pt(x, y):
 
 
 def add_outline(board):
-    corners = [(X0, Y0), (X0 + W, Y0), (X0 + W, Y0 + H), (X0, Y0 + H)]
+    nx, _, _, ny = NOTCH
+    corners = [(X0, Y0), (nx, Y0), (nx, ny), (X0 + W, ny), (X0 + W, Y0 + H), (X0, Y0 + H)]
     for a, b in zip(corners, corners[1:] + corners[:1]):
         seg = pcbnew.PCB_SHAPE(board)
         seg.SetShape(pcbnew.SHAPE_T_SEGMENT)
@@ -132,7 +145,7 @@ def rule_area(board, name, box, pads=True):
     layers.AddLayer(pcbnew.F_Cu)
     layers.AddLayer(pcbnew.B_Cu)
     z.SetLayerSet(layers)
-    z.SetDoNotAllowCopperPour(False)
+    z.SetDoNotAllowZoneFills(False)
     z.SetDoNotAllowTracks(True)
     z.SetDoNotAllowVias(True)
     z.SetDoNotAllowPads(not pads)
@@ -145,8 +158,10 @@ def add_edge_keepouts(board, d=0.35):
     """Strips along the edges so the autorouter (which doesn't know KiCad's
     copper-to-edge rule) keeps tracks and vias 0.35 mm from the edge."""
     x1, y1, x2, y2 = X0, Y0, X0 + W, Y0 + H
-    for i, box in enumerate([(x1, y1, x2, y1 + d), (x1, y2 - d, x2, y2),
-                             (x1, y1, x1 + d, y2), (x2 - d, y1, x2, y2)]):
+    nx, _, _, ny = NOTCH
+    for i, box in enumerate([(x1, y1, nx, y1 + d), (x1, y2 - d, x2, y2),
+                             (x1, y1, x1 + d, y2), (x2 - d, ny, x2, y2),
+                             (nx - d, y1, nx, ny + d), (nx, ny, x2, ny + d)]):
         rule_area(board, f"edge-{i}", box)
 
 
@@ -158,7 +173,7 @@ def add_keepout(board):
     layers.AddLayer(pcbnew.F_Cu)
     layers.AddLayer(pcbnew.B_Cu)
     z.SetLayerSet(layers)
-    z.SetDoNotAllowCopperPour(True)
+    z.SetDoNotAllowZoneFills(True)
     z.SetDoNotAllowTracks(True)
     z.SetDoNotAllowVias(True)
     z.SetDoNotAllowPads(True)
@@ -178,6 +193,19 @@ def add_text(board, text, x, y, layer, size=0.8, mirror=False):
     board.Add(t)
 
 
+def stock_footprints():
+    """KiCad's own footprint folder, next to kicad-cli's install."""
+    env = os.environ.get("KICAD10_FOOTPRINT_DIR")
+    if env:
+        return env
+    for base in (os.path.join(os.environ.get("ProgramFiles", ""), "KiCad", "10.0", "share", "kicad"),
+                 "/usr/share/kicad"):
+        path = os.path.join(base, "footprints")
+        if os.path.isdir(path):
+            return path
+    raise SystemExit("KiCad's footprints not found; set KICAD10_FOOTPRINT_DIR")
+
+
 def place_parts(board):
     netinfo = {}
     for name in design.nets():
@@ -187,14 +215,15 @@ def place_parts(board):
 
     for part in design.PARTS:
         lib, name = part.footprint.split(":")
-        fp = pcbnew.FootprintLoad(os.path.join(FP_DIR, lib + ".pretty"), name)
+        fp = pcbnew.FootprintLoad(os.path.join(FP_DIRS.get(lib, stock_footprints()), lib + ".pretty"), name)
         if fp is None:
             raise SystemExit(f"footprint not found: {part.footprint}")
         fp.SetFPIDAsString(part.footprint)
         fp.SetReference(part.ref)
         fp.SetValue(part.value)
         if part.lcsc:
-            fp.SetProperty("LCSC", part.lcsc)
+            fp.SetField("LCSC", part.lcsc)
+            fp.GetField("LCSC").SetVisible(False)  # data for the BOM, not silkscreen
         if not part.bom:
             fp.SetAttributes(fp.GetAttributes() | pcbnew.FP_EXCLUDE_FROM_BOM
                              | pcbnew.FP_EXCLUDE_FROM_POS_FILES)
@@ -203,7 +232,7 @@ def place_parts(board):
         pos = pt(x, y)
         fp.SetPosition(pos)
         if side == "B":
-            fp.Flip(pos, True)
+            fp.Flip(pos, pcbnew.FLIP_DIRECTION_LEFT_RIGHT)
         fp.SetOrientationDegrees(rot)
         if part.ref == "U1":
             # The library footprint has 0.2 mm thermal vias in the ground
@@ -288,13 +317,16 @@ def main(out):
     place_parts(board)
     add_keepout(board)
     add_edge_keepouts(board)
-    add_text(board, "LUMI PCB v1 - DRAFT, NOT REVIEWED", 115.5, 101.4, pcbnew.F_SilkS, 0.7)
-    add_text(board, "github.com/belivablelevi/Lumi", 115.5, 102.6, pcbnew.F_SilkS, 0.6)
-    add_text(board, "antenna: keep metal away", 115.5, 104.6, pcbnew.B_SilkS, 0.6, mirror=True)
+    add_text(board, "LUMI PCB v1 - DRAFT, NOT REVIEWED", 118.5, 106.9, pcbnew.F_SilkS, 0.7)
+    add_text(board, "github.com/belivablelevi/Lumi", 118.5, 108.1, pcbnew.F_SilkS, 0.6)
     for part in design.TESTPOINTS:
         x, y, _, _ = PLACE[part.ref]
-        add_text(board, part.value, x, y + (-1.2 if y < 130 else 1.2), pcbnew.F_SilkS, 0.6)
+        dx, dy = TP_LABEL[part.ref]
+        add_text(board, part.value, x + dx, y + dy, pcbnew.F_SilkS, 0.6)
     pcbnew.SaveBoard(pcb, board, True)
+    with open(os.path.join(out, "fp-lib-table"), "w") as fh:
+        fh.write('(fp_lib_table\n  (lib (name "lumi")(type "KiCad")(uri "${KIPRJMOD}/../lumi.pretty")'
+                 '(options "")(descr "Parts KiCad\'s own library lacks"))\n)\n')
     print(f"wrote {pcb}: {len(design.PARTS)} parts, {len(design.nets())} nets")
 
 

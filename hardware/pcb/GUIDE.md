@@ -2,6 +2,11 @@
 
 > **Status: DRAFT, NOT REVIEWED. Don't order yet.**
 >
+> Rebuilt in KiCad 10 on 2026-10-30 with the faults listed under
+> [Fixed from the datasheets](#fixed-from-the-datasheets) corrected.
+>
+> `budget.py` and `BUDGET.md` still price the old J2 connector.
+>
 > These files were generated and checked by software:
 > - KiCad's design-rule check passes with nothing left unrouted.
 > - The schematic and board match the design file pin for pin.
@@ -16,7 +21,7 @@
 
 | File | What it is |
 |---|---|
-| [`kicad/lumi/lumi.kicad_pro`](kicad/lumi/lumi.kicad_pro) | The KiCad project. Open it in KiCad 7 or newer. |
+| [`kicad/lumi/lumi.kicad_pro`](kicad/lumi/lumi.kicad_pro) | The KiCad project. Open it in KiCad 10 or newer. |
 | [`kicad/lumi/lumi.kicad_sch`](kicad/lumi/lumi.kicad_sch) | Schematic, one page, grouped by function. Each pin ends in a labelled net. |
 | [`kicad/lumi/lumi.kicad_pcb`](kicad/lumi/lumi.kicad_pcb) | Board layout, routed, with ground pours |
 | [`kicad/fab/lumi-gerbers.zip`](kicad/fab/lumi-gerbers.zip) | Gerbers and drill files: upload this to JLCPCB |
@@ -60,25 +65,34 @@
      - a mid-mount USB-C that sinks into a board cutout: about −1.5 mm for that part, but the module still sets the height,
      - the MINI-1 (2.4 mm): −0.8 mm.
 
+## Fixed from the datasheets
+
+Checking the board against the ER-OLED0.96-1 datasheet (rev 2.0) and Espressif's documents found these. KiCad's design-rule check passed all of them, because each one is consistent inside the board and wrong only against the real part.
+
+| Fault in the first draft | Effect | Fix |
+|---|---|---|
+| The panel was mirrored at J2 (pin 1 at the board's high-x end) | 7.5 V VCC on the wrong panel pin; a likely dead panel | `OLED_PIN_REVERSED = True`; screen capacitors moved next to their new pins |
+| J2 was bottom-contact, but the ER-OLED0.96-1.3's contacts are on its viewing side, so they face away from the board after the wrap | No contact at all | J2 is now the top-contact JUSHUO AFC07-S30ECC-00 (C11095) |
+| The 12 mm cable couldn't reach J2 with the glass centred on the board | The screen can't be plugged in | The glass sits 2.6 mm below the board's centre. That leaves about 1.2 mm of slack and centres the pixels in the case. |
+| The charge pump's VBAT ran from 3.3 V; the panel needs 3.5-4.2 V | Below spec, dim or unreliable | VBAT runs from the battery rail, with its own capacitor (C15) |
+| USB sense was VBUS/2 (2.5 V), against the C3's 2.48 V input-high level | Could read "not charging" while plugged in | R8 is now 150 kΩ, giving 3.0 V |
+| The board ran under the antenna | Detunes the antenna; Espressif recommends cutting the board away | Notch above the module |
+
+**Effect on bring-up:** with VBAT on the battery rail, the panel's pin stays powered when the switch is off. Test 4 measures whether that raises the off current.
+
 ## Before you order: review checklist
 
 Tick every box. Items marked **VERIFY** come from memory or similar parts, not from the part's own datasheet.
 
 ### Pinouts
 
-- [ ] **ESP32-C3-WROOM-02 pin map (VERIFY).** Check `WROOM_NAMES` in `design.py` against the "Pin Definitions" table in the current Espressif datasheet.
-  - Assumed: 1 3V3, 2 EN, 3 IO4, 4 IO5, 5 IO6, 6 IO7, 7 IO8, 8 IO9, 9 GND, 10 IO10, 11 RXD, 12 TXD, 13 IO18, 14 IO19, 15 IO3, 16 IO2, 17 IO1, 18 IO0, 19 GND pad.
-- [ ] **OLED panel, 30 pins (VERIFY, most important).** Check `OLED` in `design.py` against the BuyDisplay ER-OLED0.96-1 datasheet.
-  - Assumed: the usual SSD1306 30-pin layout in I2C mode:
-    - BS0=0, BS1=1, BS2=0,
-    - D0=SCL, D1+D2=SDA, D/C#=0 (address 0x3C), CS#=0, RES# to IO10,
-    - IREF via 390 kΩ, VCOMH 4.7 µF, VCC 2.2 µF,
-    - charge-pump caps 1 µF on C1P/C1N and C2P/C2N.
-  - If the panel's pin 1 ends up at the other end of the connector, set `OLED_PIN_REVERSED = True` in `design.py` and rebuild.
-- [ ] **Screen cable (VERIFY).** From the panel's mechanical drawing, check:
-  - the cable is long enough to wrap the bottom edge and reach J2,
-  - the contacts face the right way for J2. Hirose FH12-30S-0.5SH is **bottom-contact**.
-  - **Pin 1 end:** looking at the back, pin 1 of J2 is at the right-hand end.
+- [x] **ESP32-C3-WROOM-02 pin map.** Matches Table 3-1 of Espressif's datasheet v1.7.
+- [x] **OLED panel, 30 pins and I2C wiring.** Matches sections 1.5 and 1.6.2 of the ER-OLED0.96-1 datasheet rev 2.0.
+- [ ] **Screen cable: hold a real panel against the board.** These come from reading the drawing, so check them on the part before ordering boards:
+  - **Part:** the panel must be the **ER-OLED0.96-1.3** (top contact). Other versions put the contacts on the other side.
+  - **Pin 1 end:** seen from the front with the cable at the bottom, pin 1 is on the left, according to drawing 1.4.2.
+  - **Reach:** about 1.2 mm of slack, based on an estimated 4 mm entry into J2 and a 2.2 mm bend.
+- [ ] **AFC07-S30ECC-00 (C11095, VERIFY).** Its PDF wouldn't download here. The pads come from EasyEDA's footprint for this part, and they match KiCad's footprints for the same series. Check the entry depth and that the drawer can open with the connector at the board edge.
 - [ ] **TP4054 (VERIFY):** 1 CHRG, 2 GND, 3 BAT, 4 VCC, 5 PROG.
 - [ ] **RT9080-33GJ5 (VERIFY):** 1 VIN, 2 GND, 3 EN, 4 NC, 5 VOUT.
 - [ ] **LIS2DH12:** 1 SCL, 2 CS, 3 SA0, 4 SDA, 5 RES (to GND), 6–8 GND, 9 VDD, 10 VDD_IO, 11 INT2, 12 INT1. This matches ST's datasheet as far as I know; still worth a glance.
@@ -89,7 +103,7 @@ Tick every box. Items marked **VERIFY** come from memory or similar parts, not f
 
 - [ ] **Antenna:**
   - nothing metal in front of or behind the module's antenna (top ~6 mm),
-  - the battery mustn't sit behind it. Make the case put the battery below the antenna line.
+  - **The battery currently sits behind it.** A 30 mm cell reaches about 4.6 mm into the antenna zone when centred, and about 2 mm even when pushed to the bottom of today's case. This needs a shorter cell or a taller case. Espressif's 15 mm clearance isn't possible in a case this size, so test range on real boards (test 12).
   - The charger and battery pads sit just left of the keep-out. A reviewer may want them further away.
 - [ ] **Decoupling:** the 3.3 V pin is at the module's top-right corner, but its 10 µF/100 nF capacitors (C5, C6) sit below the module, about 14 mm away by trace. There's no room beside the pin. The module has its own on-board capacitors, so this probably works; a reviewer should still say yes or no.
 - [ ] **USB data:** D+/D− go via the ESD part at the bottom left, about 25 mm of trace. Fine for 12 Mb/s USB; check the routing doesn't run beside the screen's charge-pump lines.
@@ -135,7 +149,7 @@ Tick every box. Items marked **VERIFY** come from memory or similar parts, not f
    - **U1 module:** antenna at the top edge, pads on the board's pads.
    - **U2, U3, U4, D1:** the pin-1 dot matches the silkscreen dot.
    - **J1 USB-C:** opening at the board edge.
-   - **J2 ZIF:** opening toward the bottom edge.
+   - **J2 ZIF:** drawer toward the bottom edge.
    - **SW1:** lever pointing out of the right edge.
 
    Use JLCPCB's rotate buttons to fix anything off, and note the fix so the next order can use it.
@@ -186,7 +200,8 @@ A `lumi_pcb_v1` build environment that sets these is the next firmware step (PLA
 Everything is generated from [`kicad/design.py`](kicad/design.py). Change parts or connections there, never in the KiCad files, and rebuild:
 
 ```sh
-# Needs KiCad 7+, Java 21+ and the Freerouting 2.1 jar.
+# Needs KiCad 10, Java 21+ and the Freerouting 2.1 jar. On Windows, run it
+# from Git Bash with kicad-cli on the PATH and PYTHON set to KiCad's Python.
 FREEROUTING=~/freerouting-2.1.0.jar hardware/pcb/kicad/build.sh
 
 # Re-run only the checks and factory files on the committed routing:
@@ -200,4 +215,4 @@ The build fails unless all three checks pass:
 - every board pad carries the right net,
 - KiCad's DRC reports no violations and nothing unrouted.
 
-KiCad 7's command line has no ERC/DRC commands, so `check.py` runs them through KiCad's Python module.
+`check.py` runs the design-rule check through `kicad-cli`. The scripts now use KiCad 10's Python interface, and a rebuild saves the board in KiCad 10's format, which KiCad 7 can't open.

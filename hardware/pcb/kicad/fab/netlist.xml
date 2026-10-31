@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <export version="E">
   <design>
-    <source>/home/user/Lumi/hardware/pcb/kicad/lumi/lumi.kicad_sch</source>
-    <date>Fri Oct 30 03:35:54 2026</date>
-    <tool>Eeschema 7.0.11+dfsg-1build4</tool>
+    <source>C:\Users\thezo\Lumi\hardware\pcb\kicad\lumi\lumi.kicad_sch</source>
+    <date>2026-10-30T12:57:51</date>
+    <tool>Eeschema 10.0.7</tool>
     <sheet number="1" name="/" tstamps="/">
       <title_block>
         <title>Lumi PCB v1 (DRAFT, not reviewed)</title>
@@ -29,28 +29,48 @@
       <footprint>TestPoint:TestPoint_Pad_1.5x1.5mm</footprint>
       <fields>
         <field name="Note">Battery red wire (protected 503030 LiPo).</field>
+        <field name="Footprint">TestPoint:TestPoint_Pad_1.5x1.5mm</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="BT1_BAT+" description=""/>
       <property name="Note" value="Battery red wire (protected 503030 LiPo)."/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <property name="exclude_from_bom"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>f0964e0a-952c-56b2-be48-d36c572701da</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="BT2">
       <value>BAT-</value>
       <footprint>TestPoint:TestPoint_Pad_1.5x1.5mm</footprint>
       <fields>
         <field name="Note">Battery black wire.</field>
+        <field name="Footprint">TestPoint:TestPoint_Pad_1.5x1.5mm</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="BT2_BAT-" description=""/>
       <property name="Note" value="Battery black wire."/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <property name="exclude_from_bom"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>066892cd-4025-5758-af6b-fb3f70b481fb</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="C1">
       <value>1uF</value>
@@ -58,14 +78,25 @@
       <fields>
         <field name="LCSC">C52923</field>
         <field name="Note">Charger input</field>
+        <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="C1_1uF" description=""/>
       <property name="LCSC" value="C52923"/>
       <property name="Note" value="Charger input"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>0dc34d9c-cedc-5291-8182-5c569da80245</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="C2">
       <value>1uF</value>
@@ -73,14 +104,25 @@
       <fields>
         <field name="LCSC">C52923</field>
         <field name="Note">Charger output / battery</field>
+        <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="C2_1uF" description=""/>
       <property name="LCSC" value="C52923"/>
       <property name="Note" value="Charger output / battery"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>1c182760-04a1-5eda-83ba-2ada80e639c2</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="C3">
       <value>1uF</value>
@@ -88,14 +130,25 @@
       <fields>
         <field name="LCSC">C52923</field>
         <field name="Note">LDO input</field>
+        <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="C3_1uF" description=""/>
       <property name="LCSC" value="C52923"/>
       <property name="Note" value="LDO input"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>dd078fb5-36fe-535d-9331-b950fec70f91</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="C4">
       <value>1uF</value>
@@ -103,40 +156,73 @@
       <fields>
         <field name="LCSC">C52923</field>
         <field name="Note">LDO output</field>
+        <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="C4_1uF" description=""/>
       <property name="LCSC" value="C52923"/>
       <property name="Note" value="LDO output"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>8487f67f-3aa9-507c-9fc5-bf3ba591523f</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="C5">
       <value>10uF</value>
       <footprint>Capacitor_SMD:C_0402_1005Metric</footprint>
       <fields>
         <field name="LCSC">C15525</field>
+        <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="C5_10uF" description=""/>
       <property name="LCSC" value="C15525"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>57182478-96be-5402-b5be-b834cd1d1ee8</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="C6">
       <value>100nF</value>
       <footprint>Capacitor_SMD:C_0402_1005Metric</footprint>
       <fields>
         <field name="LCSC">C1525</field>
+        <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="C6_100nF" description=""/>
       <property name="LCSC" value="C1525"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>644d8d3a-10c8-50b1-b8c2-8245136cc392</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="C7">
       <value>100nF</value>
@@ -144,14 +230,25 @@
       <fields>
         <field name="LCSC">C1525</field>
         <field name="Note">LIS2DH12 decoupling</field>
+        <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="C7_100nF" description=""/>
       <property name="LCSC" value="C1525"/>
       <property name="Note" value="LIS2DH12 decoupling"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>1780f830-7c36-56a1-bfd8-4f04d6828864</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="C8">
       <value>1uF</value>
@@ -159,27 +256,49 @@
       <fields>
         <field name="LCSC">C52923</field>
         <field name="Note">EN delay (with R11)</field>
+        <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="C8_1uF" description=""/>
       <property name="LCSC" value="C52923"/>
       <property name="Note" value="EN delay (with R11)"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>6bed82f9-60f4-5590-a203-511458224b42</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="C9">
       <value>100nF</value>
       <footprint>Capacitor_SMD:C_0402_1005Metric</footprint>
       <fields>
         <field name="LCSC">C1525</field>
+        <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="C9_100nF" description=""/>
       <property name="LCSC" value="C1525"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>41cda043-80e2-5149-a5e8-82124e9368a9</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="C10">
       <value>1uF</value>
@@ -187,14 +306,25 @@
       <fields>
         <field name="LCSC">C52923</field>
         <field name="Note">Charge-pump flying cap 1</field>
+        <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="C10_1uF" description=""/>
       <property name="LCSC" value="C52923"/>
       <property name="Note" value="Charge-pump flying cap 1"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>ca9a6b48-4463-5b6d-8939-376d9ed5029a</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="C11">
       <value>1uF</value>
@@ -202,14 +332,25 @@
       <fields>
         <field name="LCSC">C52923</field>
         <field name="Note">Charge-pump flying cap 2</field>
+        <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="C11_1uF" description=""/>
       <property name="LCSC" value="C52923"/>
       <property name="Note" value="Charge-pump flying cap 2"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>a32f2a38-0bb2-522f-b9f9-19f6b9b6bd58</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="C12">
       <value>2.2uF</value>
@@ -217,14 +358,25 @@
       <fields>
         <field name="LCSC">C23630</field>
         <field name="Note">VCC (~7.5 V): 0603, 25 V</field>
+        <field name="Footprint">Capacitor_SMD:C_0603_1608Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="C12_2.2uF" description=""/>
       <property name="LCSC" value="C23630"/>
       <property name="Note" value="VCC (~7.5 V): 0603, 25 V"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>69cc473a-e583-557f-8cf6-db6af8ea783d</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="C13">
       <value>4.7uF</value>
@@ -232,29 +384,77 @@
       <fields>
         <field name="LCSC">C19666</field>
         <field name="Note">VCOMH: 0603, 16 V+</field>
+        <field name="Footprint">Capacitor_SMD:C_0603_1608Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="C13_4.7uF" description=""/>
       <property name="LCSC" value="C19666"/>
       <property name="Note" value="VCOMH: 0603, 16 V+"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>29576819-686e-5e3e-8ae3-c98d2f8238e1</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="C14">
       <value>1uF</value>
       <footprint>Capacitor_SMD:C_0402_1005Metric</footprint>
       <fields>
         <field name="LCSC">C52923</field>
-        <field name="Note">Panel VDD/VBAT</field>
+        <field name="Note">Panel VDD</field>
+        <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="C14_1uF" description=""/>
       <property name="LCSC" value="C52923"/>
-      <property name="Note" value="Panel VDD/VBAT"/>
-      <property name="Sheetname" value=""/>
+      <property name="Note" value="Panel VDD"/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>93b7fd48-700f-5bac-a89f-07165595ca7c</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="C15">
+      <value>1uF</value>
+      <footprint>Capacitor_SMD:C_0402_1005Metric</footprint>
+      <fields>
+        <field name="LCSC">C52923</field>
+        <field name="Note">Panel VBAT (charge pump)</field>
+        <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
+      </fields>
+      <libsource lib="lumi" part="C15_1uF" description=""/>
+      <property name="LCSC" value="C52923"/>
+      <property name="Note" value="Panel VBAT (charge pump)"/>
+      <property name="Sheetname" value="lumi"/>
+      <property name="Sheetfile" value="lumi.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>e23add2f-1c22-5b79-858a-7379a639ff66</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="D1">
       <value>USBLC6-2SC6</value>
@@ -262,68 +462,171 @@
       <fields>
         <field name="LCSC">C7519</field>
         <field name="Note">USB ESD protection.</field>
+        <field name="Footprint">Package_TO_SOT_SMD:SOT-23-6</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="D1_USBLC6-2SC6" description=""/>
       <property name="LCSC" value="C7519"/>
       <property name="Note" value="USB ESD protection."/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>f2343b8c-e5c7-5dd6-94e9-e5a35aeb9dd7</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+            <pin num="3"/>
+            <pin num="4"/>
+            <pin num="5"/>
+            <pin num="6"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="J1">
       <value>USB-C 16P</value>
       <footprint>Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12</footprint>
       <fields>
         <field name="LCSC">C165948</field>
+        <field name="Footprint">Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="J1_USB-C_16P" description=""/>
       <property name="LCSC" value="C165948"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>1665fbfd-dddb-56fb-bb62-f55eb11b0654</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="A1"/>
+            <pin num="A12"/>
+            <pin num="B1"/>
+            <pin num="B12"/>
+            <pin num="A4"/>
+            <pin num="A9"/>
+            <pin num="B4"/>
+            <pin num="B9"/>
+            <pin num="A5"/>
+            <pin num="B5"/>
+            <pin num="A6"/>
+            <pin num="B6"/>
+            <pin num="A7"/>
+            <pin num="B7"/>
+            <pin num="A8"/>
+            <pin num="B8"/>
+            <pin num="SH"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="J2">
-      <value>FH12-30S-0.5SH</value>
-      <footprint>Connector_FFC-FPC:Hirose_FH12-30S-0.5SH_1x30-1MP_P0.50mm_Horizontal</footprint>
+      <value>AFC07-S30ECC-00</value>
+      <footprint>lumi:JUSHUO_AFC07-S30ECC-00</footprint>
       <fields>
-        <field name="LCSC">C506793</field>
-        <field name="Note">30-pin 0.5 mm ZIF for the plug-in OLED. VERIFY contact side and pin 1 end.</field>
+        <field name="LCSC">C11095</field>
+        <field name="Note">30-pin 0.5 mm top-contact ZIF for the plug-in OLED (ER-OLED0.96-1.3).</field>
+        <field name="Footprint">lumi:JUSHUO_AFC07-S30ECC-00</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
-      <libsource lib="lumi" part="J2_FH12-30S-0.5SH" description=""/>
-      <property name="LCSC" value="C506793"/>
-      <property name="Note" value="30-pin 0.5 mm ZIF for the plug-in OLED. VERIFY contact side and pin 1 end."/>
-      <property name="Sheetname" value=""/>
+      <libsource lib="lumi" part="J2_AFC07-S30ECC-00" description=""/>
+      <property name="LCSC" value="C11095"/>
+      <property name="Note" value="30-pin 0.5 mm top-contact ZIF for the plug-in OLED (ER-OLED0.96-1.3)."/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>e58fa3ad-36a1-5930-9ee2-1ac660d484fe</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="30"/>
+            <pin num="29"/>
+            <pin num="28"/>
+            <pin num="27"/>
+            <pin num="26"/>
+            <pin num="25"/>
+            <pin num="24"/>
+            <pin num="23"/>
+            <pin num="22"/>
+            <pin num="21"/>
+            <pin num="20"/>
+            <pin num="19"/>
+            <pin num="18"/>
+            <pin num="17"/>
+            <pin num="16"/>
+            <pin num="15"/>
+            <pin num="14"/>
+            <pin num="13"/>
+            <pin num="12"/>
+            <pin num="11"/>
+            <pin num="10"/>
+            <pin num="9"/>
+            <pin num="8"/>
+            <pin num="7"/>
+            <pin num="6"/>
+            <pin num="5"/>
+            <pin num="4"/>
+            <pin num="3"/>
+            <pin num="2"/>
+            <pin num="1"/>
+            <pin num="MP"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="R1">
       <value>5.1k</value>
       <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
       <fields>
         <field name="LCSC">C25905</field>
+        <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="R1_5.1k" description=""/>
       <property name="LCSC" value="C25905"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>caecc467-e47b-5165-b22f-ee42a477c766</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="R2">
       <value>5.1k</value>
       <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
       <fields>
         <field name="LCSC">C25905</field>
+        <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="R2_5.1k" description=""/>
       <property name="LCSC" value="C25905"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>dcc75c50-1701-5f33-82ed-9aac490b55ca</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="R3">
       <value>3.9k</value>
@@ -331,14 +634,25 @@
       <fields>
         <field name="LCSC">C51721</field>
         <field name="Note">Charge current = 1000 V / R = 256 mA</field>
+        <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="R3_3.9k" description=""/>
       <property name="LCSC" value="C51721"/>
       <property name="Note" value="Charge current = 1000 V / R = 256 mA"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>723940e8-3b57-5dbb-8ab0-e2c2b595463f</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="R5">
       <value>1M</value>
@@ -346,14 +660,25 @@
       <fields>
         <field name="LCSC">C26083</field>
         <field name="Note">Battery divider top</field>
+        <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="R5_1M" description=""/>
       <property name="LCSC" value="C26083"/>
       <property name="Note" value="Battery divider top"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>0abeb642-7ece-5e75-ad20-76cc10220b07</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="R6">
       <value>1M</value>
@@ -361,14 +686,25 @@
       <fields>
         <field name="LCSC">C26083</field>
         <field name="Note">Battery divider bottom</field>
+        <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="R6_1M" description=""/>
       <property name="LCSC" value="C26083"/>
       <property name="Note" value="Battery divider bottom"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>2adb937b-a128-52fb-94ea-9398aeabfbb5</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="R7">
       <value>100k</value>
@@ -376,29 +712,51 @@
       <fields>
         <field name="LCSC">C25741</field>
         <field name="Note">USB sense divider top</field>
+        <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="R7_100k" description=""/>
       <property name="LCSC" value="C25741"/>
       <property name="Note" value="USB sense divider top"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>c00f1f0f-9dad-5f63-b793-11c785b5053d</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="R8">
-      <value>100k</value>
+      <value>150k</value>
       <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
       <fields>
-        <field name="LCSC">C25741</field>
-        <field name="Note">USB sense divider bottom</field>
+        <field name="LCSC">C25755</field>
+        <field name="Note">USB sense divider bottom: 3.0 V from 5 V, clear of the C3's 2.48 V input-high level</field>
+        <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
-      <libsource lib="lumi" part="R8_100k" description=""/>
-      <property name="LCSC" value="C25741"/>
-      <property name="Note" value="USB sense divider bottom"/>
-      <property name="Sheetname" value=""/>
+      <libsource lib="lumi" part="R8_150k" description=""/>
+      <property name="LCSC" value="C25755"/>
+      <property name="Note" value="USB sense divider bottom: 3.0 V from 5 V, clear of the C3's 2.48 V input-high level"/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>9776e2ce-c82d-5383-b8ce-9bb801687817</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="R9">
       <value>4.7k</value>
@@ -406,14 +764,25 @@
       <fields>
         <field name="LCSC">C25900</field>
         <field name="Note">I2C pull-up</field>
+        <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="R9_4.7k" description=""/>
       <property name="LCSC" value="C25900"/>
       <property name="Note" value="I2C pull-up"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>52cb1a54-effc-5845-a901-088c377621f1</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="R10">
       <value>4.7k</value>
@@ -421,14 +790,25 @@
       <fields>
         <field name="LCSC">C25900</field>
         <field name="Note">I2C pull-up</field>
+        <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="R10_4.7k" description=""/>
       <property name="LCSC" value="C25900"/>
       <property name="Note" value="I2C pull-up"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>c116e436-fcb0-5d4b-b4ff-8d741f7b3d62</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="R11">
       <value>10k</value>
@@ -436,14 +816,25 @@
       <fields>
         <field name="LCSC">C25744</field>
         <field name="Note">EN pull-up</field>
+        <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="R11_10k" description=""/>
       <property name="LCSC" value="C25744"/>
       <property name="Note" value="EN pull-up"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>bb4e7a32-8f91-5e23-8652-d75e854acc03</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="R12">
       <value>10k</value>
@@ -451,14 +842,25 @@
       <fields>
         <field name="LCSC">C25744</field>
         <field name="Note">GPIO2 strap: high</field>
+        <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="R12_10k" description=""/>
       <property name="LCSC" value="C25744"/>
       <property name="Note" value="GPIO2 strap: high"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>a42e8498-0052-5b57-b8ac-61784652a543</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="R13">
       <value>10k</value>
@@ -466,14 +868,25 @@
       <fields>
         <field name="LCSC">C25744</field>
         <field name="Note">GPIO8 strap: high</field>
+        <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="R13_10k" description=""/>
       <property name="LCSC" value="C25744"/>
       <property name="Note" value="GPIO8 strap: high"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>5ff4d085-ec87-5deb-ae17-ceb75b3fa9dc</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="R15">
       <value>390k</value>
@@ -481,14 +894,25 @@
       <fields>
         <field name="LCSC">C25778</field>
         <field name="Note">IREF ~12 uA</field>
+        <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="R15_390k" description=""/>
       <property name="LCSC" value="C25778"/>
       <property name="Note" value="IREF ~12 uA"/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>be22b5fb-8dc0-5710-97a6-6d8a35200af9</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="SW1">
       <value>MSK12C02</value>
@@ -496,88 +920,182 @@
       <fields>
         <field name="LCSC">C431540</field>
         <field name="Note">Power switch on the LDO enable (microamps), not on the battery. VERIFY the MSK12C02 matches the PCM12 footprint.</field>
+        <field name="Footprint">Button_Switch_SMD:SW_SPDT_PCM12</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="SW1_MSK12C02" description=""/>
       <property name="LCSC" value="C431540"/>
       <property name="Note" value="Power switch on the LDO enable (microamps), not on the battery. VERIFY the MSK12C02 matches the PCM12 footprint."/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>aca90f45-7414-5162-a263-8fae6b4bfd21</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+            <pin num="3"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="TP1">
       <value>3V3</value>
       <footprint>TestPoint:TestPoint_Pad_D1.0mm</footprint>
+      <fields>
+        <field name="Footprint">TestPoint:TestPoint_Pad_D1.0mm</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
+      </fields>
       <libsource lib="lumi" part="TP1_3V3" description=""/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <property name="exclude_from_bom"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>c566161a-5b15-5297-9056-1fa156b1ecb6</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="TP2">
       <value>GND</value>
       <footprint>TestPoint:TestPoint_Pad_D1.0mm</footprint>
+      <fields>
+        <field name="Footprint">TestPoint:TestPoint_Pad_D1.0mm</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
+      </fields>
       <libsource lib="lumi" part="TP2_GND" description=""/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <property name="exclude_from_bom"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>bde98ee3-d7d9-5f70-905f-fb47a1778add</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="TP3">
       <value>EN</value>
       <footprint>TestPoint:TestPoint_Pad_D1.0mm</footprint>
+      <fields>
+        <field name="Footprint">TestPoint:TestPoint_Pad_D1.0mm</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
+      </fields>
       <libsource lib="lumi" part="TP3_EN" description=""/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <property name="exclude_from_bom"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>5f041c78-7946-58d5-8829-cc708c4211fa</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="TP4">
       <value>BOOT</value>
       <footprint>TestPoint:TestPoint_Pad_D1.0mm</footprint>
       <fields>
         <field name="Note">Hold BOOT to GND while resetting to force download mode.</field>
+        <field name="Footprint">TestPoint:TestPoint_Pad_D1.0mm</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="TP4_BOOT" description=""/>
       <property name="Note" value="Hold BOOT to GND while resetting to force download mode."/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <property name="exclude_from_bom"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>de38d40c-3385-5b0d-b364-d687b815988d</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="TP5">
       <value>TXD</value>
       <footprint>TestPoint:TestPoint_Pad_D1.0mm</footprint>
+      <fields>
+        <field name="Footprint">TestPoint:TestPoint_Pad_D1.0mm</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
+      </fields>
       <libsource lib="lumi" part="TP5_TXD" description=""/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <property name="exclude_from_bom"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>79ba8ad9-58f1-5c07-903b-45b3c4a0a2bb</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="TP6">
       <value>RXD</value>
       <footprint>TestPoint:TestPoint_Pad_D1.0mm</footprint>
+      <fields>
+        <field name="Footprint">TestPoint:TestPoint_Pad_D1.0mm</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
+      </fields>
       <libsource lib="lumi" part="TP6_RXD" description=""/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <property name="exclude_from_bom"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>13aa19a6-4479-5162-818d-60fdbce6644e</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="TP7">
       <value>VBAT</value>
       <footprint>TestPoint:TestPoint_Pad_D1.0mm</footprint>
+      <fields>
+        <field name="Footprint">TestPoint:TestPoint_Pad_D1.0mm</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
+      </fields>
       <libsource lib="lumi" part="TP7_VBAT" description=""/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <property name="exclude_from_bom"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>ad743378-47b7-5d76-b87e-1d229854548b</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="U1">
       <value>ESP32-C3-WROOM-02-N4</value>
@@ -585,14 +1103,42 @@
       <fields>
         <field name="LCSC">C2934560</field>
         <field name="Note">Radio-certified module. Antenna at the keyring edge; keep copper out of the marked area.</field>
+        <field name="Footprint">RF_Module:ESP32-C3-WROOM-02</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="U1_ESP32-C3-WROOM-02-N4" description=""/>
       <property name="LCSC" value="C2934560"/>
       <property name="Note" value="Radio-certified module. Antenna at the keyring edge; keep copper out of the marked area."/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>d7aff102-e82f-527f-959a-e139d481d6d9</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+            <pin num="3"/>
+            <pin num="4"/>
+            <pin num="5"/>
+            <pin num="6"/>
+            <pin num="7"/>
+            <pin num="8"/>
+            <pin num="9"/>
+            <pin num="10"/>
+            <pin num="11"/>
+            <pin num="12"/>
+            <pin num="13"/>
+            <pin num="14"/>
+            <pin num="15"/>
+            <pin num="16"/>
+            <pin num="17"/>
+            <pin num="18"/>
+            <pin num="19"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="U2">
       <value>LIS2DH12TR</value>
@@ -600,14 +1146,35 @@
       <fields>
         <field name="LCSC">C110926</field>
         <field name="Note">CS high = I2C. SA0 high = address 0x19. RES must go to GND.</field>
+        <field name="Footprint">Package_LGA:LGA-12_2x2mm_P0.5mm</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="U2_LIS2DH12TR" description=""/>
       <property name="LCSC" value="C110926"/>
       <property name="Note" value="CS high = I2C. SA0 high = address 0x19. RES must go to GND."/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>bfe7b865-325f-5a13-bd02-8c0590073bcf</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+            <pin num="3"/>
+            <pin num="4"/>
+            <pin num="5"/>
+            <pin num="6"/>
+            <pin num="7"/>
+            <pin num="8"/>
+            <pin num="9"/>
+            <pin num="10"/>
+            <pin num="11"/>
+            <pin num="12"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="U3">
       <value>TP4054</value>
@@ -615,14 +1182,28 @@
       <fields>
         <field name="LCSC">C32574</field>
         <field name="Note">LiPo charger. CHRG is open-drain: firmware enables the IO1 pull-up. VERIFY pinout.</field>
+        <field name="Footprint">Package_TO_SOT_SMD:SOT-23-5</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="U3_TP4054" description=""/>
       <property name="LCSC" value="C32574"/>
       <property name="Note" value="LiPo charger. CHRG is open-drain: firmware enables the IO1 pull-up. VERIFY pinout."/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>c15a9fd8-2904-5a2e-b394-b3c5a60e778f</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+            <pin num="3"/>
+            <pin num="4"/>
+            <pin num="5"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
     <comp ref="U4">
       <value>RT9080-33GJ5</value>
@@ -630,14 +1211,28 @@
       <fields>
         <field name="LCSC">C841192</field>
         <field name="Note">3.3 V LDO, 2 uA standby. VERIFY pinout.</field>
+        <field name="Footprint">Package_TO_SOT_SMD:SOT-23-5</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <libsource lib="lumi" part="U4_RT9080-33GJ5" description=""/>
       <property name="LCSC" value="C841192"/>
       <property name="Note" value="3.3 V LDO, 2 uA standby. VERIFY pinout."/>
-      <property name="Sheetname" value=""/>
+      <property name="Sheetname" value="lumi"/>
       <property name="Sheetfile" value="lumi.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>891925b6-f2c7-5fa1-b879-b6c07a3d39bc</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+            <pin num="3"/>
+            <pin num="4"/>
+            <pin num="5"/>
+          </pins>
+        </unit>
+      </units>
     </comp>
   </components>
   <libparts>
@@ -646,6 +1241,8 @@
         <field name="Reference">BT</field>
         <field name="Value">BAT+</field>
         <field name="Footprint">TestPoint:TestPoint_Pad_1.5x1.5mm</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -656,6 +1253,8 @@
         <field name="Reference">BT</field>
         <field name="Value">BAT-</field>
         <field name="Footprint">TestPoint:TestPoint_Pad_1.5x1.5mm</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -666,6 +1265,8 @@
         <field name="Reference">C</field>
         <field name="Value">1uF</field>
         <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -677,6 +1278,8 @@
         <field name="Reference">C</field>
         <field name="Value">1uF</field>
         <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -688,6 +1291,8 @@
         <field name="Reference">C</field>
         <field name="Value">2.2uF</field>
         <field name="Footprint">Capacitor_SMD:C_0603_1608Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -699,6 +1304,8 @@
         <field name="Reference">C</field>
         <field name="Value">4.7uF</field>
         <field name="Footprint">Capacitor_SMD:C_0603_1608Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -710,6 +1317,21 @@
         <field name="Reference">C</field>
         <field name="Value">1uF</field>
         <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
+      </fields>
+      <pins>
+        <pin num="1" name="" type="passive"/>
+        <pin num="2" name="" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="lumi" part="C15_1uF">
+      <fields>
+        <field name="Reference">C</field>
+        <field name="Value">1uF</field>
+        <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -721,6 +1343,8 @@
         <field name="Reference">C</field>
         <field name="Value">1uF</field>
         <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -732,6 +1356,8 @@
         <field name="Reference">C</field>
         <field name="Value">1uF</field>
         <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -743,6 +1369,8 @@
         <field name="Reference">C</field>
         <field name="Value">1uF</field>
         <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -754,6 +1382,8 @@
         <field name="Reference">C</field>
         <field name="Value">1uF</field>
         <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -765,6 +1395,8 @@
         <field name="Reference">C</field>
         <field name="Value">10uF</field>
         <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -776,6 +1408,8 @@
         <field name="Reference">C</field>
         <field name="Value">100nF</field>
         <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -787,6 +1421,8 @@
         <field name="Reference">C</field>
         <field name="Value">100nF</field>
         <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -798,6 +1434,8 @@
         <field name="Reference">C</field>
         <field name="Value">1uF</field>
         <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -809,6 +1447,8 @@
         <field name="Reference">C</field>
         <field name="Value">100nF</field>
         <field name="Footprint">Capacitor_SMD:C_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -820,6 +1460,8 @@
         <field name="Reference">D</field>
         <field name="Value">USBLC6-2SC6</field>
         <field name="Footprint">Package_TO_SOT_SMD:SOT-23-6</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="IO1" type="passive"/>
@@ -835,6 +1477,8 @@
         <field name="Reference">J</field>
         <field name="Value">USB-C 16P</field>
         <field name="Footprint">Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="A1" name="GND" type="passive"/>
@@ -853,45 +1497,47 @@
         <pin num="B8" name="SBU2" type="passive"/>
         <pin num="B9" name="VBUS" type="passive"/>
         <pin num="B12" name="GND" type="passive"/>
-        <pin num="S1" name="SHIELD" type="passive"/>
+        <pin num="SH" name="SHIELD" type="passive"/>
       </pins>
     </libpart>
-    <libpart lib="lumi" part="J2_FH12-30S-0.5SH">
+    <libpart lib="lumi" part="J2_AFC07-S30ECC-00">
       <fields>
         <field name="Reference">J</field>
-        <field name="Value">FH12-30S-0.5SH</field>
-        <field name="Footprint">Connector_FFC-FPC:Hirose_FH12-30S-0.5SH_1x30-1MP_P0.50mm_Horizontal</field>
+        <field name="Value">AFC07-S30ECC-00</field>
+        <field name="Footprint">lumi:JUSHUO_AFC07-S30ECC-00</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="NC/GND" type="passive"/>
-        <pin num="2" name="C2P" type="passive"/>
-        <pin num="3" name="C2N" type="passive"/>
-        <pin num="4" name="C1P" type="passive"/>
-        <pin num="5" name="C1N" type="passive"/>
-        <pin num="6" name="VBAT" type="passive"/>
-        <pin num="7" name="NC" type="passive"/>
-        <pin num="8" name="VSS" type="passive"/>
-        <pin num="9" name="VDD" type="passive"/>
-        <pin num="10" name="BS0" type="passive"/>
-        <pin num="11" name="BS1" type="passive"/>
-        <pin num="12" name="BS2" type="passive"/>
-        <pin num="13" name="CS#" type="passive"/>
-        <pin num="14" name="RES#" type="passive"/>
-        <pin num="15" name="D/C#" type="passive"/>
-        <pin num="16" name="R/W#" type="passive"/>
-        <pin num="17" name="E/RD#" type="passive"/>
-        <pin num="18" name="D0/SCL" type="passive"/>
-        <pin num="19" name="D1/SDA" type="passive"/>
-        <pin num="20" name="D2/SDA" type="passive"/>
-        <pin num="21" name="D3" type="passive"/>
-        <pin num="22" name="D4" type="passive"/>
-        <pin num="23" name="D5" type="passive"/>
-        <pin num="24" name="D6" type="passive"/>
-        <pin num="25" name="D7" type="passive"/>
-        <pin num="26" name="IREF" type="passive"/>
-        <pin num="27" name="VCOMH" type="passive"/>
-        <pin num="28" name="VCC" type="passive"/>
-        <pin num="29" name="VLSS" type="passive"/>
+        <pin num="2" name="VLSS" type="passive"/>
+        <pin num="3" name="VCC" type="passive"/>
+        <pin num="4" name="VCOMH" type="passive"/>
+        <pin num="5" name="IREF" type="passive"/>
+        <pin num="6" name="D7" type="passive"/>
+        <pin num="7" name="D6" type="passive"/>
+        <pin num="8" name="D5" type="passive"/>
+        <pin num="9" name="D4" type="passive"/>
+        <pin num="10" name="D3" type="passive"/>
+        <pin num="11" name="D2/SDA" type="passive"/>
+        <pin num="12" name="D1/SDA" type="passive"/>
+        <pin num="13" name="D0/SCL" type="passive"/>
+        <pin num="14" name="E/RD#" type="passive"/>
+        <pin num="15" name="R/W#" type="passive"/>
+        <pin num="16" name="D/C#" type="passive"/>
+        <pin num="17" name="RES#" type="passive"/>
+        <pin num="18" name="CS#" type="passive"/>
+        <pin num="19" name="BS2" type="passive"/>
+        <pin num="20" name="BS1" type="passive"/>
+        <pin num="21" name="BS0" type="passive"/>
+        <pin num="22" name="VDD" type="passive"/>
+        <pin num="23" name="VSS" type="passive"/>
+        <pin num="24" name="NC" type="passive"/>
+        <pin num="25" name="VBAT" type="passive"/>
+        <pin num="26" name="C1N" type="passive"/>
+        <pin num="27" name="C1P" type="passive"/>
+        <pin num="28" name="C2N" type="passive"/>
+        <pin num="29" name="C2P" type="passive"/>
         <pin num="30" name="NC/GND" type="passive"/>
         <pin num="MP" name="MP" type="passive"/>
       </pins>
@@ -901,6 +1547,8 @@
         <field name="Reference">R</field>
         <field name="Value">4.7k</field>
         <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -912,6 +1560,8 @@
         <field name="Reference">R</field>
         <field name="Value">10k</field>
         <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -923,6 +1573,8 @@
         <field name="Reference">R</field>
         <field name="Value">10k</field>
         <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -934,6 +1586,8 @@
         <field name="Reference">R</field>
         <field name="Value">10k</field>
         <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -945,6 +1599,8 @@
         <field name="Reference">R</field>
         <field name="Value">390k</field>
         <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -956,6 +1612,8 @@
         <field name="Reference">R</field>
         <field name="Value">5.1k</field>
         <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -967,6 +1625,8 @@
         <field name="Reference">R</field>
         <field name="Value">5.1k</field>
         <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -978,6 +1638,8 @@
         <field name="Reference">R</field>
         <field name="Value">3.9k</field>
         <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -989,6 +1651,8 @@
         <field name="Reference">R</field>
         <field name="Value">1M</field>
         <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -1000,6 +1664,8 @@
         <field name="Reference">R</field>
         <field name="Value">1M</field>
         <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -1011,17 +1677,21 @@
         <field name="Reference">R</field>
         <field name="Value">100k</field>
         <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
         <pin num="2" name="" type="passive"/>
       </pins>
     </libpart>
-    <libpart lib="lumi" part="R8_100k">
+    <libpart lib="lumi" part="R8_150k">
       <fields>
         <field name="Reference">R</field>
-        <field name="Value">100k</field>
+        <field name="Value">150k</field>
         <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -1033,6 +1703,8 @@
         <field name="Reference">R</field>
         <field name="Value">4.7k</field>
         <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -1044,6 +1716,8 @@
         <field name="Reference">SW</field>
         <field name="Value">MSK12C02</field>
         <field name="Footprint">Button_Switch_SMD:SW_SPDT_PCM12</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="ON" type="passive"/>
@@ -1056,6 +1730,8 @@
         <field name="Reference">TP</field>
         <field name="Value">3V3</field>
         <field name="Footprint">TestPoint:TestPoint_Pad_D1.0mm</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -1066,6 +1742,8 @@
         <field name="Reference">TP</field>
         <field name="Value">GND</field>
         <field name="Footprint">TestPoint:TestPoint_Pad_D1.0mm</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -1076,6 +1754,8 @@
         <field name="Reference">TP</field>
         <field name="Value">EN</field>
         <field name="Footprint">TestPoint:TestPoint_Pad_D1.0mm</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -1086,6 +1766,8 @@
         <field name="Reference">TP</field>
         <field name="Value">BOOT</field>
         <field name="Footprint">TestPoint:TestPoint_Pad_D1.0mm</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -1096,6 +1778,8 @@
         <field name="Reference">TP</field>
         <field name="Value">TXD</field>
         <field name="Footprint">TestPoint:TestPoint_Pad_D1.0mm</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -1106,6 +1790,8 @@
         <field name="Reference">TP</field>
         <field name="Value">RXD</field>
         <field name="Footprint">TestPoint:TestPoint_Pad_D1.0mm</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -1116,6 +1802,8 @@
         <field name="Reference">TP</field>
         <field name="Value">VBAT</field>
         <field name="Footprint">TestPoint:TestPoint_Pad_D1.0mm</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="" type="passive"/>
@@ -1126,6 +1814,8 @@
         <field name="Reference">U</field>
         <field name="Value">ESP32-C3-WROOM-02-N4</field>
         <field name="Footprint">RF_Module:ESP32-C3-WROOM-02</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="3V3" type="passive"/>
@@ -1154,6 +1844,8 @@
         <field name="Reference">U</field>
         <field name="Value">LIS2DH12TR</field>
         <field name="Footprint">Package_LGA:LGA-12_2x2mm_P0.5mm</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="SCL" type="passive"/>
@@ -1175,6 +1867,8 @@
         <field name="Reference">U</field>
         <field name="Value">TP4054</field>
         <field name="Footprint">Package_TO_SOT_SMD:SOT-23-5</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="CHRG" type="passive"/>
@@ -1189,6 +1883,8 @@
         <field name="Reference">U</field>
         <field name="Value">RT9080-33GJ5</field>
         <field name="Footprint">Package_TO_SOT_SMD:SOT-23-5</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
       </fields>
       <pins>
         <pin num="1" name="VIN" type="passive"/>
@@ -1201,76 +1897,76 @@
   </libparts>
   <libraries>
     <library logical="lumi">
-      <uri>/home/user/Lumi/hardware/pcb/kicad/lumi/lumi.kicad_sym</uri>
+      <uri>${KIPRJMOD}/lumi.kicad_sym</uri>
     </library>
   </libraries>
   <nets>
-    <net code="1" name="/3V3">
+    <net code="1" name="/3V3" class="Default">
       <node ref="C14" pin="1" pintype="passive"/>
       <node ref="C4" pin="1" pintype="passive"/>
       <node ref="C5" pin="1" pintype="passive"/>
       <node ref="C6" pin="1" pintype="passive"/>
       <node ref="C7" pin="1" pintype="passive"/>
-      <node ref="J2" pin="11" pinfunction="BS1" pintype="passive"/>
-      <node ref="J2" pin="6" pinfunction="VBAT" pintype="passive"/>
-      <node ref="J2" pin="9" pinfunction="VDD" pintype="passive"/>
+      <node ref="J2" pin="20" pinfunction="BS1_20" pintype="passive"/>
+      <node ref="J2" pin="22" pinfunction="VDD_22" pintype="passive"/>
       <node ref="R10" pin="1" pintype="passive"/>
       <node ref="R11" pin="1" pintype="passive"/>
       <node ref="R12" pin="1" pintype="passive"/>
       <node ref="R13" pin="1" pintype="passive"/>
       <node ref="R9" pin="1" pintype="passive"/>
       <node ref="TP1" pin="1" pintype="passive"/>
-      <node ref="U1" pin="1" pinfunction="3V3" pintype="passive"/>
-      <node ref="U2" pin="10" pinfunction="VDD_IO" pintype="passive"/>
-      <node ref="U2" pin="2" pinfunction="CS" pintype="passive"/>
-      <node ref="U2" pin="3" pinfunction="SA0" pintype="passive"/>
-      <node ref="U2" pin="9" pinfunction="VDD" pintype="passive"/>
-      <node ref="U4" pin="5" pinfunction="VOUT" pintype="passive"/>
+      <node ref="U1" pin="1" pinfunction="3V3_1" pintype="passive"/>
+      <node ref="U2" pin="10" pinfunction="VDD_IO_10" pintype="passive"/>
+      <node ref="U2" pin="2" pinfunction="CS_2" pintype="passive"/>
+      <node ref="U2" pin="3" pinfunction="SA0_3" pintype="passive"/>
+      <node ref="U2" pin="9" pinfunction="VDD_9" pintype="passive"/>
+      <node ref="U4" pin="5" pinfunction="VOUT_5" pintype="passive"/>
     </net>
-    <net code="2" name="/BOOT">
+    <net code="2" name="/BOOT" class="Default">
       <node ref="TP4" pin="1" pintype="passive"/>
-      <node ref="U1" pin="8" pinfunction="IO9" pintype="passive"/>
+      <node ref="U1" pin="8" pinfunction="IO9_8" pintype="passive"/>
     </net>
-    <net code="3" name="/C1N">
+    <net code="3" name="/C1N" class="Default">
       <node ref="C10" pin="2" pintype="passive"/>
-      <node ref="J2" pin="5" pinfunction="C1N" pintype="passive"/>
+      <node ref="J2" pin="26" pinfunction="C1N_26" pintype="passive"/>
     </net>
-    <net code="4" name="/C1P">
+    <net code="4" name="/C1P" class="Default">
       <node ref="C10" pin="1" pintype="passive"/>
-      <node ref="J2" pin="4" pinfunction="C1P" pintype="passive"/>
+      <node ref="J2" pin="27" pinfunction="C1P_27" pintype="passive"/>
     </net>
-    <net code="5" name="/C2N">
+    <net code="5" name="/C2N" class="Default">
       <node ref="C11" pin="2" pintype="passive"/>
-      <node ref="J2" pin="3" pinfunction="C2N" pintype="passive"/>
+      <node ref="J2" pin="28" pinfunction="C2N_28" pintype="passive"/>
     </net>
-    <net code="6" name="/C2P">
+    <net code="6" name="/C2P" class="Default">
       <node ref="C11" pin="1" pintype="passive"/>
-      <node ref="J2" pin="2" pinfunction="C2P" pintype="passive"/>
+      <node ref="J2" pin="29" pinfunction="C2P_29" pintype="passive"/>
     </net>
-    <net code="7" name="/CC1">
-      <node ref="J1" pin="A5" pinfunction="CC1" pintype="passive"/>
+    <net code="7" name="/CC1" class="Default">
+      <node ref="J1" pin="A5" pinfunction="CC1_A5" pintype="passive"/>
       <node ref="R1" pin="1" pintype="passive"/>
     </net>
-    <net code="8" name="/CC2">
-      <node ref="J1" pin="B5" pinfunction="CC2" pintype="passive"/>
+    <net code="8" name="/CC2" class="Default">
+      <node ref="J1" pin="B5" pinfunction="CC2_B5" pintype="passive"/>
       <node ref="R2" pin="1" pintype="passive"/>
     </net>
-    <net code="9" name="/CHG_STAT">
-      <node ref="U1" pin="17" pinfunction="IO1" pintype="passive"/>
-      <node ref="U3" pin="1" pinfunction="CHRG" pintype="passive"/>
+    <net code="9" name="/CHG_STAT" class="Default">
+      <node ref="U1" pin="17" pinfunction="IO1_17" pintype="passive"/>
+      <node ref="U3" pin="1" pinfunction="CHRG_1" pintype="passive"/>
     </net>
-    <net code="10" name="/EN">
+    <net code="10" name="/EN" class="Default">
       <node ref="C8" pin="1" pintype="passive"/>
       <node ref="R11" pin="2" pintype="passive"/>
       <node ref="TP3" pin="1" pintype="passive"/>
-      <node ref="U1" pin="2" pinfunction="EN" pintype="passive"/>
+      <node ref="U1" pin="2" pinfunction="EN_2" pintype="passive"/>
     </net>
-    <net code="11" name="/GND">
+    <net code="11" name="/GND" class="Default">
       <node ref="BT2" pin="1" pintype="passive"/>
       <node ref="C1" pin="2" pintype="passive"/>
       <node ref="C12" pin="2" pintype="passive"/>
       <node ref="C13" pin="2" pintype="passive"/>
       <node ref="C14" pin="2" pintype="passive"/>
+      <node ref="C15" pin="2" pintype="passive"/>
       <node ref="C2" pin="2" pintype="passive"/>
       <node ref="C3" pin="2" pintype="passive"/>
       <node ref="C4" pin="2" pintype="passive"/>
@@ -1279,164 +1975,166 @@
       <node ref="C7" pin="2" pintype="passive"/>
       <node ref="C8" pin="2" pintype="passive"/>
       <node ref="C9" pin="2" pintype="passive"/>
-      <node ref="D1" pin="2" pinfunction="GND" pintype="passive"/>
-      <node ref="J1" pin="A1" pinfunction="GND" pintype="passive"/>
-      <node ref="J1" pin="A12" pinfunction="GND" pintype="passive"/>
-      <node ref="J1" pin="B1" pinfunction="GND" pintype="passive"/>
-      <node ref="J1" pin="B12" pinfunction="GND" pintype="passive"/>
-      <node ref="J1" pin="S1" pinfunction="SHIELD" pintype="passive"/>
-      <node ref="J2" pin="1" pinfunction="NC/GND" pintype="passive"/>
-      <node ref="J2" pin="10" pinfunction="BS0" pintype="passive"/>
-      <node ref="J2" pin="12" pinfunction="BS2" pintype="passive"/>
-      <node ref="J2" pin="13" pinfunction="CS#" pintype="passive"/>
-      <node ref="J2" pin="15" pinfunction="D/C#" pintype="passive"/>
-      <node ref="J2" pin="16" pinfunction="R/W#" pintype="passive"/>
-      <node ref="J2" pin="17" pinfunction="E/RD#" pintype="passive"/>
-      <node ref="J2" pin="21" pinfunction="D3" pintype="passive"/>
-      <node ref="J2" pin="22" pinfunction="D4" pintype="passive"/>
-      <node ref="J2" pin="23" pinfunction="D5" pintype="passive"/>
-      <node ref="J2" pin="24" pinfunction="D6" pintype="passive"/>
-      <node ref="J2" pin="25" pinfunction="D7" pintype="passive"/>
-      <node ref="J2" pin="29" pinfunction="VLSS" pintype="passive"/>
-      <node ref="J2" pin="30" pinfunction="NC/GND" pintype="passive"/>
-      <node ref="J2" pin="8" pinfunction="VSS" pintype="passive"/>
-      <node ref="J2" pin="MP" pinfunction="MP" pintype="passive"/>
+      <node ref="D1" pin="2" pinfunction="GND_2" pintype="passive"/>
+      <node ref="J1" pin="A1" pinfunction="GND_A1" pintype="passive"/>
+      <node ref="J1" pin="A12" pinfunction="GND_A12" pintype="passive"/>
+      <node ref="J1" pin="B1" pinfunction="GND_B1" pintype="passive"/>
+      <node ref="J1" pin="B12" pinfunction="GND_B12" pintype="passive"/>
+      <node ref="J1" pin="SH" pinfunction="SHIELD_SH" pintype="passive"/>
+      <node ref="J2" pin="1" pinfunction="NC/GND_1" pintype="passive"/>
+      <node ref="J2" pin="10" pinfunction="D3_10" pintype="passive"/>
+      <node ref="J2" pin="14" pinfunction="E/RD#_14" pintype="passive"/>
+      <node ref="J2" pin="15" pinfunction="R/W#_15" pintype="passive"/>
+      <node ref="J2" pin="16" pinfunction="D/C#_16" pintype="passive"/>
+      <node ref="J2" pin="18" pinfunction="CS#_18" pintype="passive"/>
+      <node ref="J2" pin="19" pinfunction="BS2_19" pintype="passive"/>
+      <node ref="J2" pin="2" pinfunction="VLSS_2" pintype="passive"/>
+      <node ref="J2" pin="21" pinfunction="BS0_21" pintype="passive"/>
+      <node ref="J2" pin="23" pinfunction="VSS_23" pintype="passive"/>
+      <node ref="J2" pin="30" pinfunction="NC/GND_30" pintype="passive"/>
+      <node ref="J2" pin="6" pinfunction="D7_6" pintype="passive"/>
+      <node ref="J2" pin="7" pinfunction="D6_7" pintype="passive"/>
+      <node ref="J2" pin="8" pinfunction="D5_8" pintype="passive"/>
+      <node ref="J2" pin="9" pinfunction="D4_9" pintype="passive"/>
+      <node ref="J2" pin="MP" pinfunction="MP_MP" pintype="passive"/>
       <node ref="R1" pin="2" pintype="passive"/>
       <node ref="R15" pin="2" pintype="passive"/>
       <node ref="R2" pin="2" pintype="passive"/>
       <node ref="R3" pin="2" pintype="passive"/>
       <node ref="R6" pin="2" pintype="passive"/>
       <node ref="R8" pin="2" pintype="passive"/>
-      <node ref="SW1" pin="3" pinfunction="OFF" pintype="passive"/>
+      <node ref="SW1" pin="3" pinfunction="OFF_3" pintype="passive"/>
       <node ref="TP2" pin="1" pintype="passive"/>
-      <node ref="U1" pin="19" pinfunction="GND" pintype="passive"/>
-      <node ref="U1" pin="9" pinfunction="GND" pintype="passive"/>
-      <node ref="U2" pin="5" pinfunction="RES" pintype="passive"/>
-      <node ref="U2" pin="6" pinfunction="GND" pintype="passive"/>
-      <node ref="U2" pin="7" pinfunction="GND" pintype="passive"/>
-      <node ref="U2" pin="8" pinfunction="GND" pintype="passive"/>
-      <node ref="U3" pin="2" pinfunction="GND" pintype="passive"/>
-      <node ref="U4" pin="2" pinfunction="GND" pintype="passive"/>
+      <node ref="U1" pin="19" pinfunction="GND_19" pintype="passive"/>
+      <node ref="U1" pin="9" pinfunction="GND_9" pintype="passive"/>
+      <node ref="U2" pin="5" pinfunction="RES_5" pintype="passive"/>
+      <node ref="U2" pin="6" pinfunction="GND_6" pintype="passive"/>
+      <node ref="U2" pin="7" pinfunction="GND_7" pintype="passive"/>
+      <node ref="U2" pin="8" pinfunction="GND_8" pintype="passive"/>
+      <node ref="U3" pin="2" pinfunction="GND_2" pintype="passive"/>
+      <node ref="U4" pin="2" pinfunction="GND_2" pintype="passive"/>
     </net>
-    <net code="12" name="/IMU_INT">
-      <node ref="U1" pin="15" pinfunction="IO3" pintype="passive"/>
-      <node ref="U2" pin="12" pinfunction="INT1" pintype="passive"/>
+    <net code="12" name="/IMU_INT" class="Default">
+      <node ref="U1" pin="15" pinfunction="IO3_15" pintype="passive"/>
+      <node ref="U2" pin="12" pinfunction="INT1_12" pintype="passive"/>
     </net>
-    <net code="13" name="/IO2">
+    <net code="13" name="/IO2" class="Default">
       <node ref="R12" pin="2" pintype="passive"/>
-      <node ref="U1" pin="16" pinfunction="IO2" pintype="passive"/>
+      <node ref="U1" pin="16" pinfunction="IO2_16" pintype="passive"/>
     </net>
-    <net code="14" name="/IO8">
+    <net code="14" name="/IO8" class="Default">
       <node ref="R13" pin="2" pintype="passive"/>
-      <node ref="U1" pin="7" pinfunction="IO8" pintype="passive"/>
+      <node ref="U1" pin="7" pinfunction="IO8_7" pintype="passive"/>
     </net>
-    <net code="15" name="/IREF">
-      <node ref="J2" pin="26" pinfunction="IREF" pintype="passive"/>
+    <net code="15" name="/IREF" class="Default">
+      <node ref="J2" pin="5" pinfunction="IREF_5" pintype="passive"/>
       <node ref="R15" pin="1" pintype="passive"/>
     </net>
-    <net code="16" name="/LDO_EN">
-      <node ref="SW1" pin="2" pinfunction="COM" pintype="passive"/>
-      <node ref="U4" pin="3" pinfunction="EN" pintype="passive"/>
+    <net code="16" name="/LDO_EN" class="Default">
+      <node ref="SW1" pin="2" pinfunction="COM_2" pintype="passive"/>
+      <node ref="U4" pin="3" pinfunction="EN_3" pintype="passive"/>
     </net>
-    <net code="17" name="/OLED_RES">
-      <node ref="J2" pin="14" pinfunction="RES#" pintype="passive"/>
-      <node ref="U1" pin="10" pinfunction="IO10" pintype="passive"/>
+    <net code="17" name="/OLED_RES" class="Default">
+      <node ref="J2" pin="17" pinfunction="RES#_17" pintype="passive"/>
+      <node ref="U1" pin="10" pinfunction="IO10_10" pintype="passive"/>
     </net>
-    <net code="18" name="/PROG">
+    <net code="18" name="/PROG" class="Default">
       <node ref="R3" pin="1" pintype="passive"/>
-      <node ref="U3" pin="5" pinfunction="PROG" pintype="passive"/>
+      <node ref="U3" pin="5" pinfunction="PROG_5" pintype="passive"/>
     </net>
-    <net code="19" name="/RXD">
+    <net code="19" name="/RXD" class="Default">
       <node ref="TP6" pin="1" pintype="passive"/>
-      <node ref="U1" pin="11" pinfunction="RXD" pintype="passive"/>
+      <node ref="U1" pin="11" pinfunction="RXD_11" pintype="passive"/>
     </net>
-    <net code="20" name="/SCL">
-      <node ref="J2" pin="18" pinfunction="D0/SCL" pintype="passive"/>
+    <net code="20" name="/SCL" class="Default">
+      <node ref="J2" pin="13" pinfunction="D0/SCL_13" pintype="passive"/>
       <node ref="R10" pin="2" pintype="passive"/>
-      <node ref="U1" pin="6" pinfunction="IO7" pintype="passive"/>
-      <node ref="U2" pin="1" pinfunction="SCL" pintype="passive"/>
+      <node ref="U1" pin="6" pinfunction="IO7_6" pintype="passive"/>
+      <node ref="U2" pin="1" pinfunction="SCL_1" pintype="passive"/>
     </net>
-    <net code="21" name="/SDA">
-      <node ref="J2" pin="19" pinfunction="D1/SDA" pintype="passive"/>
-      <node ref="J2" pin="20" pinfunction="D2/SDA" pintype="passive"/>
+    <net code="21" name="/SDA" class="Default">
+      <node ref="J2" pin="11" pinfunction="D2/SDA_11" pintype="passive"/>
+      <node ref="J2" pin="12" pinfunction="D1/SDA_12" pintype="passive"/>
       <node ref="R9" pin="2" pintype="passive"/>
-      <node ref="U1" pin="5" pinfunction="IO6" pintype="passive"/>
-      <node ref="U2" pin="4" pinfunction="SDA" pintype="passive"/>
+      <node ref="U1" pin="5" pinfunction="IO6_5" pintype="passive"/>
+      <node ref="U2" pin="4" pinfunction="SDA_4" pintype="passive"/>
     </net>
-    <net code="22" name="/TXD">
+    <net code="22" name="/TXD" class="Default">
       <node ref="TP5" pin="1" pintype="passive"/>
-      <node ref="U1" pin="12" pinfunction="TXD" pintype="passive"/>
+      <node ref="U1" pin="12" pinfunction="TXD_12" pintype="passive"/>
     </net>
-    <net code="23" name="/USB_DN">
-      <node ref="D1" pin="3" pinfunction="IO2" pintype="passive"/>
-      <node ref="D1" pin="4" pinfunction="IO2" pintype="passive"/>
-      <node ref="J1" pin="A7" pinfunction="D-" pintype="passive"/>
-      <node ref="J1" pin="B7" pinfunction="D-" pintype="passive"/>
-      <node ref="U1" pin="13" pinfunction="IO18" pintype="passive"/>
+    <net code="23" name="/USB_DN" class="Default">
+      <node ref="D1" pin="3" pinfunction="IO2_3" pintype="passive"/>
+      <node ref="D1" pin="4" pinfunction="IO2_4" pintype="passive"/>
+      <node ref="J1" pin="A7" pinfunction="D-_A7" pintype="passive"/>
+      <node ref="J1" pin="B7" pinfunction="D-_B7" pintype="passive"/>
+      <node ref="U1" pin="13" pinfunction="IO18_13" pintype="passive"/>
     </net>
-    <net code="24" name="/USB_DP">
-      <node ref="D1" pin="1" pinfunction="IO1" pintype="passive"/>
-      <node ref="D1" pin="6" pinfunction="IO1" pintype="passive"/>
-      <node ref="J1" pin="A6" pinfunction="D+" pintype="passive"/>
-      <node ref="J1" pin="B6" pinfunction="D+" pintype="passive"/>
-      <node ref="U1" pin="14" pinfunction="IO19" pintype="passive"/>
+    <net code="24" name="/USB_DP" class="Default">
+      <node ref="D1" pin="1" pinfunction="IO1_1" pintype="passive"/>
+      <node ref="D1" pin="6" pinfunction="IO1_6" pintype="passive"/>
+      <node ref="J1" pin="A6" pinfunction="D+_A6" pintype="passive"/>
+      <node ref="J1" pin="B6" pinfunction="D+_B6" pintype="passive"/>
+      <node ref="U1" pin="14" pinfunction="IO19_14" pintype="passive"/>
     </net>
-    <net code="25" name="/USB_SENSE">
+    <net code="25" name="/USB_SENSE" class="Default">
       <node ref="R7" pin="2" pintype="passive"/>
       <node ref="R8" pin="1" pintype="passive"/>
-      <node ref="U1" pin="4" pinfunction="IO5" pintype="passive"/>
+      <node ref="U1" pin="4" pinfunction="IO5_4" pintype="passive"/>
     </net>
-    <net code="26" name="/VBAT">
+    <net code="26" name="/VBAT" class="Default">
       <node ref="BT1" pin="1" pintype="passive"/>
+      <node ref="C15" pin="1" pintype="passive"/>
       <node ref="C2" pin="1" pintype="passive"/>
       <node ref="C3" pin="1" pintype="passive"/>
+      <node ref="J2" pin="25" pinfunction="VBAT_25" pintype="passive"/>
       <node ref="R5" pin="1" pintype="passive"/>
-      <node ref="SW1" pin="1" pinfunction="ON" pintype="passive"/>
+      <node ref="SW1" pin="1" pinfunction="ON_1" pintype="passive"/>
       <node ref="TP7" pin="1" pintype="passive"/>
-      <node ref="U3" pin="3" pinfunction="BAT" pintype="passive"/>
-      <node ref="U4" pin="1" pinfunction="VIN" pintype="passive"/>
+      <node ref="U3" pin="3" pinfunction="BAT_3" pintype="passive"/>
+      <node ref="U4" pin="1" pinfunction="VIN_1" pintype="passive"/>
     </net>
-    <net code="27" name="/VBAT_SENSE">
+    <net code="27" name="/VBAT_SENSE" class="Default">
       <node ref="C9" pin="1" pintype="passive"/>
       <node ref="R5" pin="2" pintype="passive"/>
       <node ref="R6" pin="1" pintype="passive"/>
-      <node ref="U1" pin="3" pinfunction="IO4" pintype="passive"/>
+      <node ref="U1" pin="3" pinfunction="IO4_3" pintype="passive"/>
     </net>
-    <net code="28" name="/VBUS">
+    <net code="28" name="/VBUS" class="Default">
       <node ref="C1" pin="1" pintype="passive"/>
-      <node ref="D1" pin="5" pinfunction="VBUS" pintype="passive"/>
-      <node ref="J1" pin="A4" pinfunction="VBUS" pintype="passive"/>
-      <node ref="J1" pin="A9" pinfunction="VBUS" pintype="passive"/>
-      <node ref="J1" pin="B4" pinfunction="VBUS" pintype="passive"/>
-      <node ref="J1" pin="B9" pinfunction="VBUS" pintype="passive"/>
+      <node ref="D1" pin="5" pinfunction="VBUS_5" pintype="passive"/>
+      <node ref="J1" pin="A4" pinfunction="VBUS_A4" pintype="passive"/>
+      <node ref="J1" pin="A9" pinfunction="VBUS_A9" pintype="passive"/>
+      <node ref="J1" pin="B4" pinfunction="VBUS_B4" pintype="passive"/>
+      <node ref="J1" pin="B9" pinfunction="VBUS_B9" pintype="passive"/>
       <node ref="R7" pin="1" pintype="passive"/>
-      <node ref="U3" pin="4" pinfunction="VCC" pintype="passive"/>
+      <node ref="U3" pin="4" pinfunction="VCC_4" pintype="passive"/>
     </net>
-    <net code="29" name="/VCC_OLED">
+    <net code="29" name="/VCC_OLED" class="Default">
       <node ref="C12" pin="1" pintype="passive"/>
-      <node ref="J2" pin="28" pinfunction="VCC" pintype="passive"/>
+      <node ref="J2" pin="3" pinfunction="VCC_3" pintype="passive"/>
     </net>
-    <net code="30" name="/VCOMH">
+    <net code="30" name="/VCOMH" class="Default">
       <node ref="C13" pin="1" pintype="passive"/>
-      <node ref="J2" pin="27" pinfunction="VCOMH" pintype="passive"/>
+      <node ref="J2" pin="4" pinfunction="VCOMH_4" pintype="passive"/>
     </net>
-    <net code="31" name="unconnected-(J1-SBU1-PadA8)">
-      <node ref="J1" pin="A8" pinfunction="SBU1" pintype="passive+no_connect"/>
+    <net code="31" name="unconnected-(J1-SBU1-PadA8)" class="Default">
+      <node ref="J1" pin="A8" pinfunction="SBU1_A8" pintype="passive+no_connect"/>
     </net>
-    <net code="32" name="unconnected-(J1-SBU2-PadB8)">
-      <node ref="J1" pin="B8" pinfunction="SBU2" pintype="passive+no_connect"/>
+    <net code="32" name="unconnected-(J1-SBU2-PadB8)" class="Default">
+      <node ref="J1" pin="B8" pinfunction="SBU2_B8" pintype="passive+no_connect"/>
     </net>
-    <net code="33" name="unconnected-(J2-NC-Pad7)">
-      <node ref="J2" pin="7" pinfunction="NC" pintype="passive+no_connect"/>
+    <net code="33" name="unconnected-(J2-NC-Pad24)" class="Default">
+      <node ref="J2" pin="24" pinfunction="NC_24" pintype="passive+no_connect"/>
     </net>
-    <net code="34" name="unconnected-(U1-IO0-Pad18)">
-      <node ref="U1" pin="18" pinfunction="IO0" pintype="passive+no_connect"/>
+    <net code="34" name="unconnected-(U1-IO0-Pad18)" class="Default">
+      <node ref="U1" pin="18" pinfunction="IO0_18" pintype="passive+no_connect"/>
     </net>
-    <net code="35" name="unconnected-(U2-INT2-Pad11)">
-      <node ref="U2" pin="11" pinfunction="INT2" pintype="passive+no_connect"/>
+    <net code="35" name="unconnected-(U2-INT2-Pad11)" class="Default">
+      <node ref="U2" pin="11" pinfunction="INT2_11" pintype="passive+no_connect"/>
     </net>
-    <net code="36" name="unconnected-(U4-NC-Pad4)">
-      <node ref="U4" pin="4" pinfunction="NC" pintype="passive+no_connect"/>
+    <net code="36" name="unconnected-(U4-NC-Pad4)" class="Default">
+      <node ref="U4" pin="4" pinfunction="NC_4" pintype="passive+no_connect"/>
     </net>
   </nets>
 </export>

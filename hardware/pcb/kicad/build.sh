@@ -2,7 +2,7 @@
 # Rebuild the Lumi PCB draft from design.py:
 #   schematic -> board (placement) -> autoroute -> checks -> factory files.
 #
-# Needs: KiCad 7 (kicad-cli and its Python module), Java 21+ and
+# Needs: KiCad 10 (kicad-cli and its Python module), Java 21+ and
 # Freerouting 2.1 (FREEROUTING=/path/to/freerouting-2.1.0.jar, from
 # github.com/freerouting/freerouting/releases).
 # Optional: MODELS3D=/path/to/kicad-packages3D for the STEP export,
@@ -18,20 +18,23 @@ cd "$here"
 proj=lumi
 fab=fab
 mkdir -p "$fab" renders
+# KiCad's own Python, which has the pcbnew module. On Windows:
+#   PYTHON="/c/Program Files/KiCad/10.0/bin/python.exe"
+python="${PYTHON:-python3}"
 
 if [[ "${1:-}" != "--no-route" ]]; then
   : "${FREEROUTING:?set FREEROUTING to the Freerouting 2.1 jar}"
-  python3 gen_board.py "$proj"
-  python3 route.py "$proj" "$FREEROUTING"
+  "$python" gen_board.py "$proj"
+  "$python" route.py "$proj" "$FREEROUTING"
 fi
-python3 gen_schematic.py "$proj"
+"$python" gen_schematic.py "$proj"
 
 # Checks: schematic and board against design.py, then KiCad's DRC.
 kicad-cli sch export netlist --format kicadxml -o "$fab/netlist.xml" "$proj/lumi.kicad_sch" >/dev/null
-python3 check.py "$proj" "$fab/netlist.xml" "$fab/drc-report.txt"
+"$python" check.py "$proj" "$fab/netlist.xml" "$fab/drc-report.txt"
 
-python3 fab.py "$proj" "$fab" "${MODELS3D:-}"
-python3 case_refs.py "$proj" ../../enclosure/blender
+"$python" fab.py "$proj" "$fab" "${MODELS3D:-}"
+"$python" case_refs.py "$proj" ../../enclosure/blender
 
 # Drawings
 kicad-cli sch export pdf -o "$fab/lumi-schematic.pdf" "$proj/lumi.kicad_sch" >/dev/null

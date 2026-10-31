@@ -96,7 +96,7 @@ BLOCKS = [
     ("USB", "USB-C: CC pull-downs, ESD"),
     ("MCU", "ESP32-C3 module, decoupling, straps"),
     ("Motion", "LIS2DH12 (0x19), I2C pull-ups"),
-    ("Screen", "OLED FPC, I2C 0x3C (VERIFY pinout)"),
+    ("Screen", "OLED FPC, I2C 0x3C"),
     ("Sense", "Battery level, USB present"),
     ("Test", "Front test pads"),
 ]

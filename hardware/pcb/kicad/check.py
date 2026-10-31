@@ -1,18 +1,18 @@
-"""Connectivity checks that KiCad 7's command line can't do (it has no ERC/DRC
-commands; those arrived in KiCad 8):
+"""Connectivity checks against design.py:
 
 1. Schematic vs design.py: every pin is on the net design.py says, and
    nothing extra is connected (the schematic netlist is exported by
    kicad-cli, so this checks the drawn labels really connect).
 2. Board vs design.py: every pad carries the right net.
-3. KiCad's design-rule check on the routed board (via its Python API),
-   which must report no violations and nothing unrouted.
+3. KiCad's design-rule check on the routed board (via kicad-cli), which must
+   report no violations and nothing unrouted.
 
 Usage: python3 check.py <project-dir> <netlist.xml> <drc-report-out>
 """
 
 import os
 import re
+import subprocess
 import sys
 import xml.etree.ElementTree as ET
 
@@ -62,7 +62,9 @@ def main(proj, netlist, drc_out):
     board = pcbnew.LoadBoard(os.path.join(proj, "lumi.kicad_pcb"))
     errors += compare("board", want, board_nets(board))
 
-    pcbnew.WriteDRCReport(board, drc_out, pcbnew.EDA_UNITS_MILLIMETRES, True)
+    subprocess.run(["kicad-cli", "pcb", "drc", "--severity-all", "--format", "report",
+                    "--output", drc_out, os.path.join(proj, "lumi.kicad_pcb")],
+                   check=True, stdout=subprocess.DEVNULL)
     report = open(drc_out).read()
     counts = {k: int(v) for v, k in re.findall(r"\*\* Found (\d+) (DRC violations|unconnected pads)", report)}
     if counts.get("DRC violations", 1) or counts.get("unconnected pads", 1):

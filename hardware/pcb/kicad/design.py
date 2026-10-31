@@ -11,10 +11,10 @@ from the part's own datasheet. Check every one before ordering
 
 from dataclasses import dataclass, field
 
-# Set True if the screen's FPC arrives mirrored at the connector (pin 1 at
-# the other end). It depends on which way the panel's cable folds; see the
-# guide. It only swaps which connector pad each panel pin lands on.
-OLED_PIN_REVERSED = False
+# Seen from the front with the cable at the bottom, the panel's pin 1 is on
+# the left (datasheet drawing 1.4.2), so it reaches J2 at the board's low-x
+# end. That's J2's pad 30 as placed, so panel pin N lands on pad 31 - N.
+OLED_PIN_REVERSED = True
 
 
 @dataclass
@@ -39,7 +39,7 @@ BATPAD = "TestPoint:TestPoint_Pad_1.5x1.5mm"
 # JLCPCB "Basic" passives (no loading fee). Check each number in the JLCPCB
 # parts library before ordering; values matter, the exact maker doesn't.
 LCSC_R = {"5.1k": "C25905", "3.9k": "C51721", "1M": "C26083", "100k": "C25741",
-          "4.7k": "C25900", "10k": "C25744", "390k": "C25778"}
+          "150k": "C25755", "4.7k": "C25900", "10k": "C25744", "390k": "C25778"}
 LCSC_C = {("100nF", C0402): "C1525", ("1uF", C0402): "C52923",
           ("10uF", C0402): "C15525", ("1uF", C0603): "C15849",
           ("2.2uF", C0603): "C23630", ("4.7uF", C0603): "C19666"}
@@ -56,8 +56,8 @@ def C(ref, value, a, b, block, fp=C0402, note=""):
 
 
 # ---------------------------------------------------------------- module
-# ESP32-C3-WROOM-02 pin map (Espressif datasheet "Pin Definitions"; VERIFY
-# against the current PDF). Pad 19 is the centre ground pad.
+# ESP32-C3-WROOM-02 pin map (Espressif datasheet v1.7, Table 3-1). Pad 19 is
+# the centre ground pad.
 WROOM_NAMES = {
     "1": "3V3", "2": "EN", "3": "IO4", "4": "IO5", "5": "IO6", "6": "IO7",
     "7": "IO8", "8": "IO9", "9": "GND", "10": "IO10", "11": "RXD", "12": "TXD",
@@ -87,11 +87,11 @@ J1 = Part("J1", "USB-C 16P", "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12"
     "A4": "VBUS", "A9": "VBUS", "B4": "VBUS", "B9": "VBUS",
     "A5": "CC1", "B5": "CC2",
     "A6": "USB_DP", "B6": "USB_DP", "A7": "USB_DN", "B7": "USB_DN",
-    "A8": None, "B8": None, "S1": "GND",
+    "A8": None, "B8": None, "SH": "GND",
 }, {"A1": "GND", "A12": "GND", "B1": "GND", "B12": "GND", "A4": "VBUS",
     "A9": "VBUS", "B4": "VBUS", "B9": "VBUS", "A5": "CC1", "B5": "CC2",
     "A6": "D+", "B6": "D+", "A7": "D-", "B7": "D-", "A8": "SBU1", "B8": "SBU2",
-    "S1": "SHIELD"}, lcsc="C165948", block="USB")
+    "SH": "SHIELD"}, lcsc="C165948", block="USB")
 
 D1 = Part("D1", "USBLC6-2SC6", "Package_TO_SOT_SMD:SOT-23-6", {
     "1": "USB_DP", "2": "GND", "3": "USB_DN", "4": "USB_DN", "5": "VBUS",
@@ -122,11 +122,12 @@ BT2 = Part("BT2", "BAT-", BATPAD, {"1": "GND"}, {"1": "-"}, block="Power",
            bom=False, note="Battery black wire.")
 
 # ---------------------------------------------------------------- screen
-# Usual 30-pin SSD1306 panel pinout (UG-2864 family). VERIFY against the
-# BuyDisplay ER-OLED0.96-1 datasheet before ordering.
+# BuyDisplay ER-OLED0.96-1.3 pinout (ER-OLED0.96-1 datasheet rev 2.0, drawing
+# 1.4.2 and section 1.5). The charge pump's VBAT pin needs 3.5-4.2 V, so it
+# runs from the battery rail, not the 3.3 V regulator.
 OLED = {
     1: ("NC/GND", "GND"), 2: ("C2P", "C2P"), 3: ("C2N", "C2N"),
-    4: ("C1P", "C1P"), 5: ("C1N", "C1N"), 6: ("VBAT", "3V3"), 7: ("NC", None),
+    4: ("C1P", "C1P"), 5: ("C1N", "C1N"), 6: ("VBAT", "VBAT"), 7: ("NC", None),
     8: ("VSS", "GND"), 9: ("VDD", "3V3"), 10: ("BS0", "GND"),
     11: ("BS1", "3V3"), 12: ("BS2", "GND"), 13: ("CS#", "GND"),
     14: ("RES#", "OLED_RES"), 15: ("D/C#", "GND"), 16: ("R/W#", "GND"),
@@ -142,11 +143,13 @@ def _oled_pad(pin):
     return str(31 - pin if OLED_PIN_REVERSED else pin)
 
 
-J2 = Part("J2", "FH12-30S-0.5SH", "Connector_FFC-FPC:Hirose_FH12-30S-0.5SH_1x30-1MP_P0.50mm_Horizontal",
+# The panel's contacts are on its viewing side. Wrapped round the bottom edge,
+# they face away from the board, so J2 has to be a top-contact connector.
+J2 = Part("J2", "AFC07-S30ECC-00", "lumi:JUSHUO_AFC07-S30ECC-00",
           {**{_oled_pad(p): n for p, (_, n) in OLED.items()}, "MP": "GND"},
           {**{_oled_pad(p): nm for p, (nm, _) in OLED.items()}, "MP": "MP"},
-          lcsc="C506793", block="Screen",
-          note="30-pin 0.5 mm ZIF for the plug-in OLED. VERIFY contact side and pin 1 end.")
+          lcsc="C11095", block="Screen",
+          note="30-pin 0.5 mm top-contact ZIF for the plug-in OLED (ER-OLED0.96-1.3).")
 
 # ---------------------------------------------------------------- passives
 PASSIVES = [
@@ -172,7 +175,8 @@ PASSIVES = [
     R("R6", "1M", "VBAT_SENSE", "GND", "Sense", note="Battery divider bottom"),
     C("C9", "100nF", "VBAT_SENSE", "GND", "Sense"),
     R("R7", "100k", "VBUS", "USB_SENSE", "Sense", note="USB sense divider top"),
-    R("R8", "100k", "USB_SENSE", "GND", "Sense", note="USB sense divider bottom"),
+    R("R8", "150k", "USB_SENSE", "GND", "Sense",
+      note="USB sense divider bottom: 3.0 V from 5 V, clear of the C3's 2.48 V input-high level"),
     # I2C
     R("R9", "4.7k", "3V3", "SDA", "Motion", note="I2C pull-up"),
     R("R10", "4.7k", "3V3", "SCL", "Motion", note="I2C pull-up"),
@@ -182,7 +186,8 @@ PASSIVES = [
     C("C11", "1uF", "C2P", "C2N", "Screen", note="Charge-pump flying cap 2"),
     C("C12", "2.2uF", "VCC_OLED", "GND", "Screen", fp=C0603, note="VCC (~7.5 V): 0603, 25 V"),
     C("C13", "4.7uF", "VCOMH", "GND", "Screen", fp=C0603, note="VCOMH: 0603, 16 V+"),
-    C("C14", "1uF", "3V3", "GND", "Screen", note="Panel VDD/VBAT"),
+    C("C14", "1uF", "3V3", "GND", "Screen", note="Panel VDD"),
+    C("C15", "1uF", "VBAT", "GND", "Screen", note="Panel VBAT (charge pump)"),
     R("R15", "390k", "IREF", "GND", "Screen", note="IREF ~12 uA"),
 ]
 

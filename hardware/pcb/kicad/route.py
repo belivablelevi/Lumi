@@ -10,8 +10,10 @@ Usage: python3 route.py <project-dir> <freerouting-2.x.jar> [passes] [attempts]
 
 import os
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 
 import pcbnew
 
@@ -112,12 +114,11 @@ def freeroute(proj, jar, timeout=150):
         # then lacks tracks Freerouting reports as routed), so it's off.
         proc = subprocess.Popen(["java", "-jar", jar, "-de", "lumi.dsn", "-do", "lumi.ses",
                                  "--gui.enabled=false", "--router.optimizer.enabled=false"],
-                                cwd=proj, stdout=log, stderr=subprocess.STDOUT,
-                                start_new_session=True)
+                                cwd=proj, stdout=log, stderr=subprocess.STDOUT)
         try:
             proc.wait(timeout=timeout)
         except subprocess.TimeoutExpired:
-            os.killpg(proc.pid, 9)
+            proc.kill()
             proc.wait()
             return None
     return ses if os.path.exists(ses) else None
@@ -155,10 +156,17 @@ def stitch_ground(board, proj, pitch=1.8, keep_clear=0.3):
                 added.append(v)
             x += pitch
         y += pitch
-    report = os.path.join(proj, "stitch-drc.rpt")
+    # KiCad 10's Python can't run the check outside its app, so it's done by
+    # kicad-cli on a saved copy, next to the project file that holds the rules.
+    tmp = tempfile.mkdtemp(dir=proj)
+    shutil.copy(os.path.join(proj, "lumi.kicad_pro"), tmp)
+    copy = os.path.join(tmp, "lumi.kicad_pcb")
+    report = os.path.join(tmp, "stitch-drc.rpt")
     for _ in range(4):
         pcbnew.ZONE_FILLER(board).Fill(board.Zones())
-        pcbnew.WriteDRCReport(board, report, pcbnew.EDA_UNITS_MILLIMETRES, True)
+        pcbnew.SaveBoard(copy, board, True)
+        subprocess.run(["kicad-cli", "pcb", "drc", "--severity-all", "--format", "report",
+                        "--output", report, copy], check=True, stdout=subprocess.DEVNULL)
         bad = set()
         for m in re.finditer(r"@\(([\d.]+) mm, ([\d.]+) mm\): Via \[GND\]", open(report).read()):
             bad.add((round(float(m.group(1)), 2), round(float(m.group(2)), 2)))
@@ -169,9 +177,66 @@ def stitch_ground(board, proj, pitch=1.8, keep_clear=0.3):
         for v in drop:
             board.Remove(v)
             added.remove(v)
-    os.remove(report)
+    shutil.rmtree(tmp)
     pcbnew.ZONE_FILLER(board).Fill(board.Zones())
     return len(added)
+
+
+def run_drc(pcb, report):
+    """kicad-cli's DRC with zones refilled and saved; returns the report text."""
+    subprocess.run(["kicad-cli", "pcb", "drc", "--severity-all", "--refill-zones", "--save-board",
+                    "--format", "report", "--output", report, pcb],
+                   check=True, stdout=subprocess.DEVNULL)
+    with open(report) as fh:
+        return fh.read()
+
+
+def unconnected(text):
+    return int(re.search(r"\*\* Found (\d+) unconnected pads", text).group(1))
+
+
+def tidy_copper(pcb):
+    """Remove signal vias the DRC flags (dead ends, or too close to something)
+    and dead-end tracks, wherever every connection survives without them.
+    This edits the saved file and lets kicad-cli judge each trial, because
+    KiCad 10's Python loses its types after a save and reload. Returns how
+    many items went."""
+    report = pcb + ".rpt"
+    removed = 0
+    for _ in range(12):
+        drc = run_drc(pcb, report)
+        with open(pcb) as fh:
+            text = fh.read()
+        vias = {m[:2] for m in re.findall(r"@\(([\d.]+) mm, ([\d.]+) mm\): Via \[([^\]]+)\]", drc)
+                if m[2] != "GND"}
+        stubs = set()
+        for block in re.findall(r"\[track_dangling\].*?(?=\n\[|\n\n)", drc, flags=re.S):
+            stubs |= {m[:2] for m in re.findall(r"@\(([\d.]+) mm, ([\d.]+) mm\): Track \[([^\]]+)\]", block)
+                      if m[2] != "GND"}
+        changed = False
+        for pattern, spots, key in ((r"\t\(via\n.*?\n\t\)\n", vias, "at"),
+                                    (r"\t\(segment\n.*?\n\t\)\n", stubs, "start")):
+            for x, y in sorted(spots):
+                want = (float(x), float(y))
+                for m in re.finditer(pattern, text, flags=re.S):
+                    found = re.search(rf"\({key} ([-\d.]+) ([-\d.]+)\)", m.group(0))
+                    if found and (round(float(found.group(1)), 4), round(float(found.group(2)), 4)) == want:
+                        trial = text[:m.start()] + text[m.end():]
+                        with open(pcb, "w") as fh:
+                            fh.write(trial)
+                        if unconnected(run_drc(pcb, report)) == 0:
+                            with open(pcb) as fh:
+                                text = fh.read()
+                            removed += 1
+                            changed = True
+                        else:
+                            with open(pcb, "w") as fh:
+                                fh.write(text)
+                        break
+        if not changed:
+            break
+    os.remove(report)
+    return removed
 
 
 def remove_stubs(board):
@@ -274,10 +339,12 @@ def main(proj, jar, rounds="8"):
     stubs = remove_stubs(board)
     add_ground_pours(board)
     stitched = stitch_ground(board, proj)
-    board.BuildConnectivity()
-    left = board.GetConnectivity().GetUnconnectedCount(True)
-    print(f"removed {stubs} dead-end stubs, added {stitched} ground-stitching vias, {left} unrouted")
     pcbnew.SaveBoard(pcb, board, True)
+    tidied = tidy_copper(pcb)
+    left = unconnected(run_drc(pcb, pcb + ".rpt"))
+    os.remove(pcb + ".rpt")
+    print(f"removed {stubs} dead-end stubs and {tidied} flagged items, "
+          f"added {stitched} ground-stitching vias, {left} unrouted")
     for f in (dsn, os.path.join(proj, "lumi.ses")):
         if os.path.exists(f):
             os.remove(f)
