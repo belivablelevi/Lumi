@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { z } from "zod";
 import { brand } from "@/config/brand";
-import { CONSENT_VERSION, consentText } from "@/config/consent";
+import { CONSENT_VERSION, consentSender, consentText } from "@/config/consent";
 import { launches } from "@/content/launches";
 import { signupConfirmEmail, type Mailer } from "./email";
 import type { Store } from "./store/types";
@@ -53,7 +53,7 @@ export async function handleSignup(
   const result = await deps.store.saveSignup({
     email,
     topic,
-    consentText: consentText(brand.name),
+    consentText: `${consentText(brand.name)} ${consentSender()}`,
     consentVersion: CONSENT_VERSION,
     confirmTokenHash: hash(confirm),
     unsubscribeTokenHash: hash(unsubscribe),

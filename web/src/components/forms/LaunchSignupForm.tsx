@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Check, Loader2, Mail } from "lucide-react";
 import clsx from "clsx";
 import { brand } from "@/config/brand";
-import { consentText } from "@/config/consent";
+import { consentSender, consentText } from "@/config/consent";
 import { duration, ease } from "@/lib/motion";
 import { Button } from "../ui/Button";
 import { useCart } from "../cart/CartProvider";
@@ -122,6 +122,7 @@ export function LaunchSignupForm({
               <input type="checkbox" name="consent" className="mt-0.5 size-4 shrink-0 accent-ink" />
               <span>{consentText(brand.name)}</span>
             </label>
+            <p className={clsx("text-xs leading-snug", dark ? "text-white/60" : "text-muted")}>{consentSender()}</p>
             <p role="alert" aria-live="polite" className={clsx("min-h-4 text-[0.8125rem] font-semibold", dark ? "text-peach" : "text-peach-deep")}>
               {state.kind === "error" ? state.message : ""}
             </p>
