@@ -20,9 +20,10 @@ export function getMailer(): Mailer | null {
   if (!env.resendApiKey || !env.emailFrom) return null;
   const resend = new Resend(env.resendApiKey);
   const from = env.emailFrom;
+  const replyTo = confirmed(brand.contact.email) ?? undefined;
   return {
     async send(m) {
-      const { error } = await resend.emails.send({ from, to: m.to, subject: m.subject, html: m.html, text: m.text });
+      const { error } = await resend.emails.send({ from, replyTo, to: m.to, subject: m.subject, html: m.html, text: m.text });
       if (error) throw new Error(`email failed: ${error.message}`);
     },
   };
