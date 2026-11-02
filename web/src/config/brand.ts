@@ -1,4 +1,4 @@
-import { tbc, type Maybe } from "@/lib/placeholder";
+import type { Maybe } from "@/lib/placeholder";
 import { siteUrl } from "@/lib/site-url";
 
 /**
@@ -75,7 +75,7 @@ export const brand = {
   /** Required in every marketing email under CASL. Signups stay closed until it's set. */
   legal: {
     businessName: "Snaggo-1223" as Maybe<string>,
-    mailingAddress: tbc("Mailing address for CASL sender identification") as Maybe<string>,
+    mailingAddress: "322 Bay St, Ottawa, ON K1R 6A1" as Maybe<string>,
   },
 
   /** Pre-order and in-stock items in one cart? Off: they check out separately. */
