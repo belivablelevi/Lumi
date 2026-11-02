@@ -56,6 +56,6 @@ describe("demo catalogue", () => {
     const s = serviceStatus();
     expect(s.checkout).toBe(false);
     expect(s.missing.checkout).toContain("STRIPE_SECRET_KEY");
-    expect(s.missing.signup).toContain("brand.legal.mailingAddress (src/config/brand.ts)");
+    expect(s.missing.signup).toContain("EMAIL_FROM");
   });
 });
