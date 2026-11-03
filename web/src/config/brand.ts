@@ -10,8 +10,12 @@ export const brand = {
   name: "Snaggo",
   tagline: "Little companions. Big personality.",
   headline: "A little personality. A lot of feeling.",
+  /** Search results and link previews: say plainly what Snaggo is and makes. */
   description:
-    "Meet Lumi from Snaggo: expressive little companions made to travel with you, live on your desk, and make everyday moments a little more fun.",
+    "Snaggo is a small Canadian company making Lumi, a keychain companion with a glowing face that reacts when you pat, tilt or shake it. Every Lumi has its own personality.",
+  /** The plain facts, for search engines and AI assistants (structured data and /llms.txt). */
+  about:
+    "Snaggo is a small company based in Ottawa, Ontario, Canada. It designs and makes Lumi, a keychain-sized companion with a tiny glowing screen for a face. Lumi reacts when you pat, shake, tilt or pick it up, has moods that change over time, and gets its own randomly chosen look and temperament when it's made. Lumi hasn't launched yet: the first run is in development, and people can sign up to hear when pre-orders open.",
   locale: "en-CA",
   currency: "CAD" as const,
   siteUrl: siteUrl(),
