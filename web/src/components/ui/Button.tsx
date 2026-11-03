@@ -2,13 +2,15 @@ import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 import clsx from "clsx";
 
-type Variant = "primary" | "soft" | "ghost" | "outline";
+type Variant = "primary" | "light" | "soft" | "ghost" | "outline";
 type Size = "md" | "lg";
 
 const base =
   "inline-flex items-center justify-center gap-2 rounded-chip font-semibold transition-[background-color,color,box-shadow,transform] duration-200 ease-(--ease-out-soft) active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50 select-none";
 const variants: Record<Variant, string> = {
   primary: "bg-ink text-white hover:bg-ink-soft shadow-soft",
+  /** The primary button on a dark background. */
+  light: "bg-white text-ink hover:bg-lavender-pale shadow-soft",
   soft: "bg-lavender text-ink hover:bg-[#d3a9e3]",
   ghost: "text-ink hover:bg-ink/5",
   outline: "border border-ink/15 bg-white/60 text-ink hover:border-ink/40 hover:bg-white",

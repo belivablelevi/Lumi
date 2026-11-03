@@ -113,7 +113,7 @@ export function LaunchSignupForm({
                 <label htmlFor={`${id}-website`}>Website</label>
                 <input id={`${id}-website`} name="website" tabIndex={-1} autoComplete="off" />
               </div>
-              <Button type="submit" className={clsx("h-12", dark && "bg-white text-ink hover:bg-lavender-pale")} disabled={state.kind === "loading"}>
+              <Button type="submit" variant={dark ? "light" : "primary"} className="h-12" disabled={state.kind === "loading"}>
                 {state.kind === "loading" ? <Loader2 className="size-4 animate-spin" /> : null}
                 {state.kind === "loading" ? "Signing up…" : "Notify me"}
               </Button>
