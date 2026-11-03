@@ -45,7 +45,7 @@ BATTERY = (30.2, 30.2, 5.4)  # 503030 pouch with swelling allowance
 CLEAR = 0.3          # gap between the tallest part and the battery
 
 # Today's printed case (hardware/enclosure/lumi_case.scad), for comparison.
-CASE_OUTER = (35.0, 37.0, 7.0)   # width, height, corner radius
+CASE_OUTER = (35.0, 37.0, 6.0)   # width, height, corner radius
 CASE_WALL = 1.4
 
 KIND = {

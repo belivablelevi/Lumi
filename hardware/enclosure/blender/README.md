@@ -55,7 +55,7 @@ So the screen glass is at negative Y and the parts and battery at positive Y. Th
 
 The generator checks the references against today's case shape and the plan, and lists these problems (also stored in `lumi_pcb_v1_refs.json` under `warnings`):
 
-1. **Corners.** Today's case has 7 mm rounded corners, so its inside corners are 5.6 mm round. The board's square corners and the module's top corners stick out through them. Either:
+1. **Corners.** Today's case has 6 mm rounded corners, so its inside corners are 4.6 mm round. The board's square corners and the module's top corners stick out through them. Either:
    - give the PCB case smaller corners (about 4 mm radius outside), or
    - round the board's corners, which means re-placing a few parts.
 2. **Depth.** The inside stack is ~14.6 mm with 1.4 mm walls, not the plan's 12.5 mm. The module and USB-C socket are 3.2 mm tall. See [`../../pcb/GUIDE.md`](../../pcb/GUIDE.md) for ways to get it thinner.
@@ -81,7 +81,7 @@ It also colours them red. Modifiers count, so a Solidify or Boolean is checked a
 
 - **Shell.** Start from a rounded box (Add > Mesh > Cube, then a **Bevel** modifier for the corners) and hollow it with a **Solidify** modifier (1.4 mm, like today's case). Keep modifiers live until you export.
 - **Openings.** Make a cube matching each **Openings** box (snap to it with **Shift+S > Cursor to Selected**). Cut it from the shell with a **Boolean** modifier set to **Difference**.
-- **Two parts.** Split front and back where the stack allows (between the board and the battery), with a 1.6 mm lip like the OpenSCAD case: 0.15 mm fit clearance per side, tuned for your printer.
+- **Two parts.** Split front and back where the stack allows (between the board and the battery), with a lip like the OpenSCAD case: 0.15 mm fit clearance per side, tuned for your printer. Both finished cases snap together: see the hooks in `../lumi_case.scad` and `mini_lumi_case.py`.
 - **Checking.** Use **X-ray** (Alt+Z) to check the shell clears every reference box. **Measure** (in the toolbar) reads millimetres directly.
 - **Printing.**
   1. Select the case objects.

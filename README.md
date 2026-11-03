@@ -22,7 +22,7 @@ shares no code, artwork or branding with Rekko and isn't affiliated with it.
 | Deep-sleeps when idle | ESP32-C3 deep sleep, display off, IMU on wake-on-motion |
 | Wakes when you pick it up | MPU-6050 motion interrupt → GPIO3 deep-sleep wake |
 | Free animation updates | Wi-Fi update mode: phone → `192.168.4.1` → upload |
-| 35 × 37 mm glitter shell | Parametric OpenSCAD case, 35 × 37 × 19.5 mm, print in glitter PLA |
+| 35 × 37 mm glitter shell | Parametric OpenSCAD snap-fit case, 35 × 37 × 23.5 mm, print in glitter PLA |
 
 ## What it looks like
 
@@ -167,7 +167,7 @@ plus a table row saying which gesture triggers it and in which mood range.
 - ⚠️ **Not yet tested on real hardware.** Expect to tune the IMU axis map,
   tap threshold and wake sensitivity once it's built (see the checklist in
   `docs/assembly.md`), and to adjust case tolerances after a test print.
-- ⚠️ The case is 19.5 mm deep because a stock GY-521 board won't fit beside
+- ⚠️ The case is 23.5 mm deep because a stock GY-521 board won't fit beside
   the XIAO. A custom PCB, or a smaller IMU breakout, could get it thinner.
 
 ## License

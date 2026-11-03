@@ -12,7 +12,7 @@ or open it in Blender's Scripting workspace and press Run Script. It
 writes, into ../mini_lumi_pcb/:
 
     mini_lumi_pcb_body.stl   prints as modelled: base on the bed, back open
-    mini_lumi_pcb_lid.stl    prints outside face down
+    mini_lumi_pcb_lid.stl    prints outside face down; snaps onto the body
     mini_lumi_pcb.blend      case + references, assembled
 
 and stops with an error if the case doesn't pass its checks: every part
@@ -42,6 +42,7 @@ P = {
     "floor": 3.0,
     "roof": 3.0,
     "board_gap": 0.3,      # around the board's edges
+    "roof_gap": 0.7,       # above the board: room for the top snap arms
     "battery_gap": 0.5,    # around the battery
     "bend_gap": 0.4,       # below the screen cable's bend
     "bezel": 1.2,          # bezel thickness at the top (it thickens toward the chin)
@@ -51,10 +52,19 @@ P = {
     "chin_reach": 6.5,     # how far the chin sticks out in front of the bezel's foot
     "chin_top": -9.5,      # chin top, Z (below the window)
     "chamfer": 1.2,        # outside edges
-    "lid_rim": 5.0,        # lid rim depth (carries the walls on)
+    "lid_rim": 4.4,        # lid rim depth (carries the walls on); sets how far forward the snap hooks reach
     "lid_plate": 3.0,
     "lip": 1.5,            # lid/body lip joint depth
     "fit": 0.15,           # sliding clearance per side for the lip
+    "snap_x": 7.0,         # four snap arms on the lid: centres either side of the middle, top and bottom
+    "snap_w": 8.0,         # arm width
+    "snap_t": 0.8,         # arm thickness
+    "snap_gap": 0.5,       # between the arm and the lid's rim (any less and the slicer may fuse them)
+    "snap_catch": 0.4,     # how far the hook reaches into the roof or floor
+    "snap_flat": 0.2,      # flat on the hook's nose
+    "snap_clear": 0.1,     # play in the closed joint, so the seam can close fully
+    "snap_shoulder": 0.7,  # wall left between the lip joint and the groove
+    "snap_root": 1.5,      # the arm's root is sunk this far into the lid plate, to make it longer
     "badge": 0.6,          # raised height of the "Lumi" letters
     "tab_w": 10.0,         # keyring tab, centred on the roof
     "tab_h": 8.5,          # how far it stands above the roof: keeps the metal ring out of the antenna keep-out
@@ -212,7 +222,7 @@ def build(doc, col):
     # Inside of the case.
     xi = max(bx2 + p["board_gap"], tx2 + p["battery_gap"])
     zi_lo = min(cz1 - p["bend_gap"], tz1 - p["battery_gap"])
-    zi_hi = max(bz2 + p["board_gap"], tz2 + p["battery_gap"])
+    zi_hi = max(bz2 + p["roof_gap"], tz2 + p["battery_gap"])
     yi_front = gy1 - 0.1                       # glass rests on the bezel
     yi_back = ty2 + p["battery_gap"] + 0.5     # room for foam behind the battery
 
@@ -274,6 +284,17 @@ def build(doc, col):
     # the inside of the wall for it.
     cutters.append(mesh_box("cut switch body", xi - 0.5, wx2_ + 0.25, wy1 - 0.2, wy2 + 0.2,
                             wz1_ - 0.3, wz2_ + 0.3, col=col))
+    # Grooves in the roof and floor that the lid's hooks click into. The wall
+    # between the groove and the lip joint is what holds the hook.
+    rise = p["snap_gap"] + p["snap_catch"]
+    catch_y = y_body_back - p["snap_shoulder"]      # the groove's face toward the lid
+    groove_depth = p["snap_catch"] + 0.1
+    hook_nose = catch_y - p["snap_clear"] - p["snap_catch"]  # where the hook's slope reaches full height
+    hook_end = hook_nose - p["snap_flat"] - rise - 0.3       # the groove's other end clears the lead-in
+    for sx in (-1, 1):
+        x1, x2 = sx * p["snap_x"] - p["snap_w"] / 2 - 0.3, sx * p["snap_x"] + p["snap_w"] / 2 + 0.3
+        cutters.append(mesh_box(f"cut floor groove {sx}", x1, x2, hook_end, catch_y, zi_lo - groove_depth, zi_lo + 0.5, col=col))
+        cutters.append(mesh_box(f"cut roof groove {sx}", x1, x2, hook_end, catch_y, zi_hi - 0.5, zi_hi + groove_depth, col=col))
     for c in cutters:
         boolean(body, c)
 
@@ -336,8 +357,56 @@ def build(doc, col):
     boolean(lid, lid_inside)
     for v in vents:
         boolean(lid, v)
+    # Snap arms. Each stands free of the rim and has a hook on its outer face:
+    # the hook's slope toward the lid is the catch, 45 degrees so it prints
+    # without support and can still be pulled open; the other slope is the lead-in.
+    root_y = yi_back + p["snap_root"]
+    arm_tip = hook_nose - p["snap_flat"] - rise
+    # Printed with the plate on the bed, each arm is an upright beam, sunk into a
+    # pocket in the plate: (outward from the arm's wall, y)
+    outline = [(-p["snap_gap"] - p["snap_t"], root_y), (-p["snap_gap"], root_y),
+               (-p["snap_gap"], hook_nose + rise), (p["snap_catch"], hook_nose),
+               (p["snap_catch"], hook_nose - p["snap_flat"]), (-p["snap_gap"], arm_tip),
+               (-p["snap_gap"] - p["snap_t"], arm_tip)]
+    arms = []
+    pockets = []
+    for sx in (-1, 1):
+        for name, z_wall, out in (("floor", zi_lo, -1), ("roof", zi_hi, 1)):
+            x1, x2 = sx * p["snap_x"] - p["snap_w"] / 2, sx * p["snap_x"] + p["snap_w"] / 2
+            pz = sorted((z_wall - out * 0.01, z_wall - out * (p["snap_gap"] + p["snap_t"] + 0.6)))
+            pockets.append(mesh_box(f"cut arm pocket {name} {sx}", x1 - 0.5, x2 + 0.5, yi_back - 1, root_y, pz[0], pz[1], col=col))
+            arm = mesh_box(f"arm {name} {sx}", x1, x2, 0, 1, 0, 1, col=col)
+            bm = bmesh.new()
+            front = [bm.verts.new((x1, y, z_wall + out * u)) for u, y in outline]
+            back = [bm.verts.new((x2, y, z_wall + out * u)) for u, y in outline]
+            bm.faces.new(front)
+            bm.faces.new(back)
+            for i in range(len(outline)):
+                j = (i + 1) % len(outline)
+                bm.faces.new((front[i], front[j], back[j], back[i]))
+            bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+            bm.to_mesh(arm.data)
+            bm.free()
+            arms.append(arm)
+    for c in pockets:
+        boolean(lid, c)
+    for a in arms:
+        boolean(lid, a, "UNION")
+    # A fingernail notch at the seam, on the underside, for opening the case.
+    notch = mesh_box("cut lid notch", -4, 4, y_body_back + p["lip"] - 0.5, y_body_back + p["lip"] + 0.7,
+                     zo_lo - 1, zo_lo + 0.7, col=col)
+    boolean(lid, notch)
     apply_all(lid)
-    remove(lip_ring, lip_hole, lid_inside, *vents)
+    remove(lip_ring, lip_hole, lid_inside, *vents, *pockets, *arms, notch)
+
+    # The hook flexes this far as the lid goes on: it mustn't reach the battery.
+    flex = p["snap_catch"] + 0.05
+    arm_inner = p["snap_gap"] + p["snap_t"] + flex
+    snap_problems = []
+    if zi_hi - arm_inner < tz2:
+        snap_problems.append(f"A flexed top arm reaches the battery ({zi_hi - arm_inner:.2f} vs {tz2})")
+    if zi_lo + arm_inner > tz1:
+        snap_problems.append(f"A flexed bottom arm reaches the battery ({zi_lo + arm_inner:.2f} vs {tz1})")
 
     sizes = {
         "outside": (round(2 * xo, 2), round(y_lid_back - y_chin + p["badge"], 2), round(zo_hi + p["tab_h"] - zo_lo, 2)),
@@ -346,9 +415,10 @@ def build(doc, col):
         "inside": (round(2 * xi, 2), round(yi_back - yi_front, 2), round(zi_hi - zi_lo, 2)),
         "window": (round(2 * wx, 2), round(wz2 - wz1, 2)),
         "lid_offset_y": round(y_body_back, 3),
+        "lid_depth": p["lid_rim"] + p["lid_plate"],
         "base_z": round(zo_lo, 3),
     }
-    return body, lid, sizes
+    return body, lid, sizes, snap_problems
 
 
 # ---------------------------------------------------------------- run
@@ -426,9 +496,8 @@ def main():
     for obj in list(case.all_objects):
         if obj.name.startswith("Mini Lumi"):
             remove(obj)
-    body, lid, sizes = build(doc, case)
+    body, lid, sizes, problems = build(doc, case)
 
-    problems = []
     for obj in (body, lid):
         bad, vol = non_manifold(obj)
         print(f"{obj.name}: {len(obj.data.polygons)} faces, {bad} non-manifold edges, {vol / 1000:.1f} cm3")

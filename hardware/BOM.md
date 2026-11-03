@@ -24,7 +24,7 @@ AliExpress/Amazon numbers from late 2026, so check current listings.
 Instead of the XIAO you can use an ESP32-S3 SuperMini (~$3–5). Some versions
 (e.g. HW-747) have BAT+/BAT− pads and a built-in charger; those drop straight
 in. Versions without a charger also need a **TP4056 USB-C charger board with
-protection** (~$1) and a tiny slide switch, and the case gets 5.5 mm deeper.
+protection** (~$1) and a tiny slide switch, and the case gets 6.7 mm deeper.
 Wiring for both is in [`wiring.md`](wiring.md#alternative-esp32-s3-supermini).
 
 ## Why these parts
