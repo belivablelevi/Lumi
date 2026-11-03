@@ -127,6 +127,10 @@ export const products: Product[] = [
         a: "No, and that's half the fun. Every Lumi's look and temperament are picked at random when it's made, and no two are the same. You find out who you got when it arrives.",
       },
       {
+        q: "What are the chances of getting a legendary Lumi?",
+        a: "About 3 in 100. Lumis are made in batches mixed to 60% common, 25% uncommon, 12% rare and 3% legendary, and no two in a batch share a face or a name. The odds for every single trait are listed on this page.",
+      },
+      {
         q: "What does it do when I'm not playing with it?",
         a: "It idles: looks around, hums, yawns and daydreams. After a while on its own it falls asleep, and it wakes when you pick it up.",
       },

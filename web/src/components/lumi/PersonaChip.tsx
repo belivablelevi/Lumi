@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import type { LumiPersona } from "@/lib/lumi-frames";
 
-const rarityDot: Record<LumiPersona["rarity"], string> = {
+export const rarityFill: Record<LumiPersona["rarity"], string> = {
   common: "bg-[#9aa5b1]",
   uncommon: "bg-[#3fbf74]",
   rare: "bg-[#3b8fe6]",
@@ -9,7 +9,7 @@ const rarityDot: Record<LumiPersona["rarity"], string> = {
 };
 
 export function RarityDot({ rarity }: { rarity: LumiPersona["rarity"] }) {
-  return <span className={clsx("inline-block size-2 rounded-full", rarityDot[rarity])} aria-hidden />;
+  return <span className={clsx("inline-block size-2 rounded-full", rarityFill[rarity])} aria-hidden />;
 }
 
 export function PersonaChip({ p, className }: { p: LumiPersona; className?: string }) {
