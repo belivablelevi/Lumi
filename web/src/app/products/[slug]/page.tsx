@@ -15,6 +15,8 @@ import { Reveal } from "@/components/ui/Reveal";
 import { OledScreen } from "@/components/lumi/OledScreen";
 import { renderImage } from "@/lib/renders";
 import { PongSection } from "@/components/pong/PongSection";
+import { OddsSection } from "@/components/product/OddsSection";
+import { JsonLd } from "@/components/JsonLd";
 
 export function generateStaticParams() {
   return listedProducts().map((p) => ({ slug: p.slug }));
@@ -29,16 +31,6 @@ export async function generateMetadata({ params }: PageProps<"/products/[slug]">
     openGraph: p.images[0] ? { images: [p.images[0].src] } : undefined,
   };
 }
-
-const GENES = [
-  ["Eye shape", "8 shapes, from round and pill to droopy and almond"],
-  ["Eye size", "5 sizes"],
-  ["Spacing", "5 spacings, from close-set to far apart"],
-  ["Height", "Eyes sit high, middle or low"],
-  ["Glint", "6 highlight styles: square, dot, double, star, ring or none"],
-  ["Accent", "Lashes, brows, freckles, blush, a beauty mark, or nothing"],
-  ["Temperament", "Cheerful, sleepy, shy, grumpy or hyper"],
-] as const;
 
 export default async function ProductPage({ params }: PageProps<"/products/[slug]">) {
   const { slug } = await params;
@@ -68,7 +60,7 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
 
   return (
     <>
-      {jsonLd && !product.demo ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} /> : null}
+      {jsonLd && !product.demo ? <JsonLd data={jsonLd} /> : null}
       <section className="container-page grid gap-10 pt-6 pb-16 lg:grid-cols-[1.1fr_1fr] lg:gap-16 lg:pt-10">
         <div className="min-w-0 lg:sticky lg:top-24 lg:self-start">
           {product.images.length ? (
@@ -101,34 +93,24 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
           <section className="bg-white py-16 lg:py-20" aria-labelledby="own-title">
             <div className="container-page">
               <SectionHeading id="own-title" eyebrow="A personality all its own" title="Every Lumi is one of a kind."
-                lead="When a Lumi is made, its traits are picked at random from 108,000 combinations, and no two units are the same. Rarer traits come up less often, so a legendary Lumi is a lucky find." />
-              <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_1.4fr]">
-                <dl className="self-start divide-y divide-line rounded-card bg-cloud ring-1 ring-line">
-                  {GENES.map(([k, v]) => (
-                    <div key={k} className="grid grid-cols-[7rem_1fr] gap-4 px-5 py-3.5 text-[0.9375rem]">
-                      <dt className="font-bold">{k}</dt>
-                      <dd className="text-muted">{v}</dd>
-                    </div>
-                  ))}
-                  <div className="grid grid-cols-[7rem_1fr] gap-4 px-5 py-3.5 text-[0.9375rem]">
-                    <dt className="font-bold">Rarity</dt>
-                    <dd className="text-muted">About 60% of units are common, 25% uncommon, 12% rare and 3% legendary.</dd>
-                  </div>
-                </dl>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {personaStories.map((s, i) => (
-                    <Reveal key={s.id} delay={i * 0.05}>
-                      <CharacterCard personaId={s.id} line={s.line} shell={s.shell} image={renderImage(s.render)} product={product} />
-                    </Reveal>
-                  ))}
-                </div>
+                lead="When a Lumi is made, its traits are picked at random from 108,000 combinations, and no two units are the same. Rarer traits come up less often, so a legendary Lumi is a lucky find. Here are four we made earlier." />
+              <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {personaStories.map((s, i) => (
+                  <Reveal key={s.id} delay={i * 0.05}>
+                    <CharacterCard personaId={s.id} line={s.line} shell={s.shell} image={renderImage(s.render)} product={product} />
+                  </Reveal>
+                ))}
               </div>
             </div>
           </section>
 
-          <section className="container-page py-16 lg:py-20" aria-labelledby="action-title">
-            <SectionHeading id="action-title" eyebrow="See it in action" title="Twenty-nine faces, one personality." className="mb-10" />
-            <ExpressionCycler personaIds={product.personas} />
+          <OddsSection />
+
+          <section className="bg-white py-16 lg:py-20" aria-labelledby="action-title">
+            <div className="container-page">
+              <SectionHeading id="action-title" eyebrow="See it in action" title="Twenty-nine faces, one personality." className="mb-10" />
+              <ExpressionCycler personaIds={product.personas} />
+            </div>
           </section>
 
           <PongSection compact />

@@ -4,8 +4,10 @@ import { confirmed } from "@/lib/placeholder";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Accordion } from "@/components/ui/Accordion";
 import { Tbc } from "@/components/ui/Section";
+import { JsonLd } from "@/components/JsonLd";
+import { faqLd } from "@/lib/structured-data";
 
-export const metadata: Metadata = { title: "FAQ" };
+export const metadata: Metadata = { title: "FAQ", description: "Answers about Lumi, Snaggo's keychain companion: what it does, how its personality works, and how pre-orders will work." };
 
 const GENERAL = [
   { q: "What is a Lumi?", a: "A small companion with a glowing screen for a face. It reacts to being patted, shaken, tilted and picked up, and it has moods that change over time." },
@@ -16,8 +18,11 @@ const GENERAL = [
 
 export default function Page() {
   const product = listedProducts().flatMap((p) => p.faq.map((f) => ({ q: f.q, a: confirmed(f.a) ?? <Tbc /> })));
+  // Only questions with a real answer go in the structured data.
+  const answered = [...GENERAL, ...listedProducts().flatMap((p) => p.faq.flatMap((f) => (confirmed(f.a) ? [{ q: f.q, a: confirmed(f.a)! }] : [])))];
   return (
     <>
+      <JsonLd data={faqLd(answered)} />
       <PageHeader eyebrow="FAQ" title="Questions, answered" />
       <div className="container-page max-w-3xl space-y-10">
         <Accordion items={GENERAL} />

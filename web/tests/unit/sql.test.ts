@@ -4,6 +4,10 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 // Runs the real migration in an in-process Postgres and exercises its functions.
 const MIGRATION = readFileSync(new URL("../../supabase/migrations/0001_init.sql", import.meta.url), "utf8");
+// pg_cron is a Supabase extension, so the schedule lines are left out here.
+const CLEANUP = readFileSync(new URL("../../supabase/migrations/0002_cleanup.sql", import.meta.url), "utf8")
+  .replace(/^create extension if not exists pg_cron;$/m, "")
+  .replace(/^select cron\.schedule\(.*$/m, "");
 let db: PGlite;
 
 const order = (id: string, qty = 1) => ({
@@ -26,6 +30,7 @@ describe("database functions", () => {
   beforeAll(async () => {
     db = new PGlite();
     await db.exec(MIGRATION.replace(/^revoke .*$/gm, "")); // roles don't exist in a bare Postgres
+    await db.exec(CLEANUP.replace(/^revoke .*$/gm, ""));
   });
   beforeEach(async () => {
     await db.exec("truncate order_items, orders, capacity, stripe_events, launch_signups, signup_attempts cascade");
@@ -69,5 +74,32 @@ describe("database functions", () => {
     await db.query("update orders set reservation_expires_at = now() - interval '1 hour' where id = $1", [A]);
     expect(await create(B)).toBe("ok");
     expect(await status(A)).toBe("expired");
+  });
+
+  it("deletes only the personal data the privacy policy says it stops keeping", async () => {
+    const signup = (email: string, consented: string, confirmed: string | null, unsubscribed: string | null) =>
+      db.query(
+        `insert into launch_signups (email, topic, consent_text, consent_version, consented_at, confirm_token_hash, unsubscribe_token_hash, confirmed_at, unsubscribed_at)
+         values ($1, 't', 'c', 'v', now() - $2::interval, $1 || 'c', $1 || 'u', now() - $3::interval, now() - $4::interval)`,
+        [email, consented, confirmed, unsubscribed],
+      );
+    await signup("old-unconfirmed@x.ca", "91 days", null, null); // deleted
+    await signup("new-unconfirmed@x.ca", "89 days", null, null);
+    await signup("old-confirmed@x.ca", "5 years", "5 years", null); // still subscribed: kept
+    await signup("unsub-old@x.ca", "5 years", "5 years", "1096 days"); // deleted
+    await signup("unsub-recent@x.ca", "2 years", "2 years", "1 year");
+    await db.exec(
+      "insert into signup_attempts (key_hash, at) values ('old', now() - interval '31 days'), ('new', now() - interval '29 days')",
+    );
+    await db.exec("insert into capacity (sku, total) values ('LUMI-POCKET-01', 1)");
+    await create(A);
+    await db.query("update orders set created_at = now() - interval '10 years' where id = $1", [A]);
+
+    const r = (await db.query<{ r: Record<string, number> }>("select cleanup_personal_data() as r")).rows[0]!.r;
+    expect(r).toEqual({ unconfirmed_signups: 1, signup_attempts: 1, unsubscribed_signups: 1 });
+    const left = (await db.query<{ email: string }>("select email from launch_signups order by email")).rows.map((x) => x.email);
+    expect(left).toEqual(["new-unconfirmed@x.ca", "old-confirmed@x.ca", "unsub-recent@x.ca"]);
+    expect((await db.query("select key_hash from signup_attempts")).rows).toEqual([{ key_hash: "new" }]);
+    expect(await status(A)).toBe("pending"); // orders are never touched
   });
 });

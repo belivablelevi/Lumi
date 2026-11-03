@@ -127,7 +127,7 @@ Tick every box. Items marked **VERIFY** come from memory or similar parts, not f
   - the switch slot on the right,
   - the screen cable wrap at the bottom,
   - the ~14.5 mm depth.
-- [ ] **Corners:** today's case has 7 mm rounded corners, and the board's square corners and the module's top corners don't fit inside them. The PCB case needs smaller corners (about 4 mm), or the board needs rounded corners and a re-layout.
+- [ ] **Corners:** today's case has 6 mm rounded corners, and the board's square corners and the module's top corners don't fit inside them. The PCB case needs smaller corners (about 4 mm), or the board needs rounded corners and a re-layout.
 
 ## Ordering from JLCPCB
 

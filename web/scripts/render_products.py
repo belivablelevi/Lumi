@@ -318,15 +318,15 @@ def build_models(shell, screen, glass, metal, dark, steel, board):
     root = bpy.data.objects.new("pocket", None)
     bpy.context.scene.collection.objects.link(root)
     upright = Matrix(((-1, 0, 0, 0), (0, 0, 1, 0), (0, 1, 0, 0), (0, 0, 0, 1)))
-    unprint = Matrix(((1, 0, 0, 0), (0, -1, 0, 0), (0, 0, -1, 19.5), (0, 0, 0, 1)))  # the back part prints flipped
+    unprint = Matrix(((1, 0, 0, 0), (0, -1, 0, 0), (0, 0, -1, 23.5), (0, 0, 0, 1)))  # the back part prints flipped
     front = moved(load_stl("stl", "lumi_front.stl"), upright)
     back = moved(moved(load_stl("stl", "lumi_back.stl"), unprint), upright)
     bodies = [shell_object("pocket front", front, root, shell, 0.22), shell_object("pocket back", back, root, shell, 0.22)]
     active = display(root, screen, glass, {"x": 0, "y": 0.9, "z": -1.8}, (-12, 12, -6.7, 6.7))
-    extras = usb_port(-16.4, 7.9, 3.5, 3.2, 8.9, root, metal, dark)
-    extras.append(box("XIAO board", (-16.4, 5.1, -5.4), (4.6, 6.3, 12.4), root, board))
-    # The bail's hole is at y = 21, z = 9.75 in lumi_case.scad; the wire rests against the top of it.
-    ring = split_ring((0, 9.75, 21 + 1.7 - 0.65 + 11.5), 11.5, 0.6, root, steel)
+    extras = usb_port(-16.4, 9.1, 3.5, 3.2, 8.9, root, metal, dark)
+    extras.append(box("XIAO board", (-16.4, 6.3, -5.4), (4.6, 7.5, 12.4), root, board))
+    # The bail's hole is at y = 21, z = 11.75 in lumi_case.scad; the wire rests against the top of it.
+    ring = split_ring((0, 11.75, 21 + 1.7 - 0.65 + 11.5), 11.5, 0.6, root, steel)
     models["pocket"] = {"root": root, "bodies": [front, back], "active": active, "offset": Matrix.Identity(4),
                         "objects": [root, *bodies, active, *extras, root.children[2]], "ring": ring}
 
@@ -334,7 +334,7 @@ def build_models(shell, screen, glass, metal, dark, steel, board):
     root = bpy.data.objects.new("mini-pcb", None)
     bpy.context.scene.collection.objects.link(root)
     sizes = json.load(open(os.path.join(ENCLOSURE, "mini_lumi_pcb", "sizes.json")))
-    lid_back = sizes["lid_offset_y"] + 8.0  # lid rim + plate (mini_lumi_case.py)
+    lid_back = sizes["lid_offset_y"] + sizes["lid_depth"]
     body = moved(load_stl("mini_lumi_pcb", "mini_lumi_pcb_body.stl"), Matrix.Translation((0, 0, sizes["base_z"])))
     lid = moved(load_stl("mini_lumi_pcb", "mini_lumi_pcb_lid.stl"),
                 Matrix(((1, 0, 0, 0), (0, 0, -1, lid_back), (0, 1, 0, 0), (0, 0, 0, 1))))

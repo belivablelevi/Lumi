@@ -10,6 +10,8 @@ import { Footer } from "@/components/layout/Footer";
 import { LumiCtaPill } from "@/components/layout/LumiCtaPill";
 import { Providers } from "@/components/Providers";
 import { CartDrawer } from "@/components/cart/CartDrawer";
+import { JsonLd } from "@/components/JsonLd";
+import { organizationLd, websiteLd } from "@/lib/structured-data";
 import "./globals.css";
 
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope", display: "swap" });
@@ -32,6 +34,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en-CA" className={`${manrope.variable} ${bricolage.variable}`}>
       <body className="min-h-dvh antialiased">
+        <JsonLd data={organizationLd()} />
+        <JsonLd data={websiteLd()} />
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-chip focus:bg-ink focus:px-4 focus:py-2 focus:text-white">
           Skip to content
         </a>

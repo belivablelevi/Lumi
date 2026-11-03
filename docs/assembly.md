@@ -14,13 +14,16 @@ openscad -D 'part="front"' --export-format binstl -o stl/lumi_front.stl lumi_cas
 openscad -D 'part="back"'  --export-format binstl -o stl/lumi_back.stl  lumi_case.scad
 ```
 
-- Material: PLA or PETG. Glitter/"galaxy" filament gives the sparkly shell.
+- Material: PETG is the better choice: it bends more before it cracks, which suits the snap hooks. PLA hooks may crack after repeated opening. Glitter/"galaxy" filament gives the sparkly shell.
 - 0.2 mm layers, 3 walls, 20% infill. **Support only under the keyring tab**
   (support from the build plate is enough), since it's centred on the top
   and stands clear of the bed.
 - Front half: screen side down on the bed. Back half: outside face down.
-- Check the lip fit before assembly. If it's too tight or loose, change
-  `fit` (clearance per side, default 0.15 mm) and reprint the back.
+- Test the snap before assembly: press the two halves together until the
+  four hooks click, then pull them apart. If the lip binds, change `fit`
+  (clearance per side, default 0.15 mm) and reprint the back. If the hooks
+  are too stiff or too weak, change `snap_catch` (how far they reach into the
+  wall, default 0.35 mm) and reprint the back and front.
 - Measure your OLED module. Panels vary by ~0.5 mm, and if the glass isn't
   centred behind the window, adjust `oled_glass_offset_y` / `view_offset_y`.
 
@@ -52,25 +55,33 @@ Follow [`hardware/wiring.md`](../hardware/wiring.md). Tips:
  front ─┐
         │ 1.4 mm  front wall + window
         │ ~2.7 mm OLED (glass into the recess, pins at the top)
-        │ ~1 mm   wires, Kapton
+        │ 2.2 mm  the OLED's back parts, wires, BAT pads, Kapton
         │ ~4.4 mm XIAO (USB-C into the right-hand opening, between the rails)
+        │ 1.3 mm  Kapton, the GY-521's solder joints
         │ ~2.6 mm GY-521, chip facing back, Y arrow pointing at the keyring
+        │ 1.5 mm  battery leads, divider resistors
         │ ~5.4 mm 500 mAh LiPo (in the back half)
+        │ 0.6 mm  foam tape
         │ 1.4 mm  back wall
- back  ─┘   = 19.5 mm
+ back  ─┘   = 23.5 mm
 ```
 
 1. Drop the OLED face-down into the front half so the glass sits in its
-   recess and the PCB rests against the two pegs. A dot of foam tape
-   holds it.
+   recess and the PCB sits in its pocket. A dot of foam tape holds it.
 2. Kapton over the back of the OLED.
-3. Slide the XIAO in so the USB-C lines up with the side opening.
-4. Kapton over the XIAO, then the GY-521 on top. Its orientation matters:
-   see the IMU table in `wiring.md`.
-5. Route the battery leads through the notch in the lip and press the
-   battery into the back half.
-6. Close the case. It's a friction fit; add a dot of glue once you're
-   happy with it.
+3. Slide the XIAO in so the USB-C lines up with the side opening. Its PCB
+   rests on the ledges beside the USB-C, and the stop at its far end takes
+   the push of a plug.
+4. Kapton over the XIAO, then the GY-521 on top, with its edge on the two
+   ribs on the left wall. Its orientation matters: see the IMU table in
+   `wiring.md`.
+5. Stick the battery into the back half with foam tape. Route its leads
+   through the notch in the lip on the left, and keep every wire clear of
+   the four snap arms on the top and bottom walls.
+6. Line up the halves and press until all four hooks click. No glue or
+   screws. To open it, put a fingernail in the notch in the seam on the left
+   side and work the halves apart. Don't use anything sharp: the battery is
+   just inside.
 
 ## 5. First power-up checklist
 

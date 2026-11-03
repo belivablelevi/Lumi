@@ -19,7 +19,7 @@ PCBWay). The same files then scale to production.
 
 Side effects of one integrated board:
 - No hand wiring, so every unit comes out the same.
-- A much **thinner case**: about 12–13 mm instead of 19.5 mm, keeping the
+- A much **thinner case**: about 12–13 mm instead of 23.5 mm, keeping the
   35 × 37 mm front.
 - Parts cost drops from about $10–15 of modules to roughly **$5–6** per
   unit at volume, before assembly.

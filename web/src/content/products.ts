@@ -112,7 +112,7 @@ export const products: Product[] = [
       { label: "Updates", value: "New animations over Wi-Fi" },
       { label: "Charging", value: "USB-C" },
       { label: "Battery", value: tbc("Cell capacity and real-world battery life") },
-      { label: "Size", value: "Case design: 35 × 37 × 19.5 mm, plus the keyring loop" },
+      { label: "Size", value: "Case design: 35 × 37 × 23.5 mm, plus the keyring loop" },
       { label: "Materials", value: tbc("Production shell material and finish") },
       { label: "Warranty", value: tbc("Warranty terms") },
     ],
@@ -125,6 +125,10 @@ export const products: Product[] = [
       {
         q: "Can I choose my Lumi's personality?",
         a: "No, and that's half the fun. Every Lumi's look and temperament are picked at random when it's made, and no two are the same. You find out who you got when it arrives.",
+      },
+      {
+        q: "What are the chances of getting a legendary Lumi?",
+        a: "About 3 in 100. Lumis are made in batches mixed to 60% common, 25% uncommon, 12% rare and 3% legendary, and no two in a batch share a face or a name. The odds for every single trait are listed on this page.",
       },
       {
         q: "What does it do when I'm not playing with it?",
