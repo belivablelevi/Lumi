@@ -74,7 +74,7 @@ Pre-orders and in-stock items check out separately (`allowMixedCarts` in `brand.
 
 Copy `.env.example` to `.env.local` for local work. On Vercel, put the same values in **Project → Settings → Environment Variables**. Secret keys are only read on the server.
 
-1. **Supabase.** Create a project, then run `supabase/migrations/0001_init.sql` in the SQL editor. Copy `SUPABASE_URL` and the **service role** key. Every table has row-level security with no public policies, so only the server can read or write.
+1. **Supabase.** Create a project, then run `supabase/migrations/0001_init.sql` and `0002_cleanup.sql` in the SQL editor, in that order. The second one deletes old signup data every day, as the privacy policy promises. Copy `SUPABASE_URL` and the **service role** key. Every table has row-level security with no public policies, so only the server can read or write.
 2. **Stripe.** Use test keys first.
    - Set `STRIPE_SECRET_KEY`.
    - Add a webhook endpoint at `https://<your-domain>/api/stripe/webhook` for these events: `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed` and `checkout.session.expired`. Put its signing secret in `STRIPE_WEBHOOK_SECRET`.
@@ -98,7 +98,7 @@ fill in most of these for you:
 | `EMAIL_FROM` | You, e.g. `Snaggo <hello@snaggo.tech>`, on a domain verified in Resend |
 
 Still to do by hand, once:
-1. Paste `supabase/migrations/0001_init.sql` into Supabase's **SQL editor** and run it.
+1. Paste `supabase/migrations/0001_init.sql` into Supabase's **SQL editor** and run it, then do the same with `0002_cleanup.sql`.
 2. Set how many can be pre-ordered: `insert into capacity (sku, total) values ('LUMI-POCKET-01', 100);`.
 3. In Stripe, add a webhook endpoint `https://<your-site>/api/stripe/webhook` for `checkout.session.completed`,
    `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed` and `checkout.session.expired`.
