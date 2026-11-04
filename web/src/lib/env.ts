@@ -23,7 +23,7 @@ export const env = {
   stripePublishableKey: get("STRIPE_PUBLISHABLE_KEY") ?? get("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"),
   stripeWebhookSecret: get("STRIPE_WEBHOOK_SECRET"),
   stripeTax: get("STRIPE_AUTOMATIC_TAX") === "1",
-  shippingCountries: (get("STRIPE_SHIPPING_COUNTRIES") ?? "CA").split(",").map((s) => s.trim()).filter(Boolean),
+  shippingCountries: (get("STRIPE_SHIPPING_COUNTRIES") ?? "CA,US").split(",").map((s) => s.trim()).filter(Boolean),
   // The Vercel Supabase integration sets both names; either works.
   supabaseUrl: get("SUPABASE_URL") ?? get("NEXT_PUBLIC_SUPABASE_URL"),
   supabaseServiceKey: get("SUPABASE_SERVICE_ROLE_KEY"),

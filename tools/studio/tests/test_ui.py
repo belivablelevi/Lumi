@@ -121,7 +121,8 @@ def test_design_to_factory(app, win, tmp_path):
     win.factory.save_manifest(manifest)
     assert os.path.exists(manifest) and s.manifest_path == manifest
     cards = win.factory.export_cards(str(tmp_path / "cards"))
-    assert len(os.listdir(cards)) == 41  # one per unit + the sheet
+    assert len(os.listdir(cards)) == 42  # a PNG per unit, the contact sheet and the birth-certificate PDF
+    assert open(os.path.join(cards, "lumi-unit-cards-letter.pdf"), "rb").read(5) == b"%PDF-"
     for pdf in win.factory.export_odds_card(str(tmp_path / "odds")):
         assert open(pdf, "rb").read(5) == b"%PDF-"
     win.factory.table.selectRow(2)

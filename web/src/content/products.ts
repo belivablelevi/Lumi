@@ -118,7 +118,7 @@ export const products: Product[] = [
     ],
     included: tbc("What's in the box"),
     preorder: tbc("Pre-order terms: dispatch window, payment timing, cancellation and delays"),
-    shipping: tbc("Shipping regions, rates and times"),
+    shipping: "Ships to Canada and the US with Canada Post, tracked. The price is worked out from your address at checkout",
     maxPerOrder: 4,
     launchId: "pocket-first-run",
     faq: [
@@ -133,6 +133,14 @@ export const products: Product[] = [
       {
         q: "What does it do when I'm not playing with it?",
         a: "It idles: looks around, hums, yawns and daydreams. After a while on its own it falls asleep, and it wakes when you pick it up.",
+      },
+      {
+        q: "Where do you ship, and how much does shipping cost?",
+        a: "Canada and the US, with Canada Post, tracked. Shipping is worked out from your address at checkout, so you see the exact price before you pay.",
+      },
+      {
+        q: "How do I wake my Lumi when it arrives?",
+        a: "Lumi travels asleep, so bumps in the post can't wake it. Tap its screen three times and it'll wake up and say hello.",
       },
       {
         q: "How long does the battery last?",

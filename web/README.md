@@ -78,7 +78,7 @@ Copy `.env.example` to `.env.local` for local work. On Vercel, put the same valu
 2. **Stripe.** Use test keys first.
    - Set `STRIPE_SECRET_KEY` and `STRIPE_PUBLISHABLE_KEY` (the `pk_` key; the checkout page gives it to Stripe.js).
    - Add a webhook endpoint at `https://<your-domain>/api/stripe/webhook` for these events: `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired` and `charge.refunded`. Put its signing secret in `STRIPE_WEBHOOK_SECRET`.
-   - Optional: `STRIPE_AUTOMATIC_TAX=1` (after setting up Stripe Tax for your GST/HST/PST registrations) and `STRIPE_SHIPPING_COUNTRIES` (`CA` by default; `CA,US` to ship to the US too).
+   - Optional: `STRIPE_AUTOMATIC_TAX=1` (after setting up Stripe Tax for your GST/HST/PST registrations) and `STRIPE_SHIPPING_COUNTRIES` (`CA,US` by default; `CA` for Canada only).
    - **Shipping prices** are worked out from each address at checkout. For Canada Post's own prices, join the free [Canada Post Developer Program](https://www.canadapost-postescanada.ca/information/app/drc/home), then set `CANADA_POST_USERNAME`, `CANADA_POST_PASSWORD` and `CANADA_POST_CUSTOMER_NUMBER` (your Solutions for Small Business number). Without them, or if Canada Post doesn't answer, checkout uses the region table in `src/lib/shipping.ts`. Weigh a packed Lumi and set `SHIPPING_BOX_KG`, `SHIPPING_UNIT_KG` and `SHIPPING_BOX_CM` (see `.env.example`).
    - Shipping protection ($3.98) and the tip buttons are set in `src/lib/addons.ts`. Ask your accountant how to treat tips and protection for GST/HST before turning on Stripe Tax.
    - Test locally with `stripe listen --forward-to localhost:3000/api/stripe/webhook`.

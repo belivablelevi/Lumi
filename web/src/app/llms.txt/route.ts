@@ -31,7 +31,7 @@ ${products}
 - Every Lumi gets a random look and temperament (cheerful, sleepy, shy, grumpy or hyper) when it's made: ${combinations.toLocaleString("en-CA")} possible combinations.
 - Rarity: about ${pct(tierShare.common)} common, ${pct(tierShare.uncommon)} uncommon, ${pct(tierShare.rare)} rare and ${pct(tierShare.legendary)} legendary.
 - Two Lumis can play Boop Pong against each other.
-- Designed in Ottawa, Canada. Not on sale yet.
+- Designed in Ottawa, Canada. Not on sale yet. When it is, it ships to Canada and the US with Canada Post.
 
 ## Pages
 
