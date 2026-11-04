@@ -1,13 +1,17 @@
 import type Stripe from "stripe";
 import { orderConfirmationEmail, type Mailer } from "./email";
 import type { Store } from "./store/types";
+import { isToShip } from "./store/views";
+import { addonsTotal } from "./addons";
 
 export interface WebhookDeps {
   store: Store;
   mailer: Mailer | null;
 }
 
-export type WebhookOutcome = "paid" | "duplicate" | "released" | "waiting" | "ignored" | "missing";
+export type WebhookOutcome = "paid" | "duplicate" | "released" | "waiting" | "ignored" | "missing" | "refunded" | "partial_refund";
+
+const idOf = (v: string | { id: string } | null | undefined) => (typeof v === "string" ? v : v?.id);
 
 function orderId(session: Stripe.Checkout.Session): string | null {
   return session.metadata?.order_id ?? session.client_reference_id ?? null;
@@ -36,14 +40,20 @@ export async function handleStripeEvent(event: Stripe.Event, deps: WebhookDeps):
         outcome = "missing";
         break;
       }
+      // Products plus the tip and protection must be exactly what the order says, and
+      // shipping must have been priced (the server sets it once it has the address).
       const mismatch =
-        session.currency?.toUpperCase() !== order.currency || (session.amount_subtotal ?? -1) !== order.subtotal;
+        session.currency?.toUpperCase() !== order.currency ||
+        (session.amount_subtotal ?? -1) !== order.subtotal + addonsTotal(order) ||
+        !session.shipping_cost;
       const result = await store.markPaid(id, {
         sessionId: session.id,
         email: session.customer_details?.email ?? undefined,
         customerName: session.customer_details?.name ?? undefined,
         shipping: session.collected_information?.shipping_details ?? undefined,
         amountTotal: session.amount_total ?? undefined,
+        paymentIntent: idOf(session.payment_intent),
+        shippingAmount: session.shipping_cost?.amount_subtotal ?? undefined,
         mismatch,
       });
       if (result === "missing") {
@@ -52,7 +62,7 @@ export async function handleStripeEvent(event: Stripe.Event, deps: WebhookDeps):
       }
       outcome = result === "updated" ? "paid" : "duplicate";
       const fresh = await store.getOrder(id);
-      if (fresh && fresh.email && !fresh.confirmationSentAt && (fresh.status === "paid" || fresh.status === "review") && deps.mailer) {
+      if (fresh && fresh.email && !fresh.confirmationSentAt && isToShip(fresh) && deps.mailer) {
         await deps.mailer.send(orderConfirmationEmail(fresh));
         await store.markConfirmationSent(id);
       }
@@ -64,6 +74,15 @@ export async function handleStripeEvent(event: Stripe.Event, deps: WebhookDeps):
       if (!id) break;
       await store.releaseOrder(id, event.type === "checkout.session.expired" ? "expired" : "failed");
       outcome = "released";
+      break;
+    }
+    case "charge.refunded": {
+      // A refund made in the Stripe dashboard. `refunded` is true once the whole charge is refunded.
+      const charge = event.data.object;
+      const pi = idOf(charge.payment_intent);
+      if (!pi) break;
+      const result = await store.markRefunded(pi, charge.amount_refunded, charge.refunded);
+      outcome = result === "missing" ? "missing" : result === "partial" ? "partial_refund" : result === "already" ? "duplicate" : "refunded";
       break;
     }
   }

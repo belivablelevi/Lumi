@@ -19,13 +19,39 @@ openscad -D 'part="back"'  --export-format binstl -o stl/lumi_back.stl  lumi_cas
   (support from the build plate is enough), since it's centred on the top
   and stands clear of the bed.
 - Front half: screen side down on the bed. Back half: outside face down.
-- Test the snap before assembly: press the two halves together until the
-  four hooks click, then pull them apart. If the lip binds, change `fit`
-  (clearance per side, default 0.15 mm) and reprint the back. If the hooks
-  are too stiff or too weak, change `snap_catch` (how far they reach into the
-  wall, default 0.35 mm) and reprint the back and front.
+- The four hook arms stand upright on the front half, so they bend across
+  their layer lines, which is where a print is weakest. Good layer bonding
+  matters more here than anywhere else: print at the hot end of your
+  filament's range, keep the part cooling fan moderate (around 30 to 50% for
+  PETG), and don't print the front faster than your usual walls.
+- **Tune the click first with the snap test** (`stl/snap_test.stl`, one
+  plate): three short fronts with hooks 0.25, 0.35 and 0.45 mm deep (the
+  depth is engraved underneath) and one back that takes all three. Print it
+  in the filament you'll use for the case. Snap each front into the back
+  five or six times:
+  - **Too deep:** it takes a hard push, or it whitens or cracks at the root of an arm.
+  - **Too shallow:** it barely clicks, or falls apart when you shake it.
+  - **Just right:** a firm click, and it opens with a fingernail in the side
+    notch.
+  Set `snap_catch` to the depth that felt right, and print the case. It's
+  0.45 now, picked from a PLA test. Regenerate the test with
+  `-D 'part="snap_test"'`.
+- If the lip binds or rattles before the hooks engage, change `fit`
+  (clearance per side, default 0.15 mm) and reprint the front, which carries
+  the lip.
 - Measure your OLED module. Panels vary by ~0.5 mm, and if the glass isn't
   centred behind the window, adjust `oled_glass_offset_y` / `view_offset_y`.
+- **Screen pins (optional):** the case can hold the module on pins through
+  its four corner holes instead of glue. Hole positions vary by seller, so
+  measure yours first: the hole diameter, the centre-to-centre spacing
+  left to right and top to bottom, and how far the hole pattern's centre sits
+  from the board's centre. Set `oled_hole_d`, `oled_holes` and
+  `oled_holes_offset_y`, print `-D 'part="screen_test"'` (just the front wall
+  and the pocket, about 15 minutes), and check the module drops onto the pins
+  with the screen centred in the window. Then set `oled_pins = true` and
+  rebuild the front. Pins that would hit the glass are left out
+  automatically. Melt the pin tips over with the iron, or use a dot of glue,
+  to hold the module in.
 
 ![case](previews/case.png)
 
@@ -60,10 +86,10 @@ Follow [`hardware/wiring.md`](../hardware/wiring.md). Tips:
         │ 1.3 mm  Kapton, the GY-521's solder joints
         │ ~2.6 mm GY-521, chip facing back, Y arrow pointing at the keyring
         │ 1.5 mm  battery leads, divider resistors
-        │ ~5.4 mm 500 mAh LiPo (in the back half)
-        │ 0.6 mm  foam tape
+        │ ~7.4 mm 300 mAh 702025 LiPo (in the back half)
+        │ 0.6 mm  foam, or a folded scrap of paper (no hot glue on the cell)
         │ 1.4 mm  back wall
- back  ─┘   = 23.5 mm
+ back  ─┘   = 25.5 mm
 ```
 
 1. Drop the OLED face-down into the front half so the glass sits in its
@@ -96,3 +122,24 @@ Follow [`hardware/wiring.md`](../hardware/wiring.md). Tips:
       `LUMI_WAKE_THRESHOLD`.
 - [ ] Serial `b` shows a sensible battery voltage (3.5–4.2 V).
 - [ ] Plug in USB-C: the XIAO charge LED lights.
+
+## 6. Packing it to ship
+
+Lumi wakes when it moves, and a parcel moves all the time. Shipping mode
+keeps it asleep in the post: every bump still wakes the chip, but only for
+a moment with the screen off, and it goes straight back to sleep unless
+someone taps its screen three times. Canada Post also requires that a
+device with a lithium battery can't switch on in transit.
+
+1. Charge or run the battery to roughly 30–60%. Lithium cells travel best
+   part-charged.
+2. With the unit on USB, press **Ship mode** on Lumi Studio's Provision tab,
+   or type `ship` in the serial monitor. The reply shows the battery level,
+   and Lumi goes to sleep.
+3. Unplug it and pack it in a rigid box with padding, so it can't rattle.
+   Tell the customer how to wake it (the shipped email and the card say so):
+   **tap the screen three times**.
+4. Before packing a batch, test one: put it in ship mode, shake the box, and
+   check it stays dark; then tap it three times and check it says hello.
+   If taps don't wake it, or handling does, tune `LUMI_SHIP_WAKE_THRESHOLD`
+   and `LUMI_SHIP_TAPS` in `config.h`.

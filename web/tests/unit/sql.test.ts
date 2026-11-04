@@ -8,6 +8,7 @@ const MIGRATION = readFileSync(new URL("../../supabase/migrations/0001_init.sql"
 const CLEANUP = readFileSync(new URL("../../supabase/migrations/0002_cleanup.sql", import.meta.url), "utf8")
   .replace(/^create extension if not exists pg_cron;$/m, "")
   .replace(/^select cron\.schedule\(.*$/m, "");
+const FULFILMENT = readFileSync(new URL("../../supabase/migrations/0003_fulfilment.sql", import.meta.url), "utf8");
 let db: PGlite;
 
 const order = (id: string, qty = 1) => ({
@@ -31,6 +32,8 @@ describe("database functions", () => {
     db = new PGlite();
     await db.exec(MIGRATION.replace(/^revoke .*$/gm, "")); // roles don't exist in a bare Postgres
     await db.exec(CLEANUP.replace(/^revoke .*$/gm, ""));
+    await db.exec(FULFILMENT.replace(/^revoke .*$/gm, ""));
+    await db.exec(FULFILMENT.replace(/^revoke .*$/gm, "")); // safe to run twice
   });
   beforeEach(async () => {
     await db.exec("truncate order_items, orders, capacity, stripe_events, launch_signups, signup_attempts cascade");
@@ -66,6 +69,49 @@ describe("database functions", () => {
     await create(B);
     await paid(B, true);
     expect(await status(B)).toBe("review");
+  });
+
+  it("refunds return unshipped units exactly once", async () => {
+    const refund = async (pi: string, amount: number, full: boolean) =>
+      (await db.query<{ r: string }>("select mark_order_refunded($1, $2, $3) as r", [pi, amount, full])).rows[0]!.r;
+    await db.exec("insert into capacity (sku, total) values ('LUMI-POCKET-01', 3)");
+    await create(A);
+    await create(B);
+    await paid(A);
+    await paid(B);
+    await db.query("update orders set payment_intent = 'pi_' || substr(id::text, 1, 1) where id in ($1, $2)", [A, B]);
+    expect(await cap()).toEqual({ total: 3, reserved: 0, sold: 2 });
+
+    expect(await refund("pi_1", 1000, false)).toBe("partial");
+    expect(await status(A)).toBe("paid");
+    expect(await refund("pi_1", 6000, true)).toBe("updated");
+    expect(await refund("pi_1", 6000, true)).toBe("already");
+    expect(await status(A)).toBe("refunded");
+    expect(await cap()).toEqual({ total: 3, reserved: 0, sold: 1 });
+
+    // A shipped unit is gone: refunding it doesn't put it back on sale.
+    await db.query("update orders set fulfilment_status = 'shipped' where id = $1", [B]);
+    expect(await refund("pi_2", 6000, true)).toBe("updated");
+    expect(await cap()).toEqual({ total: 3, reserved: 0, sold: 1 });
+    expect(await refund("pi_9", 6000, true)).toBe("missing");
+    // A refunded order isn't paid again by a late duplicate event.
+    expect(await paid(A)).toBe("already");
+  });
+
+  it("stores the tip and shipping protection chosen at checkout", async () => {
+    await db.exec("insert into capacity (sku, total) values ('LUMI-POCKET-01', 2)");
+    const o = order(A);
+    await db.query("select create_order($1::jsonb, $2::jsonb)", [JSON.stringify({ ...o.order, tipAmount: 500, protectionAmount: 398 }), JSON.stringify(o.items)]);
+    await create(B);
+    const rows = (await db.query<{ id: string; tip_amount: number; protection_amount: number }>("select id, tip_amount, protection_amount from orders order by id")).rows;
+    expect(rows.map((r) => [r.tip_amount, r.protection_amount])).toEqual([[500, 398], [0, 0]]);
+    await expect(db.query("update orders set tip_amount = -1 where id = $1", [A])).rejects.toThrow();
+  });
+
+  it("only allows known fulfilment states", async () => {
+    await db.exec("insert into capacity (sku, total) values ('LUMI-POCKET-01', 1)");
+    await create(A);
+    await expect(db.query("update orders set fulfilment_status = 'lost' where id = $1", [A])).rejects.toThrow();
   });
 
   it("frees reservations whose checkout window has passed", async () => {

@@ -8,7 +8,7 @@ AliExpress/Amazon numbers from late 2026, so check current listings.
 | 1 | **Seeed Studio XIAO ESP32C3** | 1 | ESP32-C3 brain + USB-C + built-in LiPo charger. Keep the little u.FL antenna that ships with it. | $5 |
 | 2 | **0.96" SSD1306 OLED, 128×64, I2C, 4-pin** (GND VCC SCL SDA) | 1 | Pick the **blue** single-colour version: it reads as cyan. Avoid the yellow/blue two-tone panels. | $3 |
 | 3 | **GY-521 MPU-6050 module** | 1 | 6-axis accelerometer + gyro. MPU-6500 clones (WHO_AM_I 0x70) work too. **Remove the power LED** (see below). | $2 |
-| 4 | **LiPo 3.7 V, 503030** (≈5 × 30 × 30 mm) with protection PCB | 1 | Usually sold as 450 mAh. Any cell up to 30 × 30 × 5.4 mm fits. | $4 |
+| 4 | **LiPo 3.7 V, 702025** (≈7 × 20 × 25 mm) with protection PCB | 1 | Usually sold as 300 mAh. The case fits a cell up to 26 × 20.4 × 7.4 mm; change `battery` in `lumi_case.scad` for a different cell. | $1 |
 | 5 | 220 kΩ resistor | 2 | Battery-voltage divider. 0603/0805 SMD or 1/8 W through-hole. | — |
 | 6 | 30 AWG silicone or Kynar wire | ~30 cm | Point-to-point wiring | — |
 | 7 | Kapton tape, thin double-sided foam tape | — | Insulation between layers, mounting the display | — |
@@ -54,5 +54,6 @@ Wiring for both is in [`wiring.md`](wiring.md#alternative-esp32-s3-supermini).
   - **Asleep**: Seeed quotes ~44 µA for the XIAO ESP32C3 in deep sleep.
     Add the MPU-6050 in 5 Hz cycle mode (~10–20 µA), the OLED in sleep
     (a few µA) and the 440 kΩ divider (~9 µA). That's under 0.1 mA, so
-    **months of standby** on 500 mAh. In practice wake-ups from being
+    **months of standby** on 300 mAh. The awake figure above is for
+    500 mAh; on the 300 mAh 702025 expect about 10–12 h of play. In practice wake-ups from being
     carried around will dominate.

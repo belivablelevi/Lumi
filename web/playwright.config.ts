@@ -12,9 +12,11 @@ if (MODE === "demo") {
   Object.assign(env, {
     LUMI_DEMO_CATALOGUE: "1",
     STRIPE_SECRET_KEY: "sk_test_e2e_fake",
+    STRIPE_PUBLISHABLE_KEY: "pk_test_e2e_fake",
     STRIPE_WEBHOOK_SECRET: "whsec_e2e_fake",
     SUPABASE_URL: "http://127.0.0.1:9",
     SUPABASE_SERVICE_ROLE_KEY: "e2e-fake",
+    ADMIN_PASSWORD: "e2e-admin-password",
   });
 }
 

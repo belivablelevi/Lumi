@@ -68,6 +68,14 @@ class FakeHal : public Hal {
     hasStore = false;
     return true;
   }
+
+  // Shipping mode flag (NVS on the device).
+  bool shipMode = false;
+  bool shipModeGet() override { return shipMode; }
+  bool shipModeSet(bool on) override {
+    shipMode = on;
+    return true;
+  }
 };
 
 struct FakeAir {

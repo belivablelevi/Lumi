@@ -17,12 +17,12 @@ shares no code, artwork or branding with Rekko and isn't affiliated with it.
 | Motion sensor, 6-axis, feels every pat & shake | MPU-6050: pat, double-pat, pat-spam, shake, drop, tilt, flip, pick-up, put-down |
 | ESP32-C3 brain, runs 60+ animations | XIAO ESP32C3 · **64 animations** from 29 parametric expressions, plus blinking, eye-darts and breathing on top |
 | 2-player wireless battle | **Boop Pong** over ESP-NOW: classic Pong across two screens. Tilt to move your paddle, pat to smash, first to 5 |
-| 500 mAh battery inside | 503030 500 mAh LiPo |
+| Battery inside | 702025 300 mAh LiPo (the case can be resized for others) |
 | USB-C rechargeable | XIAO's USB-C + on-board charger |
 | Deep-sleeps when idle | ESP32-C3 deep sleep, display off, IMU on wake-on-motion |
 | Wakes when you pick it up | MPU-6050 motion interrupt → GPIO3 deep-sleep wake |
 | Free animation updates | Wi-Fi update mode: phone → `192.168.4.1` → upload |
-| 35 × 37 mm glitter shell | Parametric OpenSCAD snap-fit case, 35 × 37 × 23.5 mm, print in glitter PLA |
+| 35 × 37 mm glitter shell | Parametric OpenSCAD snap-fit case, 35 × 37 × 25.5 mm, print in glitter PLA |
 
 ## What it looks like
 
@@ -167,7 +167,7 @@ plus a table row saying which gesture triggers it and in which mood range.
 - ⚠️ **Not yet tested on real hardware.** Expect to tune the IMU axis map,
   tap threshold and wake sensitivity once it's built (see the checklist in
   `docs/assembly.md`), and to adjust case tolerances after a test print.
-- ⚠️ The case is 23.5 mm deep because a stock GY-521 board won't fit beside
+- ⚠️ The case is 25.5 mm deep because a stock GY-521 board won't fit beside
   the XIAO. A custom PCB, or a smaller IMU breakout, could get it thinner.
 
 ## License

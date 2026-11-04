@@ -29,7 +29,7 @@ You now have:
   | Board | The 31 × 33 × 1.0 mm PCB |
   | Parts | Every part as a box at its real height. The module and USB-C socket are the tallest, ~3.2 mm. |
   | Screen | The OLED glass, its active area (where the pixels are), and the cable that wraps round the bottom edge |
-  | Battery | The 503030 LiPo pouch, behind the parts |
+  | Battery | The 702025 LiPo pouch, behind the parts |
   | Openings | The USB-C opening and the room a plug needs; the power switch's lever slot (wireframes) |
   | Keep-outs | The **antenna zone** (red wireframe): keep metal, screws, magnets and the battery out of it |
   | Today's case outline | The current case's outer and inner shape, for comparison |

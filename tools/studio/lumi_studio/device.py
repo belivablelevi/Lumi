@@ -117,6 +117,11 @@ class LumiDevice:
     def clear(self):
         self.command("persona clear")
 
+    def ship(self) -> int:
+        """Puts the unit in shipping mode (it sleeps until tapped three times). Returns its battery %."""
+        reply = self.command("ship")
+        return int(reply.rpartition("battery=")[2] or 0)
+
     def provision(self, data: bytes, progress=None) -> Dict[str, str]:
         """Writes the pack, reads it back to verify, and returns the unit's identity."""
         self.upload(data, progress)

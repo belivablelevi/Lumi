@@ -11,7 +11,7 @@
 // Print both parts face-down (front: screen side on the bed; back: outside
 // on the bed). Glitter / "galaxy" PLA or PETG gives the sparkly shell look.
 
-part = "assembly";  // front | back | assembly | print | fit_check
+part = "assembly";  // front | back | assembly | print | fit_check | snap_test | screen_test
 // Which controller board:
 //   "xiao"      Seeed XIAO ESP32C3 (built-in charger)
 //   "s3"        ESP32-S3 SuperMini with built-in charger (BAT+/BAT- pads)
@@ -43,6 +43,29 @@ window_chamfer = 0.8;
 screen_offset_y = -1.2;       // whole display shifted down a bit from case centre
 mount_top = oled_top_z + 0.6; // top of the display pocket's walls
 
+/* [Screen pins: four pins through the module's corner holes] */
+// They line the screen up with the window, and a pad around each pin carries the board,
+// so nothing presses on the glass. Melt the pin tips over with a soldering iron, or put a
+// dot of glue on them, to hold the module in. Hole positions vary between sellers, so
+// measure your module, set these, and check with part="screen_test" before turning it on.
+oled_pins = false;
+oled_hole_d = 2.0;          // mounting hole diameter
+oled_holes = [22.3, 23.0];  // hole centre spacing, X and Y (unmeasured guess)
+oled_holes_offset_y = 0;    // centre of the hole pattern relative to the PCB centre
+pin_d = oled_hole_d - 0.3;
+pin_stick = 0.8;            // how far the pin pokes out of the back of the board
+pad_d = oled_hole_d + 1.4;  // pad under the board around each hole
+oled_hole_pos = [for (sx = [-1, 1], sy = [-1, 1])
+  [sx * oled_holes[0] / 2, screen_offset_y + oled_holes_offset_y + sy * oled_holes[1] / 2]];
+// Distance from point p to the glass (with its 0.2 mm recess clearance).
+function glass_dist(p) =
+  let(dx = max(abs(p[0]) - oled_glass[0] / 2 - 0.2, 0),
+      dy = max(abs(p[1] - screen_offset_y - oled_glass_offset_y) - oled_glass[1] / 2 - 0.2, 0))
+  sqrt(dx * dx + dy * dy);
+// Pins that would hit the glass are left out, and pads that would are shrunk to the pin.
+oled_pin_pos = [for (p = oled_hole_pos) if (glass_dist(p) >= pin_d / 2) p];
+assert(len(oled_pin_pos) >= 2, "fewer than two screen pins clear the glass: check oled_holes");
+
 /* [Electronics: each layer gets room for its solder joints, wires and Kapton] */
 xiao = board == "xiao" ? [21.0, 17.8, 1.2]   // Seeed XIAO ESP32C3 PCB (USB-C on the +X end)
                        : [22.6, 18.0, 1.2];  // ESP32-S3 SuperMini PCB
@@ -57,7 +80,9 @@ imu_z = xiao_z + xiao[2] + xiao_tall + 1.3;  // room for the IMU's solder joints
 charger = [27.0, 17.2, 1.6];  // TP4056 USB-C charger board (s3_tp4056 only); USB-C on its -X end
 charger_z = imu_z + imu[2] + 0.4;
 charger_usb_z = charger_z + charger[2] + 1.6;
-battery = [30.2, 30.2, 5.4];  // 503030 LiPo pouch (nominal 30 x 30 x 5 mm)
+// 702025 LiPo pouch (nominal 7 x 20 x 25 mm, 300 mAh). The length leaves room for the
+// protection board and the thickness for pouch tolerance. Measure the real cell and update.
+battery = [26.0, 20.4, 7.4];
 foam = 0.6;                   // foam tape behind the battery
 
 // Front and back meet just far enough forward that the whole lip stays in front of
@@ -67,32 +92,46 @@ battery_z = split_z + lip + 0.1;
 D = battery_z + battery[2] + foam + wall;  // total depth (Z): display | board | IMU | (charger) | battery
 
 /* [Snap joint: four hooks on the front part click into grooves in the back part] */
+// The front prints screen-down, so each arm stands upright and bends across its layer
+// lines, the weakest direction in a print. The arm tapers from root to hook so the
+// bending spreads along it instead of piling up at the root: about 0.7% strain at the
+// root per click (0.9% for a straight 1.2 mm arm), with about the same holding force.
 snap_x = 6.5;      // hook centres, either side of the middle, on the top and bottom walls
 snap_w = 6;        // hook width
-snap_t = 1.2;      // arm thickness
+snap_t = 1.4;      // arm thickness at the root
+snap_t_tip = 0.9;  // arm thickness from the split line up (the hook rides on this)
+snap_fillet = 1.0; // 45-degree fillet on the inside of the arm's root
 snap_len = 9;      // free length of the arm below the split line
 snap_gap = 0.4;    // between the arm and the wall (any less and the slicer may fuse them)
-snap_catch = 0.35; // how far the hook reaches into the back wall
-snap_flat = 0.2;   // flat on the hook's nose
-snap_depth = snap_catch + 0.1;  // groove depth; leaves 0.95 mm of wall behind it
+snap_catch = 0.45; // how far the hook reaches into the back wall: picked with part="snap_test" (PLA, Nov 2026), and the deepest the lip allows
+snap_flat = 0.2;   // flat on the hook's nose (less when a deep catch needs the room)
 snap_clear = 0.1;  // play in the closed joint, so the seam can close fully
 snap_lift = 0.4;   // the hook starts this far above the split line
 inner_y = H / 2 - wall;
 arm_y = inner_y - snap_gap;  // outer face of the arm
-hook_rise = snap_gap + snap_catch;
-hook_top = split_z + snap_lift + 2 * hook_rise + snap_flat;
+function hook_rise(c) = snap_gap + c;
+function hook_flat(c) = min(snap_flat, lip - snap_lift - 2 * hook_rise(c));
+function hook_top(c) = split_z + snap_lift + 2 * hook_rise(c) + hook_flat(c);
+function snap_depth(c) = c + 0.1;  // groove depth; leaves 0.85 mm of wall (two perimeters) behind the default hook
+hook_top = hook_top(snap_catch);
+eps = 1e-6;  // rounding slack: 0.45 sits exactly on these limits
 snap_flex = snap_catch + 0.05;  // how far the hook bends inward as the back goes on
-assert(hook_top <= split_z + lip, "the hooks must stay inside the lip");
+assert(hook_flat(snap_catch) >= 0.1 - eps, "no room in the lip for a hook this deep");
+assert(hook_top <= split_z + lip + eps, "the hooks must stay inside the lip");
 assert(hook_top < battery_z, "the hooks must stay in front of the battery");
-assert(wall - snap_depth >= 0.9, "the groove leaves too little wall");
-assert(arm_y - snap_t - snap_flex > battery[1] / 2 || hook_top < battery_z, "the arm can't flex past the battery");
+assert(wall - snap_depth(snap_catch) >= 0.85 - eps, "the groove leaves too little wall");
+assert(arm_y - snap_t_tip - snap_flex > battery[1] / 2 || hook_top < battery_z, "the arm can't flex past the battery");
+
+/* [Snap test: three hooks of different depths, to tune the click on your printer] */
+test_catches = [0.25, 0.35, 0.45];
+test_cut = split_z - snap_len - 1.2;  // the test fronts start just below the arms' roots
 
 /* [Keyring bail] */
 bail_w = 10;
 bail_h = 7.5;      // how far it sticks out above the case
 bail_t = 4;        // thickness front-to-back
 bail_hole = 3.4;
-bail_z = D / 2 - bail_t / 2;  // front of the tab: centred on the top, wholly in the front part
+bail_z = min(D / 2 - bail_t / 2, split_z - bail_t - 0.5);  // front of the tab: centred on the top if it fits, always wholly in the front part
 assert(bail_z + bail_t < split_z, "the keyring tab must stay in the front part");
 
 $fn = 48;
@@ -164,7 +203,7 @@ module whole_case() {
 }
 
 // Pocket that holds the display module against the window.
-module display_mount() {
+module display_mount(pins = oled_pins) {
   difference() {
     translate([0, 0, wall]) linear_extrude(mount_top - wall)
       difference() {
@@ -175,6 +214,12 @@ module display_mount() {
     translate([0, screen_offset_y + oled_glass_offset_y, wall - 0.01])
       linear_extrude(oled_glass[2] + 0.02) square([oled_glass[0] + 0.4, oled_glass[1] + 0.4], center = true);
   }
+  if (pins)
+    for (p = oled_pin_pos) translate([p[0], p[1], wall - 0.01]) {
+      // the pad carries the board's corner at the glass's height
+      cylinder(d = glass_dist(p) >= pad_d / 2 ? pad_d : pin_d, h = oled_glass[2] + 0.01);
+      cylinder(d = pin_d, h = oled_top_z + pin_stick - wall + 0.01);
+    }
 }
 
 // Holds the controller at its depth, with its USB-C lined up with the opening.
@@ -214,39 +259,46 @@ module imu_seat() {
 // A hook's outline on the +Y wall as (y, z). The arm rises past the split line with the
 // hook on its outer face. The hook's lower slope is the catch, at 45 degrees so it prints
 // without support and can still be pulled open; the upper slope is the lead-in.
-module snap_arm_profile() {
+module snap_arm_profile(c = snap_catch) {
   root_z = split_z - snap_len;
+  r = hook_rise(c);
   polygon([[arm_y - snap_t, root_z], [arm_y, root_z], [arm_y, split_z + snap_lift],
-           [arm_y + hook_rise, split_z + snap_lift + hook_rise],
-           [arm_y + hook_rise, split_z + snap_lift + hook_rise + snap_flat],
-           [arm_y, hook_top], [arm_y - snap_t, hook_top]]);
+           [arm_y + r, split_z + snap_lift + r],
+           [arm_y + r, split_z + snap_lift + r + hook_flat(c)],
+           [arm_y, hook_top(c)], [arm_y - snap_t_tip, hook_top(c)], [arm_y - snap_t_tip, split_z]]);
 }
 
-// The groove in the back wall that a hook clicks into, as (y, z).
-module snap_groove_profile() {
-  groove_z = split_z + snap_lift + hook_rise - snap_catch - snap_clear;  // where the catch meets the wall
-  polygon([[inner_y - 0.05, groove_z - 0.05], [inner_y + snap_depth, groove_z + snap_depth],
-           [inner_y + snap_depth, hook_top + 0.1 - snap_depth], [inner_y - 0.05, hook_top + 0.15]]);
+// The groove in the back wall that a hook clicks into, as (y, z). Where the catch meets
+// the wall doesn't depend on the catch's depth, so a groove cut for a deep hook also
+// takes every shallower one.
+module snap_groove_profile(c = snap_catch) {
+  groove_z = split_z + snap_lift + snap_gap - snap_clear;
+  d = snap_depth(c);
+  polygon([[inner_y - 0.05, groove_z - 0.05], [inner_y + d, groove_z + d],
+           [inner_y + d, hook_top(c) + 0.1 - d], [inner_y - 0.05, hook_top(c) + 0.15]]);
 }
 
-module snap_arms() {
+module snap_arms(c = snap_catch) {
   root_z = split_z - snap_len;
   for (x = [-snap_x, snap_x], sy = [-1, 1]) {
-    on_wall(x, snap_w, sy) snap_arm_profile();
-    // base: fillets the root of the arm, and joins it to the wall when the root is
-    // above the display pocket (the deeper charger version)
+    on_wall(x, snap_w, sy) snap_arm_profile(c);
+    // base: fillets the inside of the root, and joins the arm to the wall (also when the
+    // root is above the display pocket, in the deeper charger version). The floor of the
+    // gap slopes away from the arm, so the arm's outer face, the side that stretches when
+    // the hook bends in, has no sharp corner at its root.
     on_wall(x, snap_w, sy)
-      polygon([[arm_y - snap_t - 0.6, mount_top - 0.5], [arm_y - snap_t - 0.6, root_z - 0.01], [arm_y - snap_t, root_z + 0.6],
-               [arm_y, root_z + 0.6], [inner_y + 0.01, root_z + 0.6], [inner_y + 0.01, mount_top - 0.5]]);
+      polygon([[arm_y - snap_t - snap_fillet, mount_top - 0.5], [arm_y - snap_t - snap_fillet, root_z - 0.01],
+               [arm_y - snap_t, root_z + snap_fillet], [arm_y, root_z + 0.6], [inner_y + 0.01, root_z + 0.2],
+               [inner_y + 0.01, mount_top - 0.5]]);
   }
 }
 
-module snap_grooves() {
+module snap_grooves(c = snap_catch) {
   for (x = [-snap_x, snap_x], sy = [-1, 1])
-    on_wall(x, snap_w + 0.6, sy) snap_groove_profile();
+    on_wall(x, snap_w + 0.6, sy) snap_groove_profile(c);
 }
 
-module front_part() {
+module front_part(c = snap_catch, pins = oled_pins) {
   difference() {
     union() {
       intersection() {
@@ -277,10 +329,10 @@ module front_part() {
         for (x = [-snap_x, snap_x], sy = [-1, 1])
           translate([x - snap_w / 2 - 0.6, sy * (H / 4) - H / 4, split_z - lip_t - fit - 1]) cube([snap_w + 1.2, H / 2, lip + lip_t + fit + 2]);
       }
-      snap_arms();
+      snap_arms(c);
       intersection() {
         union() {
-          display_mount();
+          display_mount(pins);
           xiao_seat();
           imu_seat();
         }
@@ -300,13 +352,13 @@ module front_part() {
   }
 }
 
-module back_part() {
+module back_part(c = snap_catch) {
   difference() {
     intersection() {
       whole_case();
       translate([-50, -50, split_z]) cube([100, 100, D]);
     }
-    snap_grooves();
+    snap_grooves(c);
     // a fingernail notch in the seam, for opening the case
     translate([-W / 2 - 0.1, -4, split_z - 0.1]) cube([wall - 0.5 + 0.1, 8, 0.7]);
   }
@@ -318,9 +370,25 @@ module back_part() {
     translate([0, sy * (battery[1] / 2 + 0.2 + 0.4), (rib + D - wall + 0.01) / 2]) cube([10, 0.8, D - wall + 0.01 - rib], center = true);
 }
 
+// The front cut just below the arms' roots, keeping the display pocket's frame as its base.
+module snap_test_front(c) {
+  translate([0, 0, -test_cut]) difference() {
+    intersection() {
+      front_part(c);
+      translate([-W / 2 - 1, -H / 2 - 1, test_cut]) cube([W + 2, H + 1, 50]);  // drops the keyring tab
+    }
+    // hook depth, engraved in the base strip above the display pocket, readable from below
+    translate([0, H / 2 - wall - 2.1, test_cut - 0.01]) mirror([1, 0, 0]) linear_extrude(0.41)
+      text(str(c), size = 2.4, halign = "center", valign = "center", font = "Liberation Sans:style=Bold");
+  }
+}
+
 // Stand-ins for the parts, sized with their solder joints and tallest components.
 module components() {
-  color("black") translate([0, screen_offset_y, wall + oled_glass[2] + oled_pcb[2] / 2]) cube(oled_pcb, center = true);
+  color("black") difference() {
+    translate([0, screen_offset_y, wall + oled_glass[2] + oled_pcb[2] / 2]) cube(oled_pcb, center = true);
+    if (oled_pins) for (p = oled_hole_pos) translate([p[0], p[1], 0]) cylinder(d = oled_hole_d, h = 20);
+  }
   color("#222222") translate([0, screen_offset_y + 3, oled_top_z + oled_back / 2]) cube([20, 8, oled_back], center = true);
   color("#1a1a1a") translate([0, screen_offset_y + oled_glass_offset_y, wall + oled_glass[2] / 2]) cube(oled_glass, center = true);
   color("#3ce6ff") translate([0, screen_offset_y + view_offset_y, wall - 0.06]) cube([21.7, 10.9, 0.1], center = true);
@@ -342,6 +410,20 @@ if (part == "front") {
 } else if (part == "print") {
   translate([-W / 2 - 4, 0, 0]) front_part();
   translate([W / 2 + 4, 0, D]) rotate([180, 0, 0]) back_part();
+} else if (part == "snap_test") {
+  // Three short fronts with shallow, default and deep hooks (no face, so they print fast),
+  // and one back with grooves that take all three. Each front has its hook depth engraved
+  // underneath. Snap each one in and out; pick the one that clicks firmly and still opens.
+  for (i = [0 : len(test_catches) - 1])
+    translate([(i % 2) * (W + 6), -floor(i / 2) * (H + 6), 0]) snap_test_front(test_catches[i]);
+  translate([W + 6, -(H + 6), D]) rotate([180, 0, 0]) back_part(max(test_catches));
+} else if (part == "screen_test") {
+  // Just the front wall and the display pocket, with the screen pins on, to check the
+  // hole positions and the window against a real module before printing a whole case.
+  intersection() {
+    front_part(snap_catch, true);
+    translate([-W / 2 - 1, -H / 2 - 1, -1]) cube([W + 2, H + 1, oled_top_z + pin_stick + 1]);  // drops the keyring tab
+  }
 } else if (part == "fit_check") {
   // The back sits a hair above its seat, so the two halves resting on each other don't count.
   intersection() { union() { front_part(); translate([0, 0, 0.02]) back_part(); } components(); }

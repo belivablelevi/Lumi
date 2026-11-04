@@ -17,6 +17,7 @@
 
 #include "app.h"
 #include "serial_cmd.h"
+#include "shiplock.h"
 #include "config.h"
 #include "imu.h"
 #include "ssd1306.h"
@@ -206,6 +207,24 @@ class DeviceHal : public lumi::Hal {
     return ok;
   }
 
+  bool shipModeGet() override {
+    Preferences p;
+    if (!p.begin("lumi", true)) return false;
+    const bool on = p.getBool("ship", false);
+    p.end();
+    return on;
+  }
+  bool shipModeSet(bool on) override {
+    Preferences p;
+    if (!p.begin("lumi", false)) return false;
+    const bool ok = on ? p.putBool("ship", true) == 1 : (!p.isKey("ship") || p.remove("ship"));
+    p.end();
+    if (ok && on) shipRequested_ = true;
+    return ok;
+  }
+  // Set by the `ship` command: the main loop puts Lumi to sleep once the reply is out.
+  bool shipRequested() const { return shipRequested_; }
+
   void poll() {
     if (server_) server_->handleClient();
   }
@@ -231,6 +250,7 @@ class DeviceHal : public lumi::Hal {
   }
 
   bool radioOn_ = false;
+  bool shipRequested_ = false;
   WebServer* server_ = nullptr;
   char ssid_[16] = "";
   char pass_[12] = "";
@@ -260,7 +280,9 @@ static void remap(const AccelSample& s, float& x, float& y, float& z) {
   hal.radioStop();
   hal.updateStop();
   if (displayOk) display.power(false);
-  if (imuOk) imu.enterMotionWake(LUMI_WAKE_THRESHOLD, LUMI_WAKE_DURATION_MS);
+  // In shipping mode a firmer bump is needed to wake the chip at all.
+  const uint8_t threshold = hal.shipModeGet() ? LUMI_SHIP_WAKE_THRESHOLD : LUMI_WAKE_THRESHOLD;
+  if (imuOk) imu.enterMotionWake(threshold, LUMI_WAKE_DURATION_MS);
   time(&gSleptAt);
 #if defined(CONFIG_IDF_TARGET_ESP32S3)
   // The S3 wakes through the RTC controller (EXT1); hold INT low if the IMU
@@ -274,6 +296,25 @@ static void remap(const AccelSample& s, float& x, float& y, float& z) {
   esp_deep_sleep_start();
   for (;;) {
   }
+}
+
+// Shipping mode: listens for pats with the screen off, for a few seconds after
+// a wake. True if someone tapped Lumi awake; false if it was just the parcel.
+static bool shipUnlocked() {
+  static AccelSample samples[64];
+  lumi::ShipLock lock(LUMI_SHIP_TAPS, LUMI_SHIP_WINDOW_MS);
+  lock.begin(millis());
+  while (!lock.unlocked() && !lock.expired(millis())) {
+    const int n = imu.read(samples, 64, millis());
+    for (int i = 0; i < n; ++i) {
+      float x, y, z;
+      remap(samples[i], x, y, z);
+      lock.onAccel(x, y, z, samples[i].t);
+    }
+    delay(5);
+  }
+  Serial.printf("lumi: ship mode, %u pat(s) heard\n", (unsigned)lock.pats());
+  return lock.unlocked();
 }
 
 static void serialCommands() {
@@ -313,7 +354,7 @@ static void serialCommands() {
     } else if (strcmp(line, "s") == 0) {
       deepSleep();
     } else {
-      Serial.println("commands: i (imu)  a (list animations)  p <name> (play)  m (mood)  b (battery)  s (sleep)  id  persona ...");
+      Serial.println("commands: i (imu)  a (list animations)  p <name> (play)  m (mood)  b (battery)  s (sleep)  ship  id  persona ...");
     }
   }
 }
@@ -345,6 +386,22 @@ void setup() {
     const time_t now = time(nullptr);
     slept = now > gSleptAt ? (uint32_t)(now - gSleptAt) : 0;
     ++gWakeCount;
+  }
+  if (hal.shipModeGet()) {
+    if (displayOk) display.power(false);  // stays dark unless it's really being woken
+    if (!imuOk) {
+      // Without an accelerometer nothing could ever wake it: never get stuck asleep.
+      Serial.println("lumi: ship mode, but no accelerometer - leaving ship mode");
+      hal.shipModeSet(false);
+    } else if (!shipUnlocked()) {
+      deepSleep();
+    } else {
+      hal.shipModeSet(false);
+    }
+    // Out of the box: greet like a first power-on.
+    why = lumi::WakeReason::PowerOn;
+    slept = 0;
+    if (displayOk) display.power(true);
   }
   Serial.printf("lumi: wake=%s slept=%lus wakes=%lu\n", why == lumi::WakeReason::Motion ? "motion" : "power-on",
                 (unsigned long)slept, (unsigned long)gWakeCount);
@@ -381,6 +438,6 @@ void loop() {
     }
   }
 
-  if (app.wantsSleep()) deepSleep();
+  if (app.wantsSleep() || hal.shipRequested()) deepSleep();
   delay(1);
 }

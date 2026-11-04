@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-const PAGES = ["/", "/shop", "/pocket", "/desk", "/products/pocket-lumi", "/launches", "/our-world", "/faq", "/contact", "/shipping-returns", "/privacy", "/terms", "/cart"];
+const PAGES = ["/", "/shop", "/pocket", "/desk", "/products/pocket-lumi", "/launches", "/our-world", "/faq", "/contact", "/shipping-returns", "/privacy", "/terms", "/cart", "/checkout"];
 
 test("every page loads with no errors, no horizontal scroll and no accessibility violations", async ({ page }) => {
   const errors: string[] = [];
@@ -189,4 +189,11 @@ test.describe("Boop Pong", () => {
       await expect(game.getByText(/Demo|You're playing/)).toBeVisible();
     });
   });
+});
+
+test("the order admin doesn't exist until a password is set, and robots stay out", async ({ request }) => {
+  expect((await request.get("/admin", { maxRedirects: 0 })).status()).toBe(404);
+  expect((await request.get("/admin/login", { maxRedirects: 0 })).status()).toBe(404);
+  expect((await request.get("/admin/export.csv", { maxRedirects: 0 })).status()).toBe(404);
+  expect(await (await request.get("/robots.txt")).text()).toContain("Disallow: /admin");
 });
