@@ -22,7 +22,7 @@ async function setup() {
   const mailer: Mailer = { send: async (m) => { sent.push(m); } };
   const r = await startCheckout({ lines: [{ slug: "pocket-lumi", qty: 1 }] }, {
     catalogue: testCatalogue(), store, allowMixed: false, siteUrl: "https://lumi.test",
-    payments: { createSession: async (o) => ({ id: "cs_test_1", url: `https://stripe.test/${o.id}` }) },
+    payments: { createSession: async () => ({ id: "cs_test_1", clientSecret: "cs_test_1_secret" }), getSession: async () => null, setShipping: async () => {}, setLineItems: async () => {} },
   });
   if (!r.ok) throw new Error(r.error);
   return { store, sent, mailer, orderId: r.orderId };
@@ -30,7 +30,7 @@ async function setup() {
 
 const session = (orderId: string, over: Record<string, unknown> = {}) => ({
   id: "cs_test_1", object: "checkout.session", metadata: { order_id: orderId }, client_reference_id: orderId,
-  payment_status: "paid", currency: "cad", amount_subtotal: 5900, amount_total: 6667,
+  payment_status: "paid", currency: "cad", amount_subtotal: 5900, amount_total: 6667, shipping_cost: { amount_subtotal: 1450, amount_tax: 0, amount_total: 1450, shipping_rate: "shr_1" },
   customer_details: { email: "sam@example.com", name: "Sam" }, ...over,
 });
 
@@ -80,6 +80,26 @@ describe("Stripe webhook", () => {
     expect((await store.getOrder(orderId))!.status).toBe("review");
   });
 
+  it("counts the tip and protection, and saves what shipping cost", async () => {
+    const { store, mailer, orderId } = await setup();
+    await store.updateAddons(orderId, { tipAmount: 500, protectionAmount: 398 });
+    await handleStripeEvent(signedEvent("evt_1", "checkout.session.completed", session(orderId, { amount_subtotal: 5900 + 500 + 398 })), { store, mailer });
+    expect(await store.getOrder(orderId)).toMatchObject({ status: "paid", shippingAmount: 1450, tipAmount: 500, protectionAmount: 398 });
+  });
+
+  it("flags a payment whose tip doesn't match the order", async () => {
+    const { store, mailer, orderId } = await setup();
+    await store.updateAddons(orderId, { tipAmount: 500, protectionAmount: 0 });
+    await handleStripeEvent(signedEvent("evt_1", "checkout.session.completed", session(orderId)), { store, mailer });
+    expect((await store.getOrder(orderId))!.status).toBe("review");
+  });
+
+  it("flags a payment where shipping was never priced", async () => {
+    const { store, mailer, orderId } = await setup();
+    await handleStripeEvent(signedEvent("evt_1", "checkout.session.completed", session(orderId, { shipping_cost: null })), { store, mailer });
+    expect((await store.getOrder(orderId))!.status).toBe("review");
+  });
+
   it("releases capacity when a checkout expires, and ignores a late duplicate", async () => {
     const { store, mailer, orderId } = await setup();
     const ev = signedEvent("evt_9", "checkout.session.expired", session(orderId, { payment_status: "unpaid" }));
@@ -92,5 +112,48 @@ describe("Stripe webhook", () => {
   it("ignores events it doesn't handle", async () => {
     const { store, mailer } = await setup();
     expect(await handleStripeEvent(signedEvent("evt_5", "customer.created", { id: "cus_1", object: "customer" }), { store, mailer })).toBe("ignored");
+  });
+
+  const charge = (over: Record<string, unknown>) => ({
+    id: "ch_1", object: "charge", payment_intent: "pi_1", amount: 6667, amount_refunded: 6667, refunded: true, ...over,
+  });
+
+  it("keeps the payment intent, so a refund in Stripe finds the order", async () => {
+    const { store, mailer, orderId } = await setup();
+    await handleStripeEvent(signedEvent("evt_p", "checkout.session.completed", session(orderId, { payment_intent: "pi_1" })), { store, mailer });
+    expect((await store.getOrder(orderId))!.paymentIntent).toBe("pi_1");
+  });
+
+  it("records a partial refund without ending the order", async () => {
+    const { store, mailer, orderId } = await setup();
+    await handleStripeEvent(signedEvent("evt_p", "checkout.session.completed", session(orderId, { payment_intent: "pi_1" })), { store, mailer });
+    const ev = signedEvent("evt_r1", "charge.refunded", charge({ amount_refunded: 1000, refunded: false }));
+    expect(await handleStripeEvent(ev, { store, mailer })).toBe("partial_refund");
+    expect(await store.getOrder(orderId)).toMatchObject({ status: "paid", refundedAmount: 1000 });
+    expect(store.capacity.get("LUMI-POCKET-01")!.sold).toBe(1);
+  });
+
+  it("marks a fully refunded order and gives its unit back once", async () => {
+    const { store, mailer, orderId } = await setup();
+    await handleStripeEvent(signedEvent("evt_p", "checkout.session.completed", session(orderId, { payment_intent: "pi_1" })), { store, mailer });
+    const ev = signedEvent("evt_r2", "charge.refunded", charge({}));
+    expect(await handleStripeEvent(ev, { store, mailer })).toBe("refunded");
+    expect(await handleStripeEvent(ev, { store, mailer })).toBe("duplicate");
+    expect(await store.getOrder(orderId)).toMatchObject({ status: "refunded", refundedAmount: 6667 });
+    expect(store.capacity.get("LUMI-POCKET-01")).toEqual({ total: 5, reserved: 0, sold: 0 });
+    expect(await store.listOrders("to_ship")).toHaveLength(0);
+  });
+
+  it("keeps a shipped order's unit sold when it's refunded", async () => {
+    const { store, mailer, orderId } = await setup();
+    await handleStripeEvent(signedEvent("evt_p", "checkout.session.completed", session(orderId, { payment_intent: "pi_1" })), { store, mailer });
+    await store.updateFulfilment(orderId, { fulfilmentStatus: "shipped", carrier: "canada_post", trackingNumber: "1234567890123456" });
+    await handleStripeEvent(signedEvent("evt_r3", "charge.refunded", charge({})), { store, mailer });
+    expect(store.capacity.get("LUMI-POCKET-01")!.sold).toBe(1);
+  });
+
+  it("ignores a refund it can't match to an order", async () => {
+    const { store, mailer } = await setup();
+    expect(await handleStripeEvent(signedEvent("evt_r4", "charge.refunded", charge({ payment_intent: "pi_other" })), { store, mailer })).toBe("missing");
   });
 });

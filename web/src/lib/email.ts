@@ -1,6 +1,8 @@
 import { Resend } from "resend";
 import { brand } from "@/config/brand";
 import { env } from "./env";
+import { PROTECTION_LABEL } from "./addons";
+import { carrierLabel, trackingUrl } from "./fulfilment";
 import { formatMoney } from "./money";
 import { confirmed } from "./placeholder";
 import type { Order } from "./store/types";
@@ -48,8 +50,14 @@ function sender() {
 }
 
 export function orderConfirmationEmail(order: Order): Mail {
-  const lines = order.items.map((i) => `${i.qty} × ${i.name} — ${formatMoney({ amount: i.unitAmount * i.qty, currency: order.currency })}`);
-  const total = formatMoney({ amount: order.amountTotal ?? order.subtotal, currency: order.currency });
+  const money = (amount: number) => formatMoney({ amount, currency: order.currency });
+  const lines = [
+    ...order.items.map((i) => `${i.qty} × ${i.name} — ${money(i.unitAmount * i.qty)}`),
+    ...(order.protectionAmount ? [`${PROTECTION_LABEL} — ${money(order.protectionAmount)}`] : []),
+    ...(order.shippingAmount !== undefined ? [`Shipping — ${money(order.shippingAmount)}`] : []),
+    ...(order.tipAmount ? [`Tip — ${money(order.tipAmount)}. Thank you!`] : []),
+  ];
+  const total = money(order.amountTotal ?? order.subtotal);
   const pre = order.fulfilment === "preorder";
   const note = pre
     ? "This is a pre-order: your Lumi ships when its launch is ready. We'll email you before it does."
@@ -63,6 +71,40 @@ export function orderConfirmationEmail(order: Order): Mail {
     esc(sender()),
   );
   return { to: order.email ?? "", subject: pre ? `Your ${brand.name} pre-order is confirmed` : `Your ${brand.name} order is confirmed`, html, text };
+}
+
+export function orderShippedEmail(order: Order): Mail {
+  const lines = order.items.map((i) => `${i.qty} × ${i.name}`);
+  const carrier = order.carrier && order.carrier !== "other" ? carrierLabel(order.carrier) : null;
+  const url = trackingUrl(order.carrier, order.trackingNumber);
+  const tracking = order.trackingNumber
+    ? `Tracking number${carrier ? ` (${carrier})` : ""}: ${order.trackingNumber}`
+    : carrier ? `It's on its way with ${carrier}.` : "It's on its way.";
+  const wake = "Your Lumi travels asleep, so bumps in the post can't wake it. When it arrives, tap its screen three times to wake it up.";
+  const text = [
+    `Your order is on its way!`,
+    ``,
+    ...lines,
+    ``,
+    tracking,
+    ...(url ? [`Track it: ${url}`] : []),
+    ``,
+    wake,
+    ``,
+    `Order reference: ${order.id}`,
+    ``,
+    sender(),
+  ].join("\n");
+  const html = layout(
+    "Your order is on its way",
+    `<ul style="padding-left:18px;line-height:1.7">${lines.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>
+<p>${esc(tracking)}</p>
+${url ? `<p><a href="${esc(url)}" style="display:inline-block;background:#30263a;color:#fff;text-decoration:none;font-weight:700;padding:12px 22px;border-radius:999px">Track your parcel</a></p>` : ""}
+<p>${esc(wake)}</p>
+<p style="font-size:13px;color:#746c78">Order reference: ${esc(order.id)}</p>`,
+    esc(sender()),
+  );
+  return { to: order.email ?? "", subject: `Your ${brand.name} order has shipped`, html, text };
 }
 
 export function signupConfirmEmail(to: string, topicName: string, confirmUrl: string, unsubscribeUrl: string): Mail {

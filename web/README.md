@@ -74,14 +74,17 @@ Pre-orders and in-stock items check out separately (`allowMixedCarts` in `brand.
 
 Copy `.env.example` to `.env.local` for local work. On Vercel, put the same values in **Project → Settings → Environment Variables**. Secret keys are only read on the server.
 
-1. **Supabase.** Create a project, then run `supabase/migrations/0001_init.sql` and `0002_cleanup.sql` in the SQL editor, in that order. The second one deletes old signup data every day, as the privacy policy promises. Copy `SUPABASE_URL` and the **service role** key. Every table has row-level security with no public policies, so only the server can read or write.
+1. **Supabase.** Create a project, then run `supabase/migrations/0001_init.sql`, `0002_cleanup.sql` and `0003_fulfilment.sql` in the SQL editor, in that order. The second one deletes old signup data every day, as the privacy policy promises; the third adds shipping and refunds to orders. Copy `SUPABASE_URL` and the **service role** key. Every table has row-level security with no public policies, so only the server can read or write.
 2. **Stripe.** Use test keys first.
-   - Set `STRIPE_SECRET_KEY`.
-   - Add a webhook endpoint at `https://<your-domain>/api/stripe/webhook` for these events: `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed` and `checkout.session.expired`. Put its signing secret in `STRIPE_WEBHOOK_SECRET`.
-   - Optional: `STRIPE_AUTOMATIC_TAX=1` (after setting up Stripe Tax for your GST/HST/PST registrations), `STRIPE_SHIPPING_RATE_IDS` and `STRIPE_SHIPPING_COUNTRIES`.
+   - Set `STRIPE_SECRET_KEY` and `STRIPE_PUBLISHABLE_KEY` (the `pk_` key; the checkout page gives it to Stripe.js).
+   - Add a webhook endpoint at `https://<your-domain>/api/stripe/webhook` for these events: `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired` and `charge.refunded`. Put its signing secret in `STRIPE_WEBHOOK_SECRET`.
+   - Optional: `STRIPE_AUTOMATIC_TAX=1` (after setting up Stripe Tax for your GST/HST/PST registrations) and `STRIPE_SHIPPING_COUNTRIES` (`CA` by default; `CA,US` to ship to the US too).
+   - **Shipping prices** are worked out from each address at checkout. For Canada Post's own prices, join the free [Canada Post Developer Program](https://www.canadapost-postescanada.ca/information/app/drc/home), then set `CANADA_POST_USERNAME`, `CANADA_POST_PASSWORD` and `CANADA_POST_CUSTOMER_NUMBER` (your Solutions for Small Business number). Without them, or if Canada Post doesn't answer, checkout uses the region table in `src/lib/shipping.ts`. Weigh a packed Lumi and set `SHIPPING_BOX_KG`, `SHIPPING_UNIT_KG` and `SHIPPING_BOX_CM` (see `.env.example`).
+   - Shipping protection ($3.98) and the tip buttons are set in `src/lib/addons.ts`. Ask your accountant how to treat tips and protection for GST/HST before turning on Stripe Tax.
    - Test locally with `stripe listen --forward-to localhost:3000/api/stripe/webhook`.
 3. **Resend.** Verify your sending domain, then set `RESEND_API_KEY` and `EMAIL_FROM` (e.g. `Snaggo <hello@snaggo.tech>`). Also fill in `legal.businessName` and `legal.mailingAddress` in `brand.ts`: CASL requires a mailing address in every marketing email, so signups stay closed until it's set.
 4. Set `SIGNUP_HASH_SALT` to a long random string and `NEXT_PUBLIC_SITE_URL` to `https://snaggo.tech`.
+   Set `ADMIN_PASSWORD` to a long random password to turn on the order admin at `/admin`; without it, `/admin` doesn't exist.
 5. **Vercel.** Import the repo and set **Root Directory** to `web`. Add `snaggo.tech` under **Settings → Domains** and follow its DNS instructions. Pages are prerendered, so redeploy after changing environment variables.
 
 ### Using Vercel integrations
@@ -98,10 +101,11 @@ fill in most of these for you:
 | `EMAIL_FROM` | You, e.g. `Snaggo <hello@snaggo.tech>`, on a domain verified in Resend |
 
 Still to do by hand, once:
-1. Paste `supabase/migrations/0001_init.sql` into Supabase's **SQL editor** and run it, then do the same with `0002_cleanup.sql`.
+1. Paste `supabase/migrations/0001_init.sql` into Supabase's **SQL editor** and run it, then do the same with `0002_cleanup.sql` and `0003_fulfilment.sql`.
 2. Set how many can be pre-ordered: `insert into capacity (sku, total) values ('LUMI-POCKET-01', 100);`.
 3. In Stripe, add a webhook endpoint `https://<your-site>/api/stripe/webhook` for `checkout.session.completed`,
-   `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed` and `checkout.session.expired`.
+   `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired`
+   and `charge.refunded`.
 4. Fill in `legal.businessName` and `legal.mailingAddress` in `src/config/brand.ts`. Launch emails stay closed until they're set.
 5. Redeploy, because the pages are built with the variables they had at build time.
 
@@ -113,9 +117,13 @@ checkout (card `4242 4242 4242 4242`). A live key (`sk_live_…`) switches the d
 1. The browser sends only product slugs, options and quantities to `/api/checkout`.
 2. The server checks them against its own catalogue: status, quantity limits, price in CAD.
 3. In one database transaction it reserves pre-order capacity and creates a pending order (`create_order`).
-4. It opens a Stripe Checkout session that expires when the reservation does.
-5. Stripe's webhook marks the order paid (`mark_order_paid`, which runs once per order) and the confirmation email is sent. If an amount doesn't match, the order goes to `review` instead. Expired or failed checkouts give their capacity back.
-6. The success page shows "Confirming your payment…" until the database says the order is paid. It never trusts the redirect alone.
+4. It opens a Stripe Checkout Session (`ui_mode: elements`) that expires when the reservation does, and the checkout page at `/checkout` shows Stripe's address and payment fields. Card details go only to Stripe.
+5. When the customer saves their address, the server prices shipping for it (`lib/shipping.ts`) and sets both the address and that one shipping option on the session. The session only lets the server set the address (`permissions.update_shipping_details: server_only`), so the price is always for the address the parcel goes to.
+6. Shipping protection and the tip are chosen on the same page. The browser sends only "protection on/off" and the tip amount; the server prices them (`lib/addons.ts`), rebuilds the session's line items and saves them on the order.
+7. Stripe's webhook marks the order paid (`mark_order_paid`, which runs once per order) and the confirmation email is sent. If the products plus tip and protection don't add up to what Stripe charged, or no shipping was priced, the order goes to `review` instead. Expired or failed checkouts give their capacity back.
+8. The success page shows "Confirming your payment…" until the database says the order is paid. It never trusts the redirect alone.
+9. Paid orders appear in the order admin (`/admin`, behind `ADMIN_PASSWORD`) under **To ship**. Download the CSV (Chit Chats' import columns, or use it as a packing list), note which Lumi went in the box, then enter the carrier and tracking number: the order is marked shipped and the customer gets one email with the tracking link and how to wake their Lumi (tap the screen three times).
+10. Refunds are made in the Stripe dashboard. The `charge.refunded` webhook records them; a full refund of an order that hasn't shipped gives its unit back to the pre-order capacity.
 
 Launch signups use double opt-in. Each one stores the exact consent text and version. Confirm and unsubscribe links carry random tokens, and only their hashes are stored. Signups are rate-limited by a hashed IP, and a honeypot plus a minimum fill time catch bots. Sending launch newsletters isn't built in: use the confirmed rows in `launch_signups`, or Resend's broadcasts, and always include the unsubscribe link.
 

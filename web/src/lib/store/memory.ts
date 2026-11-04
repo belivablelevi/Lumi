@@ -1,4 +1,17 @@
-import type { Order, PaidDetails, PaidResult, ReserveResult, SignupRecord, SignupResult, Store } from "./types";
+import type {
+  Addons,
+  FulfilmentPatch,
+  Order,
+  OrderView,
+  PaidDetails,
+  PaidResult,
+  RefundResult,
+  ReserveResult,
+  SignupRecord,
+  SignupResult,
+  Store,
+} from "./types";
+import { isToShip } from "./views";
 
 interface Signup extends SignupRecord {
   confirmedAt?: string;
@@ -36,6 +49,13 @@ export class MemoryStore implements Store {
     if (o) o.stripeSessionId = sessionId;
   }
 
+  async updateAddons(orderId: string, addons: Addons) {
+    const o = this.orders.get(orderId);
+    if (!o || o.status !== "pending") return false;
+    Object.assign(o, addons);
+    return true;
+  }
+
   async getOrder(orderId: string) {
     const o = this.orders.get(orderId);
     return o ? structuredClone(o) : null;
@@ -44,7 +64,7 @@ export class MemoryStore implements Store {
   async markPaid(orderId: string, d: PaidDetails): Promise<PaidResult> {
     const o = this.orders.get(orderId);
     if (!o) return "missing";
-    if (o.status === "paid" || o.status === "review") return "already";
+    if (o.status === "paid" || o.status === "review" || o.status === "refunded") return "already";
     const wasPending = o.status === "pending";
     Object.assign(o, {
       // Paid after its reservation ended, or for the wrong amount: a person should look at it.
@@ -54,7 +74,10 @@ export class MemoryStore implements Store {
       customerName: d.customerName,
       shipping: d.shipping,
       amountTotal: d.amountTotal,
+      paymentIntent: d.paymentIntent,
+      shippingAmount: d.shippingAmount,
       paidAt: new Date().toISOString(),
+      countedSold: wasPending,
     });
     // A late payment's reservation is already gone: leave capacity for the person reviewing it.
     if (wasPending) {
@@ -81,6 +104,51 @@ export class MemoryStore implements Store {
       const c = this.capacity.get(i.sku);
       if (c) c.reserved -= i.qty;
     }
+  }
+
+  async listOrders(view: OrderView) {
+    const paid = [...this.orders.values()].filter((o) => o.paidAt);
+    const rows =
+      view === "to_ship"
+        ? paid.filter(isToShip).sort((a, b) => a.paidAt!.localeCompare(b.paidAt!))
+        : (view === "shipped" ? paid.filter((o) => o.fulfilmentStatus === "shipped") : paid).sort((a, b) =>
+            (b.shippedAt ?? b.paidAt!).localeCompare(a.shippedAt ?? a.paidAt!),
+          );
+    return rows.map((o) => structuredClone(o));
+  }
+
+  async updateFulfilment(orderId: string, patch: FulfilmentPatch) {
+    const o = this.orders.get(orderId);
+    if (!o) return;
+    if (patch.fulfilmentStatus) o.fulfilmentStatus = patch.fulfilmentStatus;
+    if (patch.carrier !== undefined) o.carrier = patch.carrier ?? undefined;
+    if (patch.trackingNumber !== undefined) o.trackingNumber = patch.trackingNumber ?? undefined;
+    if (patch.unitNames !== undefined) o.unitNames = patch.unitNames ?? undefined;
+    if (patch.adminNote !== undefined) o.adminNote = patch.adminNote ?? undefined;
+    if (patch.fulfilmentStatus === "shipped") o.shippedAt ??= new Date().toISOString();
+  }
+
+  async markShippedEmailSent(orderId: string) {
+    const o = this.orders.get(orderId);
+    if (o) o.shippedEmailSentAt = new Date().toISOString();
+  }
+
+  async markRefunded(paymentIntent: string, refundedAmount: number, full: boolean): Promise<RefundResult> {
+    const o = [...this.orders.values()].find((x) => x.paymentIntent === paymentIntent);
+    if (!o) return "missing";
+    if (o.status === "refunded") return "already";
+    o.refundedAmount = Math.max(o.refundedAmount ?? 0, refundedAmount);
+    if (!full) return "partial";
+    o.status = "refunded";
+    // An order that hasn't shipped gives its units back, so they can be sold again.
+    if (o.countedSold && o.fulfilmentStatus !== "shipped") {
+      for (const i of o.items) {
+        const c = this.capacity.get(i.sku);
+        if (c) c.sold -= i.qty;
+      }
+      o.countedSold = false;
+    }
+    return "updated";
   }
 
   async recordEvent(eventId: string, type: string) {

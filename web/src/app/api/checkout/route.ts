@@ -23,6 +23,6 @@ export async function POST(req: Request) {
     allowMixed: brand.allowMixedCarts,
   });
   return result.ok
-    ? NextResponse.json({ url: result.url })
+    ? NextResponse.json({ clientSecret: result.clientSecret, orderId: result.orderId }, { headers: { "cache-control": "no-store" } })
     : NextResponse.json({ error: result.error }, { status: result.status });
 }

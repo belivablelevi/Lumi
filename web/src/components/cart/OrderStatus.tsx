@@ -25,7 +25,7 @@ export function OrderStatus({ order, session }: { order: string; session: string
           if (!alive) return;
           if (d.status === "paid") { setS({ kind: "paid", preorder: d.fulfilment === "preorder", items: d.items }); clear(); return; }
           if (d.status === "review") { setS({ kind: "review" }); clear(); return; }
-          if (d.status === "expired" || d.status === "failed") { setS({ kind: "ended" }); return; }
+          if (d.status === "expired" || d.status === "failed" || d.status === "refunded") { setS({ kind: "ended" }); return; }
         } else if (res.status === 404 || res.status === 400) {
           if (alive) setS({ kind: "unknown" });
           return;

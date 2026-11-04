@@ -1,5 +1,62 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { Order, PaidDetails, PaidResult, ReserveResult, SignupRecord, SignupResult, Store } from "./types";
+import type {
+  Addons,
+  FulfilmentPatch,
+  Order,
+  OrderView,
+  PaidDetails,
+  PaidResult,
+  RefundResult,
+  ReserveResult,
+  SignupRecord,
+  SignupResult,
+  Store,
+} from "./types";
+
+type Row = Record<string, unknown>;
+const opt = <T,>(v: unknown) => (v ?? undefined) as T | undefined;
+
+function toOrder(data: Row): Order {
+  return {
+    id: String(data.id),
+    status: data.status as Order["status"],
+    fulfilment: data.fulfilment as Order["fulfilment"],
+    currency: data.currency as Order["currency"],
+    subtotal: Number(data.subtotal),
+    createdAt: String(data.created_at),
+    reservationExpiresAt: String(data.reservation_expires_at),
+    stripeSessionId: opt(data.stripe_session_id),
+    email: opt(data.email),
+    customerName: opt(data.customer_name),
+    shipping: opt(data.shipping),
+    amountTotal: opt(data.amount_total),
+    paidAt: opt(data.paid_at),
+    confirmationSentAt: opt(data.confirmation_sent_at),
+    fulfilmentStatus: opt(data.fulfilment_status),
+    carrier: opt(data.carrier),
+    trackingNumber: opt(data.tracking_number),
+    shippedAt: opt(data.shipped_at),
+    shippedEmailSentAt: opt(data.shipped_email_sent_at),
+    unitNames: opt(data.unit_names),
+    adminNote: opt(data.admin_note),
+    paymentIntent: opt(data.payment_intent),
+    refundedAmount: opt(data.refunded_amount),
+    countedSold: opt(data.counted_sold),
+    tipAmount: opt(data.tip_amount),
+    protectionAmount: opt(data.protection_amount),
+    shippingAmount: opt(data.shipping_amount),
+    items: ((data.order_items as Row[] | undefined) ?? [])
+      .sort((a, b) => Number(a.line) - Number(b.line))
+      .map((i) => ({
+        sku: String(i.sku),
+        slug: String(i.slug),
+        name: String(i.name),
+        variantId: i.variant_id ? String(i.variant_id) : undefined,
+        qty: Number(i.qty),
+        unitAmount: Number(i.unit_amount),
+      })),
+  };
+}
 
 /** The Store backed by Supabase (tables and functions in supabase/migrations). Server only. */
 export class SupabaseStore implements Store {
@@ -28,36 +85,64 @@ export class SupabaseStore implements Store {
     if (error) SupabaseStore.fail("attach session", error);
   }
 
+  async updateAddons(orderId: string, addons: Addons) {
+    const { data, error } = await this.db
+      .from("orders")
+      .update({ tip_amount: addons.tipAmount, protection_amount: addons.protectionAmount })
+      .eq("id", orderId)
+      .eq("status", "pending")
+      .select("id");
+    if (error) SupabaseStore.fail("update addons", error);
+    return (data?.length ?? 0) > 0;
+  }
+
   async getOrder(orderId: string): Promise<Order | null> {
     const { data, error } = await this.db.from("orders").select("*, order_items(*)").eq("id", orderId).maybeSingle();
     if (error) SupabaseStore.fail("get order", error);
-    if (!data) return null;
-    return {
-      id: data.id,
-      status: data.status,
-      fulfilment: data.fulfilment,
-      currency: data.currency,
-      subtotal: data.subtotal,
-      createdAt: data.created_at,
-      reservationExpiresAt: data.reservation_expires_at,
-      stripeSessionId: data.stripe_session_id ?? undefined,
-      email: data.email ?? undefined,
-      customerName: data.customer_name ?? undefined,
-      shipping: data.shipping ?? undefined,
-      amountTotal: data.amount_total ?? undefined,
-      paidAt: data.paid_at ?? undefined,
-      confirmationSentAt: data.confirmation_sent_at ?? undefined,
-      items: (data.order_items as Record<string, unknown>[])
-        .sort((a, b) => Number(a.line) - Number(b.line))
-        .map((i) => ({
-          sku: String(i.sku),
-          slug: String(i.slug),
-          name: String(i.name),
-          variantId: i.variant_id ? String(i.variant_id) : undefined,
-          qty: Number(i.qty),
-          unitAmount: Number(i.unit_amount),
-        })),
-    };
+    return data ? toOrder(data) : null;
+  }
+
+  async listOrders(view: OrderView): Promise<Order[]> {
+    let q = this.db.from("orders").select("*, order_items(*)").not("paid_at", "is", null);
+    if (view === "to_ship") q = q.in("status", ["paid", "review"]).neq("fulfilment_status", "shipped").order("paid_at", { ascending: true });
+    else if (view === "shipped") q = q.eq("fulfilment_status", "shipped").order("shipped_at", { ascending: false });
+    else q = q.order("paid_at", { ascending: false });
+    const { data, error } = await q.limit(500);
+    if (error) SupabaseStore.fail("list orders", error);
+    return (data ?? []).map(toOrder);
+  }
+
+  async updateFulfilment(orderId: string, patch: FulfilmentPatch) {
+    const row: Row = {};
+    if (patch.fulfilmentStatus) row.fulfilment_status = patch.fulfilmentStatus;
+    if (patch.carrier !== undefined) row.carrier = patch.carrier;
+    if (patch.trackingNumber !== undefined) row.tracking_number = patch.trackingNumber;
+    if (patch.unitNames !== undefined) row.unit_names = patch.unitNames;
+    if (patch.adminNote !== undefined) row.admin_note = patch.adminNote;
+    if (Object.keys(row).length) {
+      const { error } = await this.db.from("orders").update(row).eq("id", orderId);
+      if (error) SupabaseStore.fail("update fulfilment", error);
+    }
+    if (patch.fulfilmentStatus === "shipped") {
+      // Only the first time: re-saving a tracking number keeps the original ship date.
+      const { error } = await this.db.from("orders").update({ shipped_at: new Date().toISOString() }).eq("id", orderId).is("shipped_at", null);
+      if (error) SupabaseStore.fail("stamp shipped", error);
+    }
+  }
+
+  async markShippedEmailSent(orderId: string) {
+    const { error } = await this.db.from("orders").update({ shipped_email_sent_at: new Date().toISOString() }).eq("id", orderId);
+    if (error) SupabaseStore.fail("mark shipped email sent", error);
+  }
+
+  async markRefunded(paymentIntent: string, refundedAmount: number, full: boolean): Promise<RefundResult> {
+    const { data, error } = await this.db.rpc("mark_order_refunded", {
+      p_payment_intent: paymentIntent,
+      p_refunded: refundedAmount,
+      p_full: full,
+    });
+    if (error) SupabaseStore.fail("mark_order_refunded", error);
+    return data as RefundResult;
   }
 
   async markPaid(orderId: string, d: PaidDetails): Promise<PaidResult> {
@@ -71,6 +156,13 @@ export class SupabaseStore implements Store {
       p_mismatch: !!d.mismatch,
     });
     if (error) SupabaseStore.fail("mark_order_paid", error);
+    if (data === "updated" && (d.paymentIntent || d.shippingAmount !== undefined)) {
+      const { error: e2 } = await this.db
+        .from("orders")
+        .update({ payment_intent: d.paymentIntent ?? null, shipping_amount: d.shippingAmount ?? null })
+        .eq("id", orderId);
+      if (e2) SupabaseStore.fail("save payment details", e2);
+    }
     return data as PaidResult;
   }
 

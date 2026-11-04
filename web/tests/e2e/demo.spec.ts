@@ -43,26 +43,34 @@ test("add to cart, change quantity, survive a reload, remove", async ({ page }) 
   await expect(page.getByText("Your cart is empty")).toBeVisible();
 });
 
-test("checkout sends only identifiers and quantities, then hands off to Stripe", async ({ page }) => {
+test("checkout opens our own checkout page and sends only identifiers, quantities and add-on choices", async ({ page }) => {
   let sent: unknown;
   await page.route("**/api/checkout", async (route) => {
     sent = route.request().postDataJSON();
-    await route.fulfill({ json: { url: "/checkout/cancel?order=e2e" } });
+    await route.fulfill({ status: 409, json: { error: "Pocket Lumi doesn't have enough left for this order." } });
   });
   await page.goto("/products/pocket-lumi");
   await page.getByRole("button", { name: "Pre-order your Lumi" }).first().click();
   await page.getByRole("dialog").getByRole("button", { name: "Pre-order securely" }).click();
-  await expect(page).toHaveURL(/\/checkout\/cancel/);
-  expect(sent).toEqual({ lines: [{ slug: "pocket-lumi", qty: 1 }] });
-  await expect(page.getByText("No payment was taken")).toBeVisible();
+  await expect(page).toHaveURL(/\/checkout$/);
+  await expect(page.getByRole("heading", { name: "Checkout", level: 1 })).toBeVisible();
+  // Errors from the server are shown, not hidden, with a way back to the cart.
+  await expect(page.getByText("doesn't have enough left")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Back to your cart" })).toBeVisible();
+  expect(sent).toEqual({ lines: [{ slug: "pocket-lumi", qty: 1 }], protection: false, tip: 0 });
 });
 
-test("checkout errors are shown, not hidden", async ({ page }) => {
-  await page.route("**/api/checkout", (route) => route.fulfill({ status: 409, json: { error: "Pocket Lumi doesn't have enough left for this order." } }));
-  await page.goto("/products/pocket-lumi");
-  await page.getByRole("button", { name: "Pre-order your Lumi" }).first().click();
-  await page.getByRole("dialog").getByRole("button", { name: "Pre-order securely" }).click();
-  await expect(page.getByText("doesn't have enough left")).toBeVisible();
+test("the checkout page with an empty cart points back to the shop", async ({ page }) => {
+  await page.goto("/checkout");
+  await expect(page.getByText("Your cart is empty.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Find a Lumi" })).toBeVisible();
+});
+
+test("the checkout API never takes prices from the browser", async ({ request }) => {
+  for (const path of ["/api/checkout/shipping", "/api/checkout/addons"]) {
+    const res = await request.post(path, { data: { sessionId: "nope", protection: true, protectionAmount: 1, tip: -5 } });
+    expect(res.status(), path).toBeGreaterThanOrEqual(400);
+  }
 });
 
 test("the real checkout API refuses bad carts without trusting the browser", async ({ request }) => {
@@ -81,4 +89,24 @@ test("the success page never claims payment it hasn't verified", async ({ page }
   await page.unroute("**/api/orders/status**");
   await page.route("**/api/orders/status**", (route) => route.fulfill({ json: { status: "paid", fulfilment: "preorder", items: [{ name: "Pocket Lumi", qty: 1 }] } }));
   await expect(page.getByText("Your pre-order is confirmed")).toBeVisible({ timeout: 10_000 });
+});
+
+test("the order admin asks for a password and keeps orders behind it", async ({ page, request }) => {
+  const res = await request.get("/admin", { maxRedirects: 0 });
+  expect([303, 307, 308]).toContain(res.status());
+  expect(res.headers()["location"]).toContain("/admin/login");
+  expect((await request.get("/admin/export.csv", { maxRedirects: 0 })).status()).toBe(401);
+  expect((await request.get("/admin/orders/11111111-1111-4111-8111-111111111111", { maxRedirects: 0 })).status()).not.toBe(200);
+
+  await page.goto("/admin");
+  await expect(page).toHaveURL(/\/admin\/login$/);
+  await expect(page.getByRole("heading", { name: "Orders" })).toBeVisible();
+  expect(await page.locator('meta[name="robots"]').getAttribute("content")).toContain("noindex");
+  // The e2e database is unreachable, so signing in fails closed instead of skipping the rate limit.
+  await page.getByLabel("Password").fill("not the password");
+  await page.getByRole("button", { name: "Sign in" }).click();
+  // Reaching the fake database address takes a few seconds to fail.
+  await expect(page).toHaveURL(/error=unavailable/, { timeout: 30_000 });
+  await expect(page.getByText("Signing in isn't available")).toBeVisible();
+  expect((await page.context().cookies()).some((c) => c.name === "lumi_admin")).toBe(false);
 });
