@@ -253,8 +253,12 @@ def test_birth_certificates_come_eight_to_a_sheet_front_and_back(tmp_path):
     data = open(path, "rb").read()
     # 10 cards -> 2 sheets, each a page of fronts and a page of backs.
     assert data.startswith(b"%PDF-") and data.count(b"/Type /Page\n") == 4
-    assert "three times" in unit_cards.WAKE
+    assert "three times" in unit_cards.WAKE and "upside down" in unit_cards.MENU
     assert unit_cards._born(rows[0]) == "Made 2026-12-01" and unit_cards._born(rows[1]) == ""
+    # Each card shows how rare its exact Lumi is; the most likely Lumi is 1 in 631.
+    for row in rows:
+        odds = unit_cards.odds_text(factory.row_persona(row).genes)
+        assert odds.startswith("1/") and int(odds[2:].replace(",", "")) >= 631
     # A copy lands with the UI screenshots, so CI keeps it for review.
     screens = os.path.join(os.path.dirname(__file__), "..", "..", "..", "build", "studio", "screens")
     unit_cards.export(screens, rows)

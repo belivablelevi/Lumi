@@ -67,6 +67,10 @@ def font(size, bold=False, display=False, spacing=0.0):
         name = "Manrope-Bold" if bold else "Manrope-Regular"
     f = QFont(_family(name))
     f.setPointSizeF(size * PT / RES)  # the painter is already scaled from device pixels to points
+    # The size above is tiny before the painter's scale. Hinting would snap each glyph's width to whole
+    # pixels at that size (Windows does), which wrecks the letter spacing, so lay text out unhinted.
+    f.setHintingPreference(QFont.PreferNoHinting)
+    f.setStyleStrategy(QFont.StyleStrategy(QFont.PreferOutline | QFont.PreferAntialias))
     if spacing:
         f.setLetterSpacing(QFont.PercentageSpacing, 100 + spacing)
     return f

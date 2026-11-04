@@ -16,7 +16,7 @@ from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QColor, QPainterPath, QPen
 
 from . import factory, native
-from .odds_card import (CLOUD, INK, LAVENDER_DEEP, LAVENDER_PALE, LINE, LETTER, MUTED, _begin, _glass, _text,
+from .odds_card import (CLOUD, GLASS, INK, LAVENDER_DEEP, LAVENDER_PALE, LINE, LETTER, MUTED, _begin, _text,
                         _writer, font)
 from .widgets import RARITY_COLOURS, frame_image
 
@@ -29,11 +29,70 @@ GAP = 22  # between cards on the sheet: room for bleed and cut marks
 PER_SHEET = COLS * ROWS
 
 WAKE = "I travel asleep, so bumps in the post can't wake me. Tap my screen three times and I'll say hello."
+MENU = "Hold me upside down for 2 seconds, then turn me back up. Tilt to choose, pat to pick."
+
+# The Pocket Lumi from the front, in mm, from hardware/enclosure/lumi_case.scad.
+MM = 2.2  # points per mm in the drawing
+CASE_W, CASE_H, CASE_R = 35.0, 37.0, 6.0
+WIN_W, WIN_H, WIN_R = 22.8, 12.0, 1.2
+WIN_DY = 1.8  # the window's centre sits this far below the case's centre
+ACTIVE_W, ACTIVE_H = 21.7, 10.9  # the lit part of the OLED
+BAIL_W, BAIL_H, BAIL_HOLE = 10.0, 7.5, 3.4
+
+# Rarity colours for text: the site's colours, deepened so they read on the cream card when printed.
+RARITY_TEXT = {"common": "#5f6b78", "uncommon": "#1f8a4c", "rare": "#1f6fc4", "legendary": "#a86d00"}
 
 
 def _face(genes):
     expr = native.expression_names().index("neutral")
     return frame_image(native.render_expression(expr, genes, 600), 4)
+
+
+def odds_text(genes):
+    """How rare this exact Lumi is (every gene, temperament included), as "1/122,441"."""
+    p = native.genes_probability(genes)
+    return f"1/{round(1 / p):,}" if p > 0 else ""
+
+
+def _lumi(p, cx, top, genes):
+    """The Lumi drawn at true proportions: white shell, keyring tab, and its own face on the screen.
+    `top` is the top of the keyring tab."""
+    case = QRectF(cx - CASE_W * MM / 2, top + BAIL_H * MM, CASE_W * MM, CASE_H * MM)
+    outline = QPen(QColor("#d9d1dc"), 0.7)
+
+    # Keyring tab, behind the shell's top edge, with its hole.
+    tab = QPainterPath()
+    tab.addRoundedRect(QRectF(cx - BAIL_W * MM / 2, top, BAIL_W * MM, (BAIL_H + 4) * MM), BAIL_W * MM / 2, BAIL_W * MM / 2)
+    hole = QPainterPath()
+    r = BAIL_HOLE * MM / 2
+    hole.addEllipse(QPointF(cx, top + BAIL_W * MM / 2), r, r)
+    p.setPen(outline)
+    p.setBrush(QColor("#ffffff"))
+    p.drawPath(tab.subtracted(hole))
+
+    # A soft shadow, then the shell.
+    p.setPen(Qt.NoPen)
+    p.setBrush(QColor(48, 38, 58, 26))
+    p.drawRoundedRect(case.translated(0, 1.6), CASE_R * MM, CASE_R * MM)
+    p.setPen(outline)
+    p.setBrush(QColor("#ffffff"))
+    p.drawRoundedRect(case, CASE_R * MM, CASE_R * MM)
+
+    # The screen window, and the face at its true 2:1 shape inside the lit area.
+    win = QRectF(0, 0, WIN_W * MM, WIN_H * MM)
+    win.moveCenter(QPointF(cx, case.center().y() + WIN_DY * MM))
+    p.setPen(Qt.NoPen)
+    p.setBrush(GLASS)
+    p.drawRoundedRect(win, WIN_R * MM, WIN_R * MM)
+    img = _face(genes)
+    w = ACTIVE_W * MM
+    h = w * img.height() / img.width()
+    if h > ACTIVE_H * MM:
+        h = ACTIVE_H * MM
+        w = h * img.width() / img.height()
+    face = QRectF(0, 0, w, h)
+    face.moveCenter(win.center())
+    p.drawImage(face, img)
 
 
 def _born(row):
@@ -57,7 +116,8 @@ def draw_front(p, row):
     """One card's front in trim coordinates (0,0)-(CW,CH) in points; the background runs into the bleed."""
     _base(p)
     p.fillRect(QRectF(-BLEED, -BLEED, 128 + BLEED, CH + 2 * BLEED), LAVENDER_PALE)
-    _glass(p, QRectF(PAD, (CH - 56) / 2, 104, 52), _face(factory.row_persona(row).genes))
+    genes = factory.row_persona(row).genes
+    _lumi(p, 64, (CH - (BAIL_H + CASE_H) * MM) / 2, genes)
 
     x = 128 + PAD
     w = CW - x - PAD
@@ -70,6 +130,10 @@ def draw_front(p, row):
     p.drawEllipse(QRectF(x, PAD + 42.5, 6, 6))
     _text(p, QRectF(x + 9, PAD + 40, w - 9, 11), tier.capitalize(), font(7.6, True))
     _text(p, QRectF(x, PAD + 54, w, 11), f"{row['temperament'].capitalize()} temperament", font(7.4), MUTED)
+    odds = odds_text(genes)
+    if odds:
+        _text(p, QRectF(x, PAD + 67, w, 16), odds, font(12, display=True), QColor(RARITY_TEXT.get(tier, "#30263a")))
+        _text(p, QRectF(x, PAD + 82, w, 10), "chance of this exact Lumi", font(5.8), MUTED)
 
     p.setPen(QPen(LINE, 0.6))
     p.drawLine(QPointF(x, CH - PAD - 16), QPointF(CW - PAD, CH - PAD - 16))
@@ -82,7 +146,16 @@ def draw_back(p, row):
     w = CW - 2 * PAD
     _text(p, QRectF(PAD, PAD, w, 22), f"Hi, I'm {row['name']}!", font(14, display=True))
     _text(p, QRectF(PAD, PAD + 24, w, 34), WAKE, font(7.4), INK)
-    _text(p, QRectF(PAD, PAD + 60, w, 30), "My looks: " + _traits(row), font(6.4), MUTED)
+
+    # How to open the menu (app.cpp: hold upside down for menuHoldMs, then turn upright).
+    chip = QRectF(PAD, PAD + 50, w * 0.86, 19)
+    p.setPen(Qt.NoPen)
+    p.setBrush(LAVENDER_PALE)
+    p.drawRoundedRect(chip, 6, 6)
+    _text(p, chip.adjusted(6, 0, -6, 0), "Settings", font(5.6, True), LAVENDER_DEEP, Qt.AlignLeft | Qt.AlignVCenter)
+    _text(p, chip.adjusted(36, 0, -6, 0), MENU, font(5.4), INK, Qt.AlignLeft | Qt.AlignVCenter | Qt.TextWordWrap)
+
+    _text(p, QRectF(PAD, PAD + 75, w, 22), "My looks: " + _traits(row), font(6.2), MUTED)
 
     p.setPen(QPen(LINE, 0.6))
     p.drawLine(QPointF(PAD, CH - PAD - 16), QPointF(CW - PAD, CH - PAD - 16))

@@ -19,13 +19,16 @@ Edit the tables in `budget.py` and re-run it to update this page.
 | … per prototype | $26.87 | $37.62 |
 | One Lumi at 100 units | $11.72 | $16.40 |
 | One Lumi at 1,000 units | $8.03 | $11.24 |
+| **Average unit cost at 100 units** (packed, fees, spares, prototypes) | – | **$24.35** |
+| **Average unit cost at 1,000 units** (packed, fees, spares, prototypes) | – | **$14.86** |
 
-These figures include:
+The device figures include:
 - the board, built by JLCPCB,
 - the screen, battery and printed case,
 - shipping to Canada, GST and courier brokerage.
 
-They don't include tools, test equipment, certification (FCC/ISED for the finished product, UN38.3 paperwork), packaging, or your time.
+The average unit cost adds packaging, spares, the Stripe fee and the prototype run (see below).
+Neither includes certification (until you enter a lab quote), customs duty beyond GST, or your time.
 
 ## 5 prototypes
 
@@ -109,6 +112,35 @@ Notes on volume:
 - **Battery:** the 1,000 price assumes a factory quote with UN38.3 reports.
 - **Case:** a home-printed case is cheap in plastic (~$0.45) but takes about 2.5 hours of printer time each. At 1,000, a print farm or an injection mould changes this line.
 
+## Average unit cost (CAD)
+
+From the device cost above to what each Lumi really costs: packed, with spares, the Stripe fee and the
+prototype run spread over the batch. Packaging prices are estimates; edit `PACKAGING_CAD` (or the
+**Full unit cost** tab in the workbook) with real quotes.
+
+| Item | 100 units | 1,000 units |
+|---|--:|--:|
+| Device: board, screen, battery, case, import shipping, GST | $16.40 | $11.24 |
+| Mailer box, 3 x 3 x 2 in | $0.60 | $0.35 |
+| Padding (crinkle paper or foam) | $0.10 | $0.05 |
+| Birth certificate (1/8 Letter sheet of card stock + ink) | $0.15 | $0.10 |
+| Odds card (printed 4 x 6 postcard) | $0.40 | $0.12 |
+| Shipping label | $0.10 | $0.05 |
+| Spares and failed units (5% of the device) | $0.82 | $0.56 |
+| **Cost to make and pack** | **$18.57** | **$12.47** |
+| Stripe fee at a $59.00 price | $2.01 | $2.01 |
+| Prototype run (10 boards) spread over the run | $3.76 | $0.38 |
+| Certification (lab quote) spread over the run | $0.00 | $0.00 |
+| One-time tools spread over the run | $0.00 | $0.00 |
+| **Average unit cost** | **$24.35** | **$14.86** |
+| Left from a $59.00 sale | $34.65 (59%) | $44.14 (75%) |
+
+Notes:
+- **Shipping** isn't here: the customer pays it at checkout. Stripe's fee on the shipping part (2.9%) is left out too.
+- **Certification** is the big unknown: EMC testing of the finished Lumi (the radio module is already certified) often costs thousands. $2,000 adds $20 a unit at 100 and $2 at 1,000. Enter your lab quote in `CERT_CAD`.
+- **Your time** (assembly, provisioning, testing, packing: maybe 10–15 minutes a unit) and **printer time** (about 2.5 h a case) aren't counted.
+- The **price** ($59.00) is only an example, used for the Stripe fee and the margin line.
+
 ## Board parts by quantity (USD each)
 
 | Ref | Part | LCSC | 5–10 boards | 100 | 1,000 |
@@ -142,3 +174,4 @@ Notes on volume:
 - [Shipping and brokerage to Canada (forum reports)](https://forum.kicad.info/t/alternatives-to-jlcpcb-or-pcbway-for-canadian-hobbyist/61624)
 - [CBSA: courier imports from outside the US/Mexico (CAD 20 threshold)](https://www.cbsa-asfc.gc.ca/services/cusma-aceum/lvs-efv-eng.html)
 - [USD/CAD, October 2026](https://moneyexchangerate.org/currencyexchange/usd/cad)
+- [Stripe pricing, Canada](https://stripe.com/en-ca/pricing)
