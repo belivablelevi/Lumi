@@ -117,6 +117,13 @@ export function CheckoutSteps({ preorder, onRestart }: { preorder: boolean; onRe
       return;
     }
     setBusy("pay");
+    // Stripe needs the email on the session before it will take the payment.
+    const e = await checkout.updateEmail(email.trim());
+    if (e.type === "error") {
+      setPayError(e.error.message);
+      setBusy("");
+      return;
+    }
     const r = await checkout.confirm({ email: email.trim() });
     // On success Stripe takes the customer to the order status page.
     if (r.type === "error") {
@@ -141,6 +148,9 @@ export function CheckoutSteps({ preorder, onRestart }: { preorder: boolean; onRe
             inputMode="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onBlur={() => {
+              if (emailOk) void checkout.updateEmail(email.trim());
+            }}
             placeholder="you@example.com"
             className="mt-1 h-12 w-full rounded-chip border border-line bg-white px-4 text-[0.9375rem] outline-none focus:border-ink/40"
           />
@@ -262,7 +272,8 @@ export function CheckoutSteps({ preorder, onRestart }: { preorder: boolean; onRe
           <span>{checkout.total.total.amount}</span>
         </p>
         {preorder ? <p className="mt-2 text-xs text-muted">Pre-order: ships when this launch is ready, not right away.</p> : null}
-        <Button className="mt-4 w-full" size="lg" onClick={pay} disabled={busy !== "" || !shipping || !checkout.canConfirm}>
+        {/* Only the address and shipping gate the button: Stripe's confirm checks the card and email itself and says what's missing. */}
+        <Button className="mt-4 w-full" size="lg" onClick={pay} disabled={busy !== "" || !shipping}>
           {busy === "pay" ? <Loader2 className="size-4 animate-spin" /> : <Lock className="size-4" />}
           {busy === "pay" ? "Paying…" : `Pay ${checkout.total.total.amount}`}
         </Button>
