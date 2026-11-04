@@ -14,6 +14,7 @@
 #include "genes.h"
 #include "pack.h"
 #include "serial_cmd.h"
+#include "shiplock.h"
 #include "fake_hal.h"
 #include "animator.h"
 #include "pong.h"
@@ -907,6 +908,113 @@ static void testPersonality() {
   }
 }
 
+// Shipping mode: the lock that tells taps from a parcel being handled, and the
+// serial command that turns it on.
+struct ShipFeed {
+  ShipLock lock{2, 3000};
+  uint32_t t = 1000;
+  uint32_t seed = 7;
+  explicit ShipFeed(float x = 0, float y = 0, float z = 1) : gx(x), gy(y), gz(z) { lock.begin(t); }
+  float gx, gy, gz;
+  float jitter() {
+    seed = seed * 1103515245u + 12345u;
+    return ((seed >> 16) % 2001 / 1000.f - 1.f) * 0.004f;
+  }
+  void sample(float x, float y, float z) {
+    lock.onAccel(x + jitter(), y + jitter(), z + jitter(), t);
+    t += 10;
+  }
+  void hold(uint32_t ms) {
+    for (uint32_t e = 0; e < ms; e += 10) sample(gx, gy, gz);
+  }
+  void pat() {
+    sample(gx, gy, gz - 1.4f);
+    sample(gx, gy, gz + 0.5f);
+  }
+};
+
+static void testShipMode() {
+  printf("ship mode\n");
+  {
+    ShipFeed f;  // two taps while held face-up: someone waking it
+    f.hold(300);
+    f.pat();
+    f.hold(400);
+    f.pat();
+    f.hold(200);
+    CHECK(f.lock.unlocked());
+    CHECK(!f.lock.expired(f.t));
+  }
+  {
+    ShipFeed f;  // one bump, then nothing: back to sleep
+    f.hold(300);
+    f.pat();
+    f.hold(3000);
+    CHECK(!f.lock.unlocked());
+    CHECK_EQ(f.lock.pats(), 1);
+    CHECK(f.lock.expired(f.t));
+  }
+  {
+    ShipFeed f;  // no taps at all
+    f.hold(3100);
+    CHECK(!f.lock.unlocked());
+    CHECK(f.lock.expired(f.t));
+  }
+  {
+    ShipFeed f;  // taps after the listening window don't count
+    f.hold(3000);
+    f.pat();
+    f.hold(400);
+    f.pat();
+    f.hold(200);
+    CHECK(!f.lock.unlocked());
+  }
+  {
+    ShipFeed f;  // a parcel tumbling onto its side between two bumps starts the count again
+    f.hold(300);
+    f.pat();
+    f.hold(200);
+    f.gx = 1;
+    f.gz = 0;
+    for (int i = 1; i <= 30; ++i) f.sample(i / 30.f, 0, 1 - i / 30.f);  // a 300 ms roll
+    f.hold(500);
+    f.pat();
+    f.hold(200);
+    CHECK(!f.lock.unlocked());
+  }
+  {
+    ShipFeed f;  // a drop: freefall, impact, bounce
+    f.hold(300);
+    for (int i = 0; i < 15; ++i) f.sample(0, 0, 0.05f);
+    f.pat();
+    f.hold(150);
+    f.pat();
+    f.hold(200);
+    CHECK(!f.lock.unlocked());
+  }
+
+  // The serial command stores the flag and reports the battery.
+  sim::FakeHal hal;
+  MoodState ms;
+  App app(hal, &ms);
+  app.begin(WakeReason::PowerOn, 0);
+  SerialCommands cmd(app, hal);
+  Lines out;
+  CHECK(cmd.handle("ship", Lines::out, &out));
+  CHECK(out.last().rfind("ok ship battery=", 0) == 0);
+  CHECK(hal.shipModeGet());
+  CHECK(!cmd.handle("shipped", Lines::out, &out));  // whole words only
+
+  struct NoStoreHal : sim::FakeHal {
+    bool shipModeSet(bool) override { return false; }
+  } bare;
+  App app2(bare, &ms);
+  app2.begin(WakeReason::PowerOn, 0);
+  SerialCommands cmd2(app2, bare);
+  cmd2.handle("ship", Lines::out, &out);
+  CHECK(out.last() == "err ship unsupported");
+}
+
 int main() {
   testGfxAndFace();
   testGestures();
@@ -915,6 +1023,7 @@ int main() {
   testMood();
   testApp();
   testPersonality();
+  testShipMode();
   printf("\n%d checks, %d failures\n", g_checks, g_failures);
   return g_failures ? 1 : 0;
 }

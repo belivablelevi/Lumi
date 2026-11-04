@@ -11,7 +11,7 @@
 // Print both parts face-down (front: screen side on the bed; back: outside
 // on the bed). Glitter / "galaxy" PLA or PETG gives the sparkly shell look.
 
-part = "assembly";  // front | back | assembly | print | fit_check
+part = "assembly";  // front | back | assembly | print | fit_check | snap_test | screen_test
 // Which controller board:
 //   "xiao"      Seeed XIAO ESP32C3 (built-in charger)
 //   "s3"        ESP32-S3 SuperMini with built-in charger (BAT+/BAT- pads)
@@ -42,6 +42,29 @@ view_offset_y = -0.6;         // window centre relative to PCB centre
 window_chamfer = 0.8;
 screen_offset_y = -1.2;       // whole display shifted down a bit from case centre
 mount_top = oled_top_z + 0.6; // top of the display pocket's walls
+
+/* [Screen pins: four pins through the module's corner holes] */
+// They line the screen up with the window, and a pad around each pin carries the board,
+// so nothing presses on the glass. Melt the pin tips over with a soldering iron, or put a
+// dot of glue on them, to hold the module in. Hole positions vary between sellers, so
+// measure your module, set these, and check with part="screen_test" before turning it on.
+oled_pins = false;
+oled_hole_d = 2.0;          // mounting hole diameter
+oled_holes = [22.3, 23.0];  // hole centre spacing, X and Y (unmeasured guess)
+oled_holes_offset_y = 0;    // centre of the hole pattern relative to the PCB centre
+pin_d = oled_hole_d - 0.3;
+pin_stick = 0.8;            // how far the pin pokes out of the back of the board
+pad_d = oled_hole_d + 1.4;  // pad under the board around each hole
+oled_hole_pos = [for (sx = [-1, 1], sy = [-1, 1])
+  [sx * oled_holes[0] / 2, screen_offset_y + oled_holes_offset_y + sy * oled_holes[1] / 2]];
+// Distance from point p to the glass (with its 0.2 mm recess clearance).
+function glass_dist(p) =
+  let(dx = max(abs(p[0]) - oled_glass[0] / 2 - 0.2, 0),
+      dy = max(abs(p[1] - screen_offset_y - oled_glass_offset_y) - oled_glass[1] / 2 - 0.2, 0))
+  sqrt(dx * dx + dy * dy);
+// Pins that would hit the glass are left out, and pads that would are shrunk to the pin.
+oled_pin_pos = [for (p = oled_hole_pos) if (glass_dist(p) >= pin_d / 2) p];
+assert(len(oled_pin_pos) >= 2, "fewer than two screen pins clear the glass: check oled_holes");
 
 /* [Electronics: each layer gets room for its solder joints, wires and Kapton] */
 xiao = board == "xiao" ? [21.0, 17.8, 1.2]   // Seeed XIAO ESP32C3 PCB (USB-C on the +X end)
@@ -180,7 +203,7 @@ module whole_case() {
 }
 
 // Pocket that holds the display module against the window.
-module display_mount() {
+module display_mount(pins = oled_pins) {
   difference() {
     translate([0, 0, wall]) linear_extrude(mount_top - wall)
       difference() {
@@ -191,6 +214,12 @@ module display_mount() {
     translate([0, screen_offset_y + oled_glass_offset_y, wall - 0.01])
       linear_extrude(oled_glass[2] + 0.02) square([oled_glass[0] + 0.4, oled_glass[1] + 0.4], center = true);
   }
+  if (pins)
+    for (p = oled_pin_pos) translate([p[0], p[1], wall - 0.01]) {
+      // the pad carries the board's corner at the glass's height
+      cylinder(d = glass_dist(p) >= pad_d / 2 ? pad_d : pin_d, h = oled_glass[2] + 0.01);
+      cylinder(d = pin_d, h = oled_top_z + pin_stick - wall + 0.01);
+    }
 }
 
 // Holds the controller at its depth, with its USB-C lined up with the opening.
@@ -269,7 +298,7 @@ module snap_grooves(c = snap_catch) {
     on_wall(x, snap_w + 0.6, sy) snap_groove_profile(c);
 }
 
-module front_part(c = snap_catch) {
+module front_part(c = snap_catch, pins = oled_pins) {
   difference() {
     union() {
       intersection() {
@@ -303,7 +332,7 @@ module front_part(c = snap_catch) {
       snap_arms(c);
       intersection() {
         union() {
-          display_mount();
+          display_mount(pins);
           xiao_seat();
           imu_seat();
         }
@@ -356,7 +385,10 @@ module snap_test_front(c) {
 
 // Stand-ins for the parts, sized with their solder joints and tallest components.
 module components() {
-  color("black") translate([0, screen_offset_y, wall + oled_glass[2] + oled_pcb[2] / 2]) cube(oled_pcb, center = true);
+  color("black") difference() {
+    translate([0, screen_offset_y, wall + oled_glass[2] + oled_pcb[2] / 2]) cube(oled_pcb, center = true);
+    if (oled_pins) for (p = oled_hole_pos) translate([p[0], p[1], 0]) cylinder(d = oled_hole_d, h = 20);
+  }
   color("#222222") translate([0, screen_offset_y + 3, oled_top_z + oled_back / 2]) cube([20, 8, oled_back], center = true);
   color("#1a1a1a") translate([0, screen_offset_y + oled_glass_offset_y, wall + oled_glass[2] / 2]) cube(oled_glass, center = true);
   color("#3ce6ff") translate([0, screen_offset_y + view_offset_y, wall - 0.06]) cube([21.7, 10.9, 0.1], center = true);
@@ -385,6 +417,13 @@ if (part == "front") {
   for (i = [0 : len(test_catches) - 1])
     translate([(i % 2) * (W + 6), -floor(i / 2) * (H + 6), 0]) snap_test_front(test_catches[i]);
   translate([W + 6, -(H + 6), D]) rotate([180, 0, 0]) back_part(max(test_catches));
+} else if (part == "screen_test") {
+  // Just the front wall and the display pocket, with the screen pins on, to check the
+  // hole positions and the window against a real module before printing a whole case.
+  intersection() {
+    front_part(snap_catch, true);
+    translate([-W / 2 - 1, -H / 2 - 1, -1]) cube([W + 2, H + 1, oled_top_z + pin_stick + 1]);  // drops the keyring tab
+  }
 } else if (part == "fit_check") {
   // The back sits a hair above its seat, so the two halves resting on each other don't count.
   intersection() { union() { front_part(); translate([0, 0, 0.02]) back_part(); } components(); }

@@ -12,6 +12,8 @@
 //   persona get                -> persona <bytes> <crc32hex>, data <off> <hex> lines..., end
 //                                 (or "persona none")
 //   persona clear              -> ok clear                 back to the automatic persona
+//   ship                       -> ok ship battery=<pct>    shipping mode: Lumi goes to sleep
+//                                 and only wakes for three taps (see shiplock.h)
 #pragma once
 #include <stddef.h>
 #include <stdint.h>

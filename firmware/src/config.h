@@ -50,6 +50,15 @@
 #define LUMI_WAKE_THRESHOLD 40
 #define LUMI_WAKE_DURATION_MS 2
 
+// Shipping mode (the `ship` serial command): in a parcel, Lumi only wakes up
+// for real after the tap that wakes the chip plus LUMI_SHIP_TAPS more pats
+// within LUMI_SHIP_WINDOW_MS. A firmer wake threshold means fewer bumps in
+// transit wake the chip at all. Tune both on the first built unit: three
+// finger taps should always wake it, handling the box shouldn't.
+#define LUMI_SHIP_TAPS 2
+#define LUMI_SHIP_WINDOW_MS 3000
+#define LUMI_SHIP_WAKE_THRESHOLD 80
+
 // ---- Radio ------------------------------------------------------------------
 #define LUMI_ESPNOW_CHANNEL 1
 

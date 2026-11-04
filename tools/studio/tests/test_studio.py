@@ -208,6 +208,9 @@ def test_provisioning_end_to_end(virtual_lumi):
             dev.command("persona put 0 00112233")
             dev.command("persona commit 00000000")
 
+        # Shipping mode is the last step before packing; it reports the battery.
+        assert 0 <= dev.ship() <= 100
+
     # The pack survives a "reboot" (new process, same storage).
     assert open(store, "rb").read() == data
     proc = subprocess.Popen([exe, "--pty", "--store", store], stdout=subprocess.PIPE, text=True)

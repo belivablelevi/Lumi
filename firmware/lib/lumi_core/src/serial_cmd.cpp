@@ -56,6 +56,14 @@ bool SerialCommands::handle(const char* line, Out out, void* ctx) {
     handlePersona(args, out, ctx);
     return true;
   }
+  if (matchWord(line, "ship")) {
+    if (!hal_.shipModeSet(true)) {
+      reply(out, ctx, "err ship unsupported");
+      return true;
+    }
+    reply(out, ctx, "ok ship battery=%u", (unsigned)batteryPercent(hal_.batteryMv()));
+    return true;
+  }
   return false;
 }
 

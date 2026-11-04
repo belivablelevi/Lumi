@@ -53,6 +53,15 @@ class Hal {
     return false;
   }
   virtual bool storeClear() { return false; }
+
+  // Shipping mode: a flag in NVS that survives sleep, a flat battery and
+  // updates. While it's set, Lumi only wakes for a few deliberate taps (see
+  // shiplock.h). Units without storage can't use it.
+  virtual bool shipModeGet() { return false; }
+  virtual bool shipModeSet(bool on) {
+    (void)on;
+    return false;
+  }
 };
 
 enum class WakeReason : uint8_t { PowerOn, Motion, Other };

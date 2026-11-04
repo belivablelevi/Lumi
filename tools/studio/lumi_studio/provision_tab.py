@@ -121,11 +121,16 @@ class ProvisionTab(QWidget):
         self.virtual_btn.setEnabled(bool(native.find_tool("virtual_lumi")) and sys.platform != "win32")
         identify = QPushButton("Identify")
         identify.clicked.connect(self.identify)
+        self.ship_btn = QPushButton("Ship mode")
+        self.ship_btn.setToolTip("Last step before packing: the unit goes to sleep and only wakes when "
+                                 "someone taps its screen three times, so bumps in the post can't wake it.")
+        self.ship_btn.clicked.connect(self.ship)
         prow = QHBoxLayout()
         prow.addWidget(self.port, 1)
         prow.addWidget(refresh)
         prow.addWidget(self.virtual_btn)
         prow.addWidget(identify)
+        prow.addWidget(self.ship_btn)
 
         # ---- what to write ----
         self.mode_group = QButtonGroup(self)
@@ -301,6 +306,24 @@ class ProvisionTab(QWidget):
         self.show_unit(info)
         self.status.clear()
         return info
+
+    def ship(self):
+        port = self.port.currentData()
+        if not port:
+            self.status.setText("Pick a port first.")
+            return None
+        try:
+            with LumiDevice(port, log=self.log) as dev:
+                battery = dev.ship()
+        except Exception as e:
+            self.status.setText(f"<span style='color:#ff8a65'>{e}</span>")
+            return None
+        text = f"In shipping mode, battery {battery}%. Unplug it and pack it."
+        if battery > 60:
+            text += (" <span style='color:#ff8a65'>The battery is above 60%: lithium cells travel best "
+                     "around 30 to 60%, so let it run down a little first if you can.</span>")
+        self.status.setText(text)
+        return battery
 
     # ---- provisioning ----
     def make_job(self):
