@@ -240,3 +240,21 @@ def test_odds_card_numbers_add_up_and_both_pdfs_have_two_pages(tmp_path):
     for pdf in odds_card.export(str(tmp_path)):
         data = open(pdf, "rb").read()
         assert data.startswith(b"%PDF-") and data.count(b"/Type /Page\n") == 2  # front and back
+
+
+def test_birth_certificates_come_eight_to_a_sheet_front_and_back(tmp_path):
+    from PySide6.QtWidgets import QApplication
+    from lumi_studio import unit_cards
+    app = QApplication.instance() or QApplication([])  # noqa: F841 (fonts and PDFs need one)
+
+    rows = [factory.persona_row(p) for p in factory.generate_batch(10, "cards-test")]
+    rows[0]["provisioned_at"] = "2026-12-01T10:00:00Z"
+    path = unit_cards.export(str(tmp_path), rows)
+    data = open(path, "rb").read()
+    # 10 cards -> 2 sheets, each a page of fronts and a page of backs.
+    assert data.startswith(b"%PDF-") and data.count(b"/Type /Page\n") == 4
+    assert "three times" in unit_cards.WAKE
+    assert unit_cards._born(rows[0]) == "Made 2026-12-01" and unit_cards._born(rows[1]) == ""
+    # A copy lands with the UI screenshots, so CI keeps it for review.
+    screens = os.path.join(os.path.dirname(__file__), "..", "..", "..", "build", "studio", "screens")
+    unit_cards.export(screens, rows)

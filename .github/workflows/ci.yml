@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        env: [xiao_esp32c3, esp32s3_supermini]
+        env: [xiao_esp32c3, esp32c3_supermini, esp32s3_supermini]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

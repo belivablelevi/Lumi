@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (QAbstractItemView, QDoubleSpinBox, QFileDialog, Q
                                QLabel, QLineEdit, QMessageBox, QPushButton, QSpinBox, QSplitter, QTableWidget,
                                QTableWidgetItem, QVBoxLayout, QWidget)
 
-from . import factory, native, odds_card
+from . import factory, native, odds_card, unit_cards
 from .model import RARITIES
 from .widgets import BEZEL, RARITY_COLOURS, OledView, frame_image
 
@@ -124,6 +124,7 @@ class FactoryTab(QWidget):
         open_btn = QPushButton("Open manifest…")
         open_btn.clicked.connect(self.open_manifest)
         cards = QPushButton("Export cards…")
+        cards.setToolTip("A printable birth certificate for every unit (8 per Letter sheet, both sides), plus a PNG of each")
         cards.clicked.connect(self.export_cards)
         odds = QPushButton("Export odds card…")
         odds.setToolTip("A 4 × 6 in printable insert showing how likely each rarity, temperament and look is")
@@ -265,6 +266,10 @@ class FactoryTab(QWidget):
         for row in rows:
             card_image(row).save(os.path.join(folder, f"{row['serial']}.png"))
         contact_sheet(rows[:60]).save(os.path.join(folder, "sheet.png"))
+        # The printable birth certificates that go in each box.
+        pdf = unit_cards.export(folder, rows)
+        self.manifest_label.setText(f"Cards saved: {os.path.basename(pdf)} (print double-sided, flip on long edge) "
+                                    "and a PNG per unit")
         return folder
 
     def export_odds_card(self, folder=None):
