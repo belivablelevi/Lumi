@@ -45,3 +45,29 @@ per unit at 1000,Case and sundries,0.51,0.71
 per unit at 1000,Shipping share,0.20,0.28
 per unit at 1000,GST 5% on imports,0.38,0.54
 per unit at 1000,TOTAL,8.03,11.24
+average unit cost at 100,"Device: board, screen, battery, case, import shipping, GST",11.72,16.40
+average unit cost at 100,"Mailer box, 3 x 3 x 2 in",0.43,0.60
+average unit cost at 100,Padding (crinkle paper or foam),0.07,0.10
+average unit cost at 100,Birth certificate (1/8 Letter sheet of card stock + ink),0.11,0.15
+average unit cost at 100,Odds card (printed 4 x 6 postcard),0.29,0.40
+average unit cost at 100,Shipping label,0.07,0.10
+average unit cost at 100,Spares and failed units (5% of the device),0.59,0.82
+average unit cost at 100,Cost to make and pack,13.27,18.57
+average unit cost at 100,Stripe fee at a $59.00 price,1.44,2.01
+average unit cost at 100,Prototype run (10 boards) spread over the run,2.69,3.76
+average unit cost at 100,Certification (lab quote) spread over the run,0.00,0.00
+average unit cost at 100,One-time tools spread over the run,0.00,0.00
+average unit cost at 100,TOTAL,17.39,24.35
+average unit cost at 1000,"Device: board, screen, battery, case, import shipping, GST",8.03,11.24
+average unit cost at 1000,"Mailer box, 3 x 3 x 2 in",0.25,0.35
+average unit cost at 1000,Padding (crinkle paper or foam),0.04,0.05
+average unit cost at 1000,Birth certificate (1/8 Letter sheet of card stock + ink),0.07,0.10
+average unit cost at 1000,Odds card (printed 4 x 6 postcard),0.09,0.12
+average unit cost at 1000,Shipping label,0.04,0.05
+average unit cost at 1000,Spares and failed units (5% of the device),0.40,0.56
+average unit cost at 1000,Cost to make and pack,8.91,12.47
+average unit cost at 1000,Stripe fee at a $59.00 price,1.44,2.01
+average unit cost at 1000,Prototype run (10 boards) spread over the run,0.27,0.38
+average unit cost at 1000,Certification (lab quote) spread over the run,0.00,0.00
+average unit cost at 1000,One-time tools spread over the run,0.00,0.00
+average unit cost at 1000,TOTAL,10.61,14.86

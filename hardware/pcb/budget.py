@@ -64,6 +64,21 @@ SHIP_PROTO = {"JLCPCB boards (DHL)": 25.00, "Screens from BuyDisplay": 15.00, "B
 BROKERAGE_CAD = 15.00                                  # courier brokerage, per courier parcel (2 parcels)
 SHIP_PER_UNIT = {"100": 0.60, "1000": 0.20}            # est. air freight share, all parts
 
+# ---- From the device cost to the full average unit cost (CAD; bought in Canada) ----
+# Packaging per unit at 100 / 1,000 (estimates; replace with real quotes).
+PACKAGING_CAD = [
+    ("Mailer box, 3 x 3 x 2 in", (0.60, 0.35), "Uline.ca / Amazon packs"),
+    ("Padding (crinkle paper or foam)", (0.10, 0.05), "est."),
+    ("Birth certificate (1/8 Letter sheet of card stock + ink)", (0.15, 0.10), "home or Staples printing"),
+    ("Odds card (printed 4 x 6 postcard)", (0.40, 0.12), "Vistaprint / Staples run"),
+    ("Shipping label", (0.10, 0.05), "4 x 6 label sheets"),
+]
+SPARES = 0.05            # extra parts for failed or damaged units, as a share of the device cost
+PRICE_CAD = 59.00        # example selling price (the demo price); only used for the Stripe fee and margin
+STRIPE_PCT, STRIPE_FIXED_CAD = 0.029, 0.30   # Stripe Canada, domestic cards
+CERT_CAD = 0.0           # EMC testing (ICES-003 / FCC Part 15B) for the finished product: enter a lab quote
+TOOLS_CAD = 0.0          # one-time tools (trimmer, calipers, ...): enter what you spend
+
 SOURCES = [
     ("JLCPCB: what the PCB assembly price includes", "https://jlcpcb.com/help/article/pcb-assembly-price"),
     ("JLCPCB PCBA price overview (feeder fee change)", "https://techoverflow.net/2024/04/09/jlcpcb-pcba-assembly-price-overview/"),
@@ -78,6 +93,7 @@ SOURCES = [
     ("Shipping and brokerage to Canada (forum reports)", "https://forum.kicad.info/t/alternatives-to-jlcpcb-or-pcbway-for-canadian-hobbyist/61624"),
     ("CBSA: courier imports from outside the US/Mexico (CAD 20 threshold)", "https://www.cbsa-asfc.gc.ca/services/cusma-aceum/lvs-efv-eng.html"),
     ("USD/CAD, October 2026", "https://moneyexchangerate.org/currencyexchange/usd/cad"),
+    ("Stripe pricing, Canada", "https://stripe.com/en-ca/pricing"),
 ]
 
 
@@ -143,6 +159,23 @@ def volume(n):
     return rows, sum(v for _, v in rows)
 
 
+def full_unit(n, proto_total_usd):
+    """CAD per unit from the device cost to the average unit cost, for a run of n."""
+    j = 0 if n == 100 else 1
+    device = volume(n)[1] * USD_TO_CAD
+    rows = [("Device: board, screen, battery, case, import shipping, GST", device)]
+    rows += [(name, pr[j]) for name, pr, _ in PACKAGING_CAD]
+    rows.append((f"Spares and failed units ({SPARES:.0%} of the device)", SPARES * device))
+    make = sum(v for _, v in rows)
+    extra = [
+        (f"Stripe fee at a ${PRICE_CAD:.2f} price", PRICE_CAD * STRIPE_PCT + STRIPE_FIXED_CAD),
+        ("Prototype run (10 boards) spread over the run", proto_total_usd * USD_TO_CAD / n),
+        ("Certification (lab quote) spread over the run", CERT_CAD / n),
+        ("One-time tools spread over the run", TOOLS_CAD / n),
+    ]
+    return rows, make, extra, make + sum(v for _, v in extra)
+
+
 def money(usd):
     return f"${usd:,.2f}", f"${usd * USD_TO_CAD:,.2f}"
 
@@ -183,14 +216,18 @@ def main():
         lines.append(f"| … per prototype | {money(total / n)[0]} | {money(total / n)[1]} |")
     for n in (100, 1000):
         lines.append(f"| One Lumi at {n:,} units | {money(vol[n][1])[0]} | {money(vol[n][1])[1]} |")
+    full = {n: full_unit(n, proto[10][1]) for n in (100, 1000)}
+    for n in (100, 1000):
+        lines.append(f"| **Average unit cost at {n:,} units** (packed, fees, spares, prototypes) | – | **${full[n][3]:,.2f}** |")
     lines += [
         "",
-        "These figures include:",
+        "The device figures include:",
         "- the board, built by JLCPCB,",
         "- the screen, battery and printed case,",
         "- shipping to Canada, GST and courier brokerage.",
         "",
-        "They don't include tools, test equipment, certification (FCC/ISED for the finished product, UN38.3 paperwork), packaging, or your time.",
+        "The average unit cost adds packaging, spares, the Stripe fee and the prototype run (see below).",
+        "Neither includes certification (until you enter a lab quote), customs duty beyond GST, or your time.",
         "",
     ]
     for n in (5, 10):
@@ -216,6 +253,33 @@ def main():
         "- **Battery:** the 1,000 price assumes a factory quote with UN38.3 reports.",
         "- **Case:** a home-printed case is cheap in plastic (~$0.45) but takes about 2.5 hours of printer time each. At 1,000, a print farm or an injection mould changes this line.",
         "",
+        "## Average unit cost (CAD)",
+        "",
+        "From the device cost above to what each Lumi really costs: packed, with spares, the Stripe fee and the",
+        "prototype run spread over the batch. Packaging prices are estimates; edit `PACKAGING_CAD` (or the",
+        "**Full unit cost** tab in the workbook) with real quotes.",
+        "",
+        "| Item | 100 units | 1,000 units |",
+        "|---|--:|--:|",
+    ]
+    rows100, make100, extra100, auc100 = full[100]
+    rows1k, make1k, extra1k, auc1k = full[1000]
+    for (name, a), (_, b) in zip(rows100, rows1k):
+        lines.append(f"| {name} | ${a:,.2f} | ${b:,.2f} |")
+    lines.append(f"| **Cost to make and pack** | **${make100:,.2f}** | **${make1k:,.2f}** |")
+    for (name, a), (_, b) in zip(extra100, extra1k):
+        lines.append(f"| {name} | ${a:,.2f} | ${b:,.2f} |")
+    lines.append(f"| **Average unit cost** | **${auc100:,.2f}** | **${auc1k:,.2f}** |")
+    lines.append(f"| Left from a ${PRICE_CAD:.2f} sale | ${PRICE_CAD - auc100:,.2f} ({(PRICE_CAD - auc100) / PRICE_CAD:.0%}) "
+                 f"| ${PRICE_CAD - auc1k:,.2f} ({(PRICE_CAD - auc1k) / PRICE_CAD:.0%}) |")
+    lines += [
+        "",
+        "Notes:",
+        "- **Shipping** isn't here: the customer pays it at checkout. Stripe's fee on the shipping part (2.9%) is left out too.",
+        "- **Certification** is the big unknown: EMC testing of the finished Lumi (the radio module is already certified) often costs thousands. $2,000 adds $20 a unit at 100 and $2 at 1,000. Enter your lab quote in `CERT_CAD`.",
+        "- **Your time** (assembly, provisioning, testing, packing: maybe 10–15 minutes a unit) and **printer time** (about 2.5 h a case) aren't counted.",
+        f"- The **price** (${PRICE_CAD:.2f}) is only an example, used for the Stripe fee and the margin line.",
+        "",
         "## Board parts by quantity (USD each)",
         "",
         "| Ref | Part | LCSC | 5–10 boards | 100 | 1,000 |",
@@ -228,10 +292,10 @@ def main():
         lines.append(f"| {name} | {desc} ({note}) | – | ${pr[0]:.2f} | ${pr[1]:.2f} | ${pr[2]:.2f} |")
     lines += ["", "## Sources", ""] + [f"- [{t}]({u})" for t, u in SOURCES] + [""]
 
-    with open(os.path.join(HERE, "BUDGET.md"), "w") as fh:
+    with open(os.path.join(HERE, "BUDGET.md"), "w", encoding="utf-8", newline="\n") as fh:
         fh.write("\n".join(lines))
 
-    with open(os.path.join(HERE, "budget.csv"), "w", newline="") as fh:
+    with open(os.path.join(HERE, "budget.csv"), "w", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh)
         w.writerow(["section", "item", "usd", "cad"])
         for n in (5, 10):
@@ -242,11 +306,18 @@ def main():
             for name, v in vol[n][0]:
                 w.writerow([f"per unit at {n}", name, f"{v:.2f}", f"{v * USD_TO_CAD:.2f}"])
             w.writerow([f"per unit at {n}", "TOTAL", f"{vol[n][1]:.2f}", f"{vol[n][1] * USD_TO_CAD:.2f}"])
+        for n in (100, 1000):
+            rows, make, extra, auc = full[n]
+            for name, v in rows + [("Cost to make and pack", make)] + extra:
+                w.writerow([f"average unit cost at {n}", name, f"{v / USD_TO_CAD:.2f}", f"{v:.2f}"])
+            w.writerow([f"average unit cost at {n}", "TOTAL", f"{auc / USD_TO_CAD:.2f}", f"{auc:.2f}"])
     write_xlsx(os.path.join(HERE, "budget.xlsx"))
     for n in (5, 10):
         print(f"{n} prototypes: ${proto[n][1]:.2f} USD (${proto[n][1] * USD_TO_CAD:.2f} CAD)")
     for n in (100, 1000):
         print(f"per unit at {n}: ${vol[n][1]:.2f} USD (${vol[n][1] * USD_TO_CAD:.2f} CAD)")
+    for n in (100, 1000):
+        print(f"average unit cost at {n}: ${full[n][3]:.2f} CAD")
 
 
 # ---------------------------------------------------------------- Excel
@@ -282,6 +353,7 @@ def write_xlsx(path):
     parts = wb.create_sheet("Parts")
     proto_ws = wb.create_sheet("Prototypes")
     unit_ws = wb.create_sheet("Per unit")
+    full_ws = wb.create_sheet("Full unit cost")
     src_ws = wb.create_sheet("Sources")
 
     def put(ws, ref, value, font=f_norm, fmt=None, fill=None, bold=False, note=None):
@@ -346,6 +418,17 @@ def write_xlsx(path):
          "Estimate."),
         ("ship100", "Shipping share per unit at 100", SHIP_PER_UNIT["100"], usd, False, "Estimate (air freight)."),
         ("ship1000", "Shipping share per unit at 1,000", SHIP_PER_UNIT["1000"], usd, False, "Estimate (air freight)."),
+        (None, "Selling and one-time costs (CAD)", None, None, False, None),
+        ("price", "Example selling price (CAD)", PRICE_CAD, usd, True,
+         "Only used for the Stripe fee and the margin on the Full unit cost tab."),
+        ("stripe_pct", "Stripe fee, percent of the sale", STRIPE_PCT, "0.0%", False,
+         "Stripe Canada, domestic cards (stripe.com/en-ca/pricing)."),
+        ("stripe_fixed", "Stripe fee, fixed per order (CAD)", STRIPE_FIXED_CAD, usd, False, "Stripe Canada."),
+        ("spares", "Spares and failed units (share of device cost)", SPARES, "0.0%", True,
+         "Planning allowance for parts that fail testing or get damaged."),
+        ("cert", "Certification lab quote (CAD)", CERT_CAD, usd, True,
+         "EMC testing of the finished Lumi (ICES-003 / FCC Part 15B). Enter your quote; often thousands."),
+        ("tools", "One-time tools (CAD)", TOOLS_CAD, usd, False, "Paper trimmer, calipers, corner punch..."),
     ]
     ref = {}
     r = 5
@@ -489,6 +572,68 @@ def write_xlsx(path):
             put(unit_ws, f"{col}{urun}", f"={col}{utotal}*{n}", f_bold, '$#,##0;($#,##0);"-"')
     ref["unit"] = utotal
 
+    # ---- Full unit cost (CAD)
+    widths(full_ws, [52, 16, 16, 44])
+    put(full_ws, "A1", "Average unit cost (CAD)", f_title)
+    put(full_ws, "A2", "The device cost, packed, plus spares, the Stripe fee and one-time costs spread over the run. "
+                       "Blue = edit (packaging here; price, fees and quotes on Inputs).", f_note)
+    header(full_ws, 3, ["", "100 run (CAD)", "1,000 run (CAD)", "Note"])
+    put(full_ws, "A4", "Units in the run", f_bold)
+    put(full_ws, "B4", "='Per unit'!B4", f_link, "#,##0")
+    put(full_ws, "C4", "='Per unit'!D4", f_link, "#,##0")
+    put(full_ws, "D4", "Set on the Per unit tab.", f_note)
+    put(full_ws, "A5", "Device: board, screen, battery, case, import shipping, GST")
+    put(full_ws, "B5", f"='Per unit'!C{utotal}", f_link, usd)
+    put(full_ws, "C5", f"='Per unit'!E{utotal}", f_link, usd)
+    put(full_ws, "D5", "From the Per unit tab.", f_note)
+    r = 6
+    for name, pr, note in PACKAGING_CAD:
+        put(full_ws, f"A{r}", name)
+        put(full_ws, f"B{r}", pr[0], f_input, usd)
+        put(full_ws, f"C{r}", pr[1], f_input, usd)
+        put(full_ws, f"D{r}", f"Estimate; {note}.", f_note)
+        r += 1
+    spares_row = r
+    put(full_ws, f"A{r}", "Spares and failed units")
+    for col in "BC":
+        put(full_ws, f"{col}{r}", f"={ref['spares']}*{col}5", f_norm, usd)
+    put(full_ws, f"D{r}", "Share set on Inputs.", f_note)
+    make_row = r + 1
+    put(full_ws, f"A{make_row}", "Cost to make and pack", f_bold)
+    for col in "BC":
+        c = put(full_ws, f"{col}{make_row}", f"=SUM({col}5:{col}{spares_row})", f_bold, usd, total_fill)
+        c.border = top_line
+    extra = [
+        ("Stripe fee on the selling price", lambda col: f"={ref['price']}*{ref['stripe_pct']}+{ref['stripe_fixed']}",
+         "Stripe also takes 2.9% of the shipping the customer pays; not counted."),
+        ("Prototype run B spread over the run", lambda col: f"=IFERROR(Prototypes!$E${total_row}/{col}$4,0)",
+         "The 10-board run's total, from the Prototypes tab."),
+        ("Certification spread over the run", lambda col: f"=IFERROR({ref['cert']}/{col}$4,0)", "Lab quote on Inputs."),
+        ("One-time tools spread over the run", lambda col: f"=IFERROR({ref['tools']}/{col}$4,0)", "On Inputs."),
+    ]
+    r = make_row + 1
+    for label, formula, note in extra:
+        put(full_ws, f"A{r}", label)
+        for col in "BC":
+            put(full_ws, f"{col}{r}", formula(col), f_norm, usd)
+        put(full_ws, f"D{r}", note, f_note)
+        r += 1
+    auc_row = r
+    put(full_ws, f"A{auc_row}", "Average unit cost", f_bold)
+    for col in "BC":
+        c = put(full_ws, f"{col}{auc_row}", f"={col}{make_row}+SUM({col}{make_row + 1}:{col}{auc_row - 1})",
+                f_bold, usd, total_fill)
+        c.border = top_line
+    put(full_ws, f"A{auc_row + 2}", "Selling price", f_bold)
+    put(full_ws, f"A{auc_row + 3}", "Left from each sale", f_bold)
+    put(full_ws, f"A{auc_row + 4}", "Margin", f_bold)
+    for col in "BC":
+        put(full_ws, f"{col}{auc_row + 2}", f"={ref['price']}", f_link, usd)
+        put(full_ws, f"{col}{auc_row + 3}", f"={col}{auc_row + 2}-{col}{auc_row}", f_bold, usd)
+        put(full_ws, f"{col}{auc_row + 4}", f"=IFERROR({col}{auc_row + 3}/{col}{auc_row + 2},0)", f_bold, "0.0%")
+    put(full_ws, f"A{auc_row + 6}", "Shipping isn't here: the customer pays it at checkout. Your time "
+                                    "(assembly, testing, packing) and printer time aren't counted.", f_note)
+
     # ---- Summary
     widths(summary, [40, 16, 16])
     put(summary, "A1", "Lumi PCB v1: budget", f_title)
@@ -502,29 +647,32 @@ def write_xlsx(path):
         ("... per prototype", f"Prototypes!D{each_row}", f"Prototypes!E{each_row}"),
         ("One Lumi in a 100 run", f"'Per unit'!B{utotal}", f"'Per unit'!C{utotal}"),
         ("One Lumi in a 1,000 run", f"'Per unit'!D{utotal}", f"'Per unit'!E{utotal}"),
+        ("Average unit cost, 100 run", f"'Full unit cost'!B{auc_row}/{ref['fx']}", f"'Full unit cost'!B{auc_row}"),
+        ("Average unit cost, 1,000 run", f"'Full unit cost'!C{auc_row}/{ref['fx']}", f"'Full unit cost'!C{auc_row}"),
     ]
     for i, (label, u, c) in enumerate(srows):
         row = 5 + i
         put(summary, f"A{row}", label, f_bold if not label.startswith("...") else f_norm)
         put(summary, f"B{row}", f"={u}", f_link, usd)
         put(summary, f"C{row}", f"={c}", f_link, usd)
-    put(summary, "A12", "Run A boards", f_norm)
-    put(summary, "B12", "=Prototypes!B4", f_link, "0")
-    put(summary, "A13", "Run B boards", f_norm)
-    put(summary, "B13", "=Prototypes!D4", f_link, "0")
-    put(summary, "A14", "Exchange rate (CAD per USD)", f_norm)
-    put(summary, "B14", f"={ref['fx']}", f_link, "0.00")
-    put(summary, "A15", "GST on imports", f_norm)
-    put(summary, "B15", f"={ref['gst']}", f_link, "0.0%")
-    put(summary, "A17", "Colour key", f_bold)
-    put(summary, "A18", "Blue text: an input you can change", f_input)
-    put(summary, "A19", "Black text: a formula", f_norm)
-    put(summary, "A20", "Green text: a value pulled from another tab", f_link)
-    c = put(summary, "A21", "Yellow fill: key assumption", f_norm)
+    b = 5 + len(srows) + 1
+    put(summary, f"A{b}", "Run A boards", f_norm)
+    put(summary, f"B{b}", "=Prototypes!B4", f_link, "0")
+    put(summary, f"A{b + 1}", "Run B boards", f_norm)
+    put(summary, f"B{b + 1}", "=Prototypes!D4", f_link, "0")
+    put(summary, f"A{b + 2}", "Exchange rate (CAD per USD)", f_norm)
+    put(summary, f"B{b + 2}", f"={ref['fx']}", f_link, "0.00")
+    put(summary, f"A{b + 3}", "GST on imports", f_norm)
+    put(summary, f"B{b + 3}", f"={ref['gst']}", f_link, "0.0%")
+    put(summary, f"A{b + 5}", "Colour key", f_bold)
+    put(summary, f"A{b + 6}", "Blue text: an input you can change", f_input)
+    put(summary, f"A{b + 7}", "Black text: a formula", f_norm)
+    put(summary, f"A{b + 8}", "Green text: a value pulled from another tab", f_link)
+    c = put(summary, f"A{b + 9}", "Yellow fill: key assumption", f_norm)
     c.fill = key_fill
-    put(summary, "A23", "Includes: board built by JLCPCB, screen, battery, printed case,", f_note)
-    put(summary, "A24", "shipping to Canada, GST and courier brokerage.", f_note)
-    put(summary, "A25", "Excludes: tools, certification, packaging and your time.", f_note)
+    put(summary, f"A{b + 11}", "One Lumi: board built by JLCPCB, screen, battery, printed case, shipping to Canada, GST", f_note)
+    put(summary, f"A{b + 12}", "and courier brokerage. Average unit cost adds packaging, spares, Stripe's fee and the", f_note)
+    put(summary, f"A{b + 13}", "prototype run. Excludes certification (until a quote is entered on Inputs) and your time.", f_note)
 
     # ---- Sources
     widths(src_ws, [60, 90])
