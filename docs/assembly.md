@@ -19,11 +19,25 @@ openscad -D 'part="back"'  --export-format binstl -o stl/lumi_back.stl  lumi_cas
   (support from the build plate is enough), since it's centred on the top
   and stands clear of the bed.
 - Front half: screen side down on the bed. Back half: outside face down.
-- Test the snap before assembly: press the two halves together until the
-  four hooks click, then pull them apart. If the lip binds, change `fit`
-  (clearance per side, default 0.15 mm) and reprint the back. If the hooks
-  are too stiff or too weak, change `snap_catch` (how far they reach into the
-  wall, default 0.35 mm) and reprint the back and front.
+- The four hook arms stand upright on the front half, so they bend across
+  their layer lines, which is where a print is weakest. Good layer bonding
+  matters more here than anywhere else: print at the hot end of your
+  filament's range, keep the part cooling fan moderate (around 30 to 50% for
+  PETG), and don't print the front faster than your usual walls.
+- **Tune the click first with the snap test** (`stl/snap_test.stl`, one
+  plate): three short fronts with hooks 0.25, 0.35 and 0.45 mm deep (the
+  depth is engraved underneath) and one back that takes all three. Print it
+  in the filament you'll use for the case. Snap each front into the back
+  five or six times:
+  - **Too deep:** it takes a hard push, or it whitens or cracks at the root of an arm.
+  - **Too shallow:** it barely clicks, or falls apart when you shake it.
+  - **Just right:** a firm click, and it opens with a fingernail in the side
+    notch.
+  Set `snap_catch` to the depth that felt right, and print the case.
+  Regenerate the test with `-D 'part="snap_test"'`.
+- If the lip binds or rattles before the hooks engage, change `fit`
+  (clearance per side, default 0.15 mm) and reprint the front, which carries
+  the lip.
 - Measure your OLED module. Panels vary by ~0.5 mm, and if the glass isn't
   centred behind the window, adjust `oled_glass_offset_y` / `view_offset_y`.
 
@@ -60,10 +74,10 @@ Follow [`hardware/wiring.md`](../hardware/wiring.md). Tips:
         │ 1.3 mm  Kapton, the GY-521's solder joints
         │ ~2.6 mm GY-521, chip facing back, Y arrow pointing at the keyring
         │ 1.5 mm  battery leads, divider resistors
-        │ ~5.4 mm 500 mAh LiPo (in the back half)
-        │ 0.6 mm  foam tape
+        │ ~7.4 mm 300 mAh 702025 LiPo (in the back half)
+        │ 0.6 mm  foam, or a folded scrap of paper (no hot glue on the cell)
         │ 1.4 mm  back wall
- back  ─┘   = 23.5 mm
+ back  ─┘   = 25.5 mm
 ```
 
 1. Drop the OLED face-down into the front half so the glass sits in its
