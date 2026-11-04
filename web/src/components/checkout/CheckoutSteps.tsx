@@ -11,6 +11,23 @@ const dollars = (cents: number) => `$${(cents / 100).toFixed(cents % 100 ? 2 : 0
 const card = "rounded-card bg-white p-5 ring-1 ring-line sm:p-6";
 const heading = "text-lg font-bold";
 
+/** Rejects if Stripe doesn't answer in time, so the Pay button can never spin forever. */
+function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error("Stripe didn't respond in time. Check your card details and try again.")), ms);
+    p.then(
+      (v) => {
+        clearTimeout(t);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(t);
+        reject(e);
+      },
+    );
+  });
+}
+
 /** Calls one of our checkout endpoints; throws with its message if it fails, so runServerUpdate rejects. */
 async function post(path: string, body: unknown) {
   const res = await fetch(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
@@ -117,17 +134,18 @@ export function CheckoutSteps({ preorder, onRestart }: { preorder: boolean; onRe
       return;
     }
     setBusy("pay");
-    // Stripe needs the email on the session before it will take the payment.
-    const e = await checkout.updateEmail(email.trim());
-    if (e.type === "error") {
-      setPayError(e.error.message);
-      setBusy("");
-      return;
-    }
-    const r = await checkout.confirm({ email: email.trim() });
-    // On success Stripe takes the customer to the order status page.
-    if (r.type === "error") {
-      setPayError(r.error.message);
+    try {
+      // Stripe needs the email on the session before it will take the payment (one call, not two at once).
+      if (checkout.email !== email.trim()) {
+        const e = await withTimeout(checkout.updateEmail(email.trim()), 20_000);
+        if (e.type === "error") throw new Error(e.error.message);
+      }
+      const r = await withTimeout(checkout.confirm(), 90_000);
+      // On success Stripe takes the customer to the order status page.
+      if (r.type === "error") throw new Error(r.error.message);
+    } catch (e) {
+      console.error("checkout: payment didn't complete", e);
+      setPayError(e instanceof Error ? e.message : "The payment didn't go through. Please try again.");
       setBusy("");
     }
   };
@@ -148,9 +166,6 @@ export function CheckoutSteps({ preorder, onRestart }: { preorder: boolean; onRe
             inputMode="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            onBlur={() => {
-              if (emailOk) void checkout.updateEmail(email.trim());
-            }}
             placeholder="you@example.com"
             className="mt-1 h-12 w-full rounded-chip border border-line bg-white px-4 text-[0.9375rem] outline-none focus:border-ink/40"
           />
@@ -159,13 +174,17 @@ export function CheckoutSteps({ preorder, onRestart }: { preorder: boolean; onRe
 
         <section className={card} aria-labelledby="ship-to">
           <h2 id="ship-to" className={heading}>Shipping address</h2>
-          <div className={clsx("mt-3", !showAddressForm && "hidden")}>
-            <ShippingAddressElement />
-            <Button className="mt-4" onClick={saveAddress} disabled={busy !== ""}>
-              {busy === "address" ? <Loader2 className="size-4 animate-spin" /> : null}
-              {busy === "address" ? "Working out shipping…" : "Use this address"}
-            </Button>
-          </div>
+          {/* Stripe refuses to take the payment while this form is on the page (the server sets the
+              address), so it's removed once the address is saved, not just hidden. */}
+          {showAddressForm ? (
+            <div className="mt-3">
+              <ShippingAddressElement />
+              <Button className="mt-4" onClick={saveAddress} disabled={busy !== ""}>
+                {busy === "address" ? <Loader2 className="size-4 animate-spin" /> : null}
+                {busy === "address" ? "Working out shipping…" : "Use this address"}
+              </Button>
+            </div>
+          ) : null}
           {!showAddressForm && address && shipping ? (
             <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
               <div className="text-[0.9375rem] leading-relaxed">
