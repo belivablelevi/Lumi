@@ -1,8 +1,11 @@
 import { products, type Product } from "@/content/products";
 
-/** A Pocket Lumi open for pre-order and an in-stock accessory, for checkout tests. */
+/**
+ * A Pocket Lumi open for pre-order and an in-stock accessory, for checkout tests.
+ * Colours are left out so the tests stay about prices and stock; cart.test.ts checks colours.
+ */
 export function testCatalogue(): Product[] {
-  const pocket = products.find((p) => p.slug === "pocket-lumi")!;
+  const pocket = { ...products.find((p) => p.slug === "pocket-lumi")!, variants: [] };
   return [
     {
       ...pocket,

@@ -33,7 +33,7 @@ export function CartLines({ onNavigate }: { onNavigate?: () => void }) {
                   ) : (
                     <span className="font-bold text-muted">Unavailable item</span>
                   )}
-                  {variant ? <p className="text-sm text-muted">{variant.name}</p> : null}
+                  {variant ? <p className="text-sm text-muted">{variant.name}{variant.limited ? " (limited edition)" : ""}</p> : null}
                   {p ? <StatusBadge status={p.status} className="mt-1.5 h-6 text-[0.6875rem]" /> : null}
                 </div>
                 <p className="shrink-0 font-bold tabular-nums">{unit ? formatMoney({ ...unit, amount: unit.amount * l.qty }) : "—"}</p>

@@ -5,6 +5,7 @@
 export interface PersonaStory {
   id: string;
   line: string;
+  /** Card background tint. */
   shell: "lavender" | "mint" | "peach";
   render: string;
 }
@@ -18,9 +19,9 @@ export const temperamentLine: Record<string, string> = {
 };
 
 export const personaStories: PersonaStory[] = [
-  { id: "yotos", line: temperamentLine.cheerful!, shell: "lavender", render: "front-lavender.png" },
-  { id: "ni", line: temperamentLine.sleepy!, shell: "mint", render: "front-mint.png" },
-  { id: "katos", line: temperamentLine.shy!, shell: "peach", render: "front-peach.png" },
+  { id: "yotos", line: temperamentLine.cheerful!, shell: "lavender", render: "front-grey.png" },
+  { id: "ni", line: temperamentLine.sleepy!, shell: "mint", render: "front-milky-green.png" },
+  { id: "katos", line: temperamentLine.shy!, shell: "peach", render: "front-black.png" },
   { id: "mimox", line: temperamentLine.hyper!, shell: "lavender", render: "front-lavender.png" },
 ];
 

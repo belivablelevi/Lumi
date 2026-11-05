@@ -29,7 +29,9 @@ export function AddToCartButton({
   const [error, setError] = useState("");
 
   const onClick = () => {
-    const line = { slug: product.slug, qty, ...(variantId ? { variantId } : {}) };
+    // Quick-add from a card takes the first colour; the product page passes the picked one.
+    const v = variantId ?? product.variants[0]?.id;
+    const line = { slug: product.slug, qty, ...(v ? { variantId: v } : {}) };
     const next = [...lines.filter((l) => !(l.slug === line.slug && l.variantId === line.variantId))];
     const existing = lines.find((l) => l.slug === line.slug && l.variantId === line.variantId);
     next.push({ ...line, qty: (existing?.qty ?? 0) + qty });

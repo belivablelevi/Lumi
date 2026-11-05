@@ -5,8 +5,7 @@ import { listedProducts, productBySlug } from "@/lib/catalogue";
 import { confirmed, display } from "@/lib/placeholder";
 import { persona } from "@/lib/lumi-frames";
 import { personaStories } from "@/content/personas";
-import { Gallery } from "@/components/product/Gallery";
-import { PurchasePanel } from "@/components/product/PurchasePanel";
+import { ProductTop } from "@/components/product/ProductTop";
 import { ExpressionCycler } from "@/components/product/ExpressionCycler";
 import { CharacterCard } from "@/components/product/CharacterCard";
 import { Accordion } from "@/components/ui/Accordion";
@@ -63,10 +62,9 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
     <>
       {jsonLd && !product.demo ? <JsonLd data={jsonLd} /> : null}
       <section className="container-page grid gap-10 pt-6 pb-16 lg:grid-cols-[1.1fr_1fr] lg:gap-16 lg:pt-10">
-        <div className="min-w-0 lg:sticky lg:top-24 lg:self-start">
-          {product.images.length ? (
-            <Gallery images={product.images} personaId={product.personas[0]} name={product.name} />
-          ) : (
+        <ProductTop
+          product={product}
+          empty={
             <div className="grid aspect-square place-items-center rounded-panel bg-night p-10">
               <div className="w-full max-w-sm">
                 <div className="aspect-[2/1] rounded-[18px] bg-black p-3 ring-1 ring-white/10">
@@ -75,9 +73,8 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
                 <p className="mt-4 text-center text-sm text-white/55">No pictures yet: {product.name} is still being designed.</p>
               </div>
             </div>
-          )}
-        </div>
-        <PurchasePanel product={product} />
+          }
+        />
       </section>
 
       <section className="container-page py-12 lg:py-16" aria-labelledby="meet-title">
