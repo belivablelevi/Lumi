@@ -22,17 +22,19 @@ GST = 0.05          # federal GST on imports; HST provinces pay 13-15% instead
 # Quantity tiers used for per-board prices.
 TIERS = ("proto", "100", "1000")  # proto = buying for 5-10 boards
 
-# Board parts, per board, by tier (USD). From the JLCPCB BOM (kicad/fab/lumi-bom.csv).
+# Board parts, per board, by tier (USD). From the JLCPCB BOM (kicad/fab/lumi-bom.csv);
+# prices from JLCPCB's parts library on BOARD_CHECKED (10 / 100 / 1,000 price breaks).
+BOARD_CHECKED = "2026-11-04"
 BOARD_PARTS = [
     # ref, part, LCSC, (proto, 100, 1000), estimated?
-    ("U1", "ESP32-C3-WROOM-02-N4 module", "C2934560", (3.40, 2.60, 2.09), False),
-    ("U2", "LIS2DH12TR accelerometer", "C110926", (0.57, 0.39, 0.36), False),
-    ("J2", "Hirose FH12-30S-0.5SH screen connector", "C506793", (0.72, 0.62, 0.50), True),
-    ("D1", "USBLC6-2SC6 USB ESD", "C7519", (0.20, 0.15, 0.11), True),
-    ("J1", "USB-C receptacle TYPE-C-31-M-12", "C165948", (0.18, 0.13, 0.10), False),
-    ("U4", "RT9080-33GJ5 3.3 V regulator", "C841192", (0.12, 0.09, 0.07), True),
-    ("U3", "TP4054 charger", "C32574", (0.06, 0.05, 0.04), True),
-    ("SW1", "MSK12C02 slide switch", "C431540", (0.06, 0.05, 0.04), True),
+    ("U1", "ESP32-C3-WROOM-02-N4 module", "C2934560", (2.92, 2.44, 2.34), False),
+    ("U2", "LIS2DH12TR accelerometer", "C110926", (0.78, 0.58, 0.53), False),
+    ("J2", "Hirose FH12-30S-0.5SH screen connector", "C506793", (0.58, 0.46, 0.40), False),
+    ("D1", "USBLC6-2SC6 USB ESD", "C7519", (0.18, 0.14, 0.10), False),
+    ("J1", "USB-C receptacle TYPE-C-31-M-12", "C165948", (0.19, 0.15, 0.10), False),
+    ("U4", "RT9080-33GJ5 3.3 V regulator", "C841192", (0.12, 0.10, 0.08), False),
+    ("U3", "TP4054 charger", "C32574", (0.13, 0.10, 0.08), False),
+    ("SW1", "MSK12C02 slide switch", "C431540", (0.05, 0.04, 0.04), False),
     ("R/C", "27 resistors and capacitors (JLCPCB Basic)", "various", (0.10, 0.06, 0.04), True),
 ]
 
@@ -288,6 +290,15 @@ def main():
     for ref, name, lcsc, pr, est in BOARD_PARTS:
         tag = " *est.*" if est else ""
         lines.append(f"| {ref} | {name}{tag} | {lcsc} | ${pr[0]:.2f} | ${pr[1]:.2f} | ${pr[2]:.2f} |")
+    lines += [
+        "",
+        f"Board part prices are JLCPCB's parts library on {BOARD_CHECKED} (the 10, 100 and 1,000 price breaks).",
+        "",
+        "> **Stock warning (2026-11-04):** JLCPCB and LCSC have **0** LIS2DH12TR (C110926) in stock. Before ordering boards, "
+        "either wait for a restock, buy them elsewhere and send them to JLCPCB as consigned parts, or switch to an in-stock part "
+        "with the same 2 × 2 mm LGA-12 package, such as the LIS2DW12TR (C189624, about $0.68 at 100). The LIS2DW12 has a "
+        "different register map, so the firmware's accelerometer driver and the schematic would need checking first.",
+    ]
     for name, desc, pr, note in OTHER_PARTS:
         lines.append(f"| {name} | {desc} ({note}) | – | ${pr[0]:.2f} | ${pr[1]:.2f} | ${pr[2]:.2f} |")
     lines += ["", "## Sources", ""] + [f"- [{t}]({u})" for t, u in SOURCES] + [""]

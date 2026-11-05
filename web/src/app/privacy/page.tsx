@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { brand } from "@/config/brand";
 import { confirmed } from "@/lib/placeholder";
 
-export const metadata: Metadata = { title: "Privacy Policy" };
+export const metadata: Metadata = { title: "Privacy Policy", alternates: { canonical: "/privacy" } };
 
 const LAST_UPDATED = "November 1, 2026";
 

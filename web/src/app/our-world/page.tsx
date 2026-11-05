@@ -6,7 +6,7 @@ import { PersonalityShowcase } from "@/components/home/PersonalityShowcase";
 import { SectionHeading } from "@/components/ui/Section";
 import { OledScreen } from "@/components/lumi/OledScreen";
 
-export const metadata: Metadata = { title: "Our World", description: "The idea behind Lumi: small companions with personalities of their own." };
+export const metadata: Metadata = { title: "Our World", description: "The idea behind Lumi: small companions with personalities of their own.", alternates: { canonical: "/our-world" } };
 
 const IDEAS = [
   { title: "Expressive first", text: "A Lumi's face is its whole personality. Twenty-nine expressions blend into each other, with blinks and little glances on top, so it never looks frozen." },

@@ -4,7 +4,7 @@ import { ShopGrid } from "@/components/product/ShopGrid";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { LaunchSignupForm } from "@/components/forms/LaunchSignupForm";
 
-export const metadata: Metadata = { title: "Desk Lumis", description: "A Lumi made to live on your desk. In the works." };
+export const metadata: Metadata = { title: "Desk Lumis", description: "A Lumi made to live on your desk. In the works.", alternates: { canonical: "/desk" } };
 
 export default function DeskPage() {
   const products = listedProducts().filter((p) => p.category === "desk");

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SESSION_MS, passwordMatches, signSession, verifySession } from "@/lib/admin-auth";
-import { orderShippedEmail } from "@/lib/email";
+import { lumiNames, orderShippedEmail } from "@/lib/email";
 import { addressLines, ordersCsv, shippingAddress, trackingUrl } from "@/lib/fulfilment";
 import type { Order } from "@/lib/store/types";
 
@@ -88,6 +88,24 @@ describe("shipped email", () => {
     expect(m.text).toContain("https://www.canadapost-postescanada.ca/track-reperage/en#/details/1234567890123456");
     expect(m.text).toMatch(/tap its screen three times/);
     expect(m.html).toContain("Track your parcel");
+    expect(m.html).toContain('/email-logo.png" width="40" height="40"');
+  });
+
+  it("names the Lumi only when asked, without serials", () => {
+    const o = order({ carrier: "canada_post", trackingNumber: "1234567890123456", unitNames: "Starla (LUMI-000421)" });
+    expect(orderShippedEmail(o).subject).toMatch(/has shipped/);
+    expect(orderShippedEmail(o).text).not.toContain("Starla");
+    const m = orderShippedEmail(o, { includeNames: true });
+    expect(m.subject).toBe("Starla is on their way!");
+    expect(m.text).toContain("Starla has left the nest and is on their way to you.");
+    expect(m.text + m.html).not.toContain("LUMI-000421");
+    expect(orderShippedEmail(order({ unitNames: "Starla, Pip LUMI-000422, Kipo" }), { includeNames: true }).subject).toBe(
+      "Starla, Pip and Kipo are on their way!",
+    );
+    expect(orderShippedEmail(order({ unitNames: "<b>Pip</b>" }), { includeNames: true }).html).not.toContain("<b>Pip");
+    // Nothing usable in the box: the usual email.
+    expect(orderShippedEmail(order({ unitNames: "(LUMI-000423)" }), { includeNames: true }).subject).toMatch(/has shipped/);
+    expect(lumiNames("  Starla ;  Pip [spare] ")).toEqual(["Starla", "Pip"]);
   });
 
   it("still makes sense without a tracking number", () => {

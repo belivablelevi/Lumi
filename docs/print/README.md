@@ -39,3 +39,43 @@ Ask for "4 × 6 postcard, double-sided, 14–16 pt card".
 The card updates itself when the gene weights change. Rebuild it either way:
 - **Lumi Studio:** Factory batch tab → **Export odds card…**,
 - **Command line:** `python tools/studio/odds_card.py` (needs liblumicore; see [studio.md](../studio.md)).
+
+---
+
+# Birth certificates
+
+A business-card-sized card (3.5 × 2 in) for each unit: its name, serial,
+temperament, rarity with its odds, a drawing of its face, and how to wake it and
+open its settings. Each one goes in the box with the Lumi that has the same serial.
+
+## Make them
+
+In **Lumi Studio**, open the **Factory batch** tab, make or open a batch, then click
+**Export cards…** and choose a folder. You get:
+- `lumi-unit-cards-letter.pdf`: the sheets to print, 8 cards per Letter sheet (a page of fronts, then its backs),
+  in serial order,
+- a PNG per unit, named by serial, and `sheet.png`, an overview of the batch.
+
+## Print them
+
+1. Load card stock: 80–110 lb cover (about 215–300 gsm) prints well on most home
+   printers. Matte stock is easier to write on and shows no glare.
+2. Print with these settings:
+   - **Actual size / 100%** (not "Fit to page"),
+   - **Double-sided**, **flip on long edge**.
+3. Cut on the marks. There's a small gap between cards, so each card edge has
+   its own mark: 8 cuts across and 4 down per sheet. Cut on the marks, not
+   halfway between cards.
+4. Optional: round the corners with a corner punch.
+
+Test first: print one sheet on plain paper and hold it up to a window, to check
+each back lines up with its front. If your printer can't print double-sided,
+print the odd pages (fronts), put the stack back face down with the top edge
+going in first, and print the even pages (backs).
+
+## Packing
+
+The cards come out in serial order, the same order as the batch manifest. Match
+each card's serial to the unit's before it goes in the box, and type its name in
+**Lumi(s) packed** on the order page in `/admin`. The name only reaches the
+customer in the shipping email if you tick **Name it in the email**.

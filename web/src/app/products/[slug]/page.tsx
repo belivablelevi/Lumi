@@ -28,6 +28,7 @@ export async function generateMetadata({ params }: PageProps<"/products/[slug]">
   return {
     title: p.name,
     description: p.tagline,
+    alternates: { canonical: `/products/${p.slug}` },
     openGraph: p.images[0] ? { images: [p.images[0].src] } : undefined,
   };
 }

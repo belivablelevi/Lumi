@@ -12,3 +12,13 @@ export function siteUrl(env: Record<string, string | undefined> = process.env): 
     get("VERCEL_URL");
   return host ? `https://${host}` : "http://localhost:3000";
 }
+
+/**
+ * An address anyone can open, for images in emails. Preview deployments sit
+ * behind Vercel's login, so they borrow the production domain.
+ */
+export function publicSiteUrl(env: Record<string, string | undefined> = process.env): string {
+  const prod = env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
+  if (env.NEXT_PUBLIC_SITE_URL?.trim() || !prod) return siteUrl(env);
+  return `https://${prod}`;
+}

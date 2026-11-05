@@ -5,6 +5,7 @@ import { OrderPill } from "@/components/admin/OrderPill";
 import { Button } from "@/components/ui/Button";
 import { PROTECTION_LABEL } from "@/lib/addons";
 import { requireAdmin } from "@/lib/admin-session";
+import { lumiNames, shippedHeading } from "@/lib/email";
 import { env } from "@/lib/env";
 import { CARRIERS, addressLines, dateTime, shippingAddress, trackingUrl } from "@/lib/fulfilment";
 import { formatMoney } from "@/lib/money";
@@ -47,6 +48,22 @@ export default async function Page({ params, searchParams }: PageProps<"/admin/o
     ...(order.shippingAmount !== undefined ? [["Shipping", order.shippingAmount] as const] : []),
     ...(order.tipAmount ? [["Tip", order.tipAmount] as const] : []),
   ];
+
+  const names = lumiNames(order.unitNames);
+  // Off by default: the name is usually first revealed on the birth certificate in the box.
+  const namesBox = (
+    <label className="flex items-start gap-2 text-sm">
+      <input type="checkbox" name="includeNames" value="1" disabled={!names.length} className="mt-1 size-4 accent-current" />
+      <span>
+        <span className="font-semibold">Name {names.length > 1 ? "them" : "it"} in the email</span>
+        <span className="block text-muted">
+          {names.length
+            ? `Subject becomes "${shippedHeading(names)}". Leave it off to keep the name a surprise.`
+            : "Save a name in “Lumi(s) packed” first. Brackets and serials are left out."}
+        </span>
+      </span>
+    </label>
+  );
 
   return (
     <>
@@ -157,13 +174,15 @@ export default async function Page({ params, searchParams }: PageProps<"/admin/o
                   <input id="trackingNumber" name="trackingNumber" defaultValue={order.trackingNumber ?? ""} maxLength={60} autoComplete="off" className={field} />
                 </div>
               </div>
+              {!order.shippedEmailSentAt ? namesBox : null}
               <div className="flex flex-wrap gap-2">
                 <Button type="submit">{shipped ? "Update tracking" : "Mark shipped"}</Button>
               </div>
             </form>
           ) : null}
           {shipped ? (
-            <form action={resendShipped.bind(null, order.id)} className="mt-2">
+            <form action={resendShipped.bind(null, order.id)} className="mt-4 space-y-2 border-t border-line pt-3">
+              {namesBox}
               <Button type="submit" variant="ghost" className="px-0">Resend shipping email</Button>
             </form>
           ) : null}

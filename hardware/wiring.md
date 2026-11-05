@@ -116,6 +116,65 @@ Avoid GPIO0, 3, 45 and 46 (strapping pins) and GPIO48 (the RGB LED).
   USB into the SuperMini itself** (for flashing): otherwise its USB 5 V can
   feed back into the battery. Day to day, use Wi-Fi updates instead. Build
   `stl/lumi_front_s3_tp4056.stl` + `lumi_back_s3_tp4056.stl` (`board="s3_tp4056"`).
+  Lower the TP4056's charge current first (see [TP4056 charge current](#tp4056-charge-current)).
 
 Most S3 SuperMinis have an always-on power LED; remove it for decent
 standby time, just like the GY-521's.
+
+## Alternative: ESP32-C3 SuperMini + TP4056
+
+The C3 SuperMini has the same chip as the XIAO, so it runs the same firmware
+with the same GPIO numbers. Flash it with `pio run -e esp32c3_supermini -t upload`.
+It has no charger, so it needs a TP4056 board as well. Its silkscreen shows GPIO
+numbers.
+
+| C3 SuperMini | To | Notes |
+|---|---|---|
+| **3.3** | OLED **VCC**, GY-521 **VCC** | |
+| **G** | OLED **GND**, GY-521 **GND**, divider bottom, TP4056 **OUT−** | |
+| **6** | OLED **SDA**, GY-521 **SDA** | I2C data |
+| **7** | OLED **SCL**, GY-521 **SCL** | I2C clock |
+| **3** | GY-521 **INT** | Wake-on-motion. Must be GPIO0–5. |
+| **4** | Middle of the 220k + 220k divider from TP4056 **B+** | Battery voltage |
+| **5V** | Schottky diode from TP4056 **OUT+** (stripe towards the 5V pin) | Battery power in. SS14 (SMD) or 1N5817. |
+
+LiPo **+** goes to TP4056 **B+** and LiPo **−** to **B−**. Leave GPIO2, 8 and 9
+free: they're strapping pins, GPIO8 drives the blue LED and GPIO9 is the BOOT
+button.
+
+The case is the same as for the S3 SuperMini with a TP4056, 32.2 mm deep instead
+of 25.5 mm: print `stl/lumi_front_s3_tp4056.stl` + `lumi_back_s3_tp4056.stl`
+(`board="c3_tp4056"` gives the same parts). The TP4056 sits in its own layer
+under the IMU, with its USB-C out of the left side. Charge through that port.
+
+The case has no opening for a switch, so use the diode instead. When USB is
+plugged into the SuperMini for flashing, it stops the 5 V feeding back into the
+battery, which would overcharge it. It costs about 0.3 V, so the board browns
+out a little before the cell is completely flat. That's fine for prototypes.
+Without a diode, unplug the battery before plugging USB into the SuperMini.
+
+Also:
+- **Remove the SuperMini's red power LED.** It stays lit all the time and
+  would flatten the battery in days.
+- **Lower the TP4056's charge current** (below).
+
+If the Wi-Fi or Boop Pong range is poor, try a different board before blaming
+the firmware. Some C3 SuperMini batches have weak antennas.
+
+## TP4056 charge current
+
+Most TP4056 boards charge at 1 A. That's more than three times the
+300 mAh cell's capacity, which heats and wears it and isn't safe in a closed
+case. The current is set by one resistor, R_PROG, connected to the TP4056's
+pin 2 (PROG). It's usually labelled **R3** and marked **122** (1.2 kΩ).
+Replace it before you connect the battery:
+
+| R_PROG | Marking | Charge current | For the 300 mAh cell |
+|---|---|---|---|
+| 1.2 kΩ | 122 | 1 A | Too high |
+| 4.7 kΩ | 472 | ≈ 255 mA | The most it should take (≈ 0.85C) |
+| 8.2 kΩ | 822 | ≈ 145 mA | Gentlest, about 2½ h to full (recommended) |
+
+A 0603 or 0805 resistor of the same size as the old one fits the pads. Check
+the current with a USB power meter on the first unit: it should read close to
+the table while the battery is low.
