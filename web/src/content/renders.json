@@ -60,6 +60,59 @@
     "color": "#8fd6b6"
   },
   {
+    "src": "/renders/front-grey.png",
+    "alt": "Pocket Lumi in grey PETG, front",
+    "width": 2000,
+    "height": 2000,
+    "color": "#8e9194",
+    "screen": {
+      "left": 0.27674445509910583,
+      "top": 0.4969136714935303,
+      "width": 0.4465111196041107,
+      "height": 0.22428438067436218
+    }
+  },
+  {
+    "src": "/renders/three-quarter-grey.png",
+    "alt": "Pocket Lumi in grey PETG, from the side",
+    "width": 2000,
+    "height": 2000,
+    "color": "#8e9194"
+  },
+  {
+    "src": "/renders/front-black.png",
+    "alt": "Pocket Lumi in black PETG, front",
+    "width": 2000,
+    "height": 2000,
+    "color": "#26272b",
+    "screen": {
+      "left": 0.27674445509910583,
+      "top": 0.4969136714935303,
+      "width": 0.4465111196041107,
+      "height": 0.22428438067436218
+    }
+  },
+  {
+    "src": "/renders/front-milky-green.png",
+    "alt": "Pocket Lumi in limited-edition milky green, front",
+    "width": 2000,
+    "height": 2000,
+    "color": "#b6dfc2",
+    "screen": {
+      "left": 0.27674445509910583,
+      "top": 0.4969136714935303,
+      "width": 0.4465111196041107,
+      "height": 0.22428438067436218
+    }
+  },
+  {
+    "src": "/renders/three-quarter-milky-green.png",
+    "alt": "Pocket Lumi in limited-edition milky green, from the side",
+    "width": 2000,
+    "height": 2000,
+    "color": "#b6dfc2"
+  },
+  {
     "src": "/renders/trio.png",
     "alt": "",
     "width": 2000,

@@ -3,13 +3,15 @@
     blender --background --python web/scripts/render_products.py
     blender --background --python web/scripts/render_products.py -- --only three-quarter,on-keyring --scale 0.4 --samples 64 --out some/folder
 
+The shells are shaded as FDM prints, with layer lines in each part's print direction.
 Everything comes from the design files: the case STLs in hardware/enclosure, the
 board's reference parts, and the firmware's frames in public/lumi. These are renders
 of the CAD model, not photos, and the site labels them that way.
 
-A full run writes public/renders/*.png and src/content/renders.json (the image list,
+A run writes public/renders/*.png and src/content/renders.json (the image list,
 and where the screen sits in the front shots so the site can play real animations
-over it). A run with --only or --out leaves renders.json alone.
+over it). renders.json always lists every shot, so --only can render just new ones.
+A run with --out leaves renders.json alone.
 
 Blender axes throughout: X right, Z up, -Y toward the viewer, millimetres.
 """
@@ -31,10 +33,26 @@ WEB = os.path.dirname(HERE)
 ENCLOSURE = os.path.join(WEB, "..", "hardware", "enclosure")
 
 LAVENDER, MINT, PEACH = "#c99be0", "#8fd6b6", "#ffb592"
+# The filament the prototypes are printed in (ELEGOO PETG), and a limited-edition milky green.
+GREY, BLACK, MILKY_GREEN = "#8e9194", "#26272b", "#b6dfc2"
+
+# How each filament takes the light. PETG is glossier than PLA; milky filament lets light far inside.
+PLA = {"roughness": 0.36, "subsurface": 0.12, "subsurface_scale": 0.6}
+PETG = {"roughness": 0.24, "subsurface": 0.15, "subsurface_scale": 0.6}
+MILKY = {"roughness": 0.26, "subsurface": 0.45, "subsurface_scale": 1.6}
 SCREEN_CYAN = (0.045, 0.871, 1.0)  # #3cf0ff, linear
 ACTIVE = (21.7, 10.9)              # OLED active area, mm
 
 SIZE = 2000  # image width in pixels; the keyring shot is 7:8
+
+# The printed look of the shells (see plastic_material), in mm.
+LAYER_H = 0.2         # layer height
+LINE_W = 0.42         # extrusion width: the first layer's lines on the bed face
+LAYER_DEPTH = 0.045   # how deep the grooves between layers read
+LAYER_WOBBLE = 0.025  # how far a layer line wanders
+BED_LINES = 0.12      # first-layer lines, relative to a layer groove
+GROOVE_DARKEN = 0.07  # grooves this much darker than the crowns
+PI = math.pi
 
 # The ground shadow is its own render, because the shadow catcher barely registers the big softboxes.
 SHADOW_LAMP_AT = (-30, 80, 300)
@@ -58,6 +76,18 @@ SHOTS = [
      "yaw": 1.05, "rise": 0.18, "dist": 230, "look": 3, "face": ("yotos", "neutral"), "no_glare": True, **SIDE},
     {"file": "on-keyring.png", "alt": "Pocket Lumi on a keyring", "color": MINT, "tall": True, "fov": 18,
      "yaw": -0.35, "rise": 0.05, "dist": 260, "look": 10, "ring": True, "face": ("ni", "sleepy")},
+    # The real filament, and the limited edition.
+    {"file": "front-grey.png", "alt": "Pocket Lumi in grey PETG, front", "color": GREY, "finish": PETG,
+     "dist": 172, "look": 3.5, "exposure": 0.55, **FRONT},
+    {"file": "three-quarter-grey.png", "alt": "Pocket Lumi in grey PETG, from the side", "color": GREY, "finish": PETG,
+     "yaw": -0.62, "rise": 0.2, "dist": 230, "look": 3, "face": ("ni", "happy"), **SIDE},
+    {"file": "front-black.png", "alt": "Pocket Lumi in black PETG, front", "color": BLACK, "finish": PETG,
+     "dist": 172, "look": 3.5, "exposure": 0.55, **FRONT},
+    {"file": "front-milky-green.png", "alt": "Pocket Lumi in limited-edition milky green, front", "color": MILKY_GREEN,
+     "finish": MILKY, "dist": 172, "look": 3.5, "exposure": 0.55, **FRONT},
+    {"file": "three-quarter-milky-green.png", "alt": "Pocket Lumi in limited-edition milky green, from the side",
+     "color": MILKY_GREEN, "finish": MILKY, "yaw": -0.62, "rise": 0.2, "dist": 230, "look": 3,
+     "face": ("katos", "love"), **SIDE},
     {"file": "trio.png", "alt": "", "color": PEACH, "yaw": 0.5, "rise": 0.2, "dist": 230, "look": 3,
      "face": ("katos", "love"), **SIDE},
     # The Mini Lumi cases: prototype designs that aren't printed yet.
@@ -143,8 +173,11 @@ def new_object(name, mesh, parent, material):
     return obj
 
 
-def shell_object(name, tris, parent, material, bevel):
-    """A case part: flat faces merged, curves smooth, and a small soft edge on every hard corner."""
+def shell_object(name, tris, parent, material, bevel, layer_axis):
+    """A case part: flat faces merged, curves smooth, and a small soft edge on every hard corner.
+
+    layer_axis is the direction it's printed in, in these coordinates: the layer lines run across it.
+    """
     verts, index = np.unique(np.round(tris.reshape(-1, 3), 4), axis=0, return_inverse=True)
     faces = index.reshape(-1, 3)
     faces = faces[(faces[:, 0] != faces[:, 1]) & (faces[:, 1] != faces[:, 2]) & (faces[:, 0] != faces[:, 2])]
@@ -160,6 +193,7 @@ def shell_object(name, tris, parent, material, bevel):
     me.shade_smooth()
     me.set_sharp_from_angle(angle=math.radians(32))
     obj = new_object(name, me, parent, material)
+    obj["layer_axis"] = layer_axis
     mod = obj.modifiers.new("soft edges", "BEVEL")
     mod.limit_method = "ANGLE"
     mod.angle_limit = math.radians(32)
@@ -271,22 +305,128 @@ def hex_linear(value):
 
 
 def plastic_material():
-    """Soft matte plastic: a little light inside it, and a very fine moulded grain."""
-    mat = principled("shell plastic", Roughness=0.4, Subsurface_Weight=0.1, Subsurface_Scale=0.6, Coat_Weight=0.2, Coat_Roughness=0.28)
+    """FDM-printed PLA/PETG.
+
+    Each case part carries a "layer_axis" property, the direction it's printed in (in the part's own
+    coordinates). Along it run the layer lines: a rounded bead every LAYER_H, slightly uneven from
+    layer to layer and a little wobbly, darker and rougher in the grooves. Faces that lay on the
+    bed are smoother and glossier, with the faint diagonal lines of the first layer. A little light
+    gets inside the plastic.
+    """
+    mat = principled("shell plastic", Roughness=0.42, Subsurface_Weight=0.12, Subsurface_Scale=0.6, Specular_IOR_Level=0.45)
     tree = mat.node_tree
-    node = tree.nodes["Principled BSDF"]
-    node.inputs["Subsurface Radius"].default_value = (1.0, 0.55, 0.4)
-    coord = tree.nodes.new("ShaderNodeTexCoord")
-    noise = tree.nodes.new("ShaderNodeTexNoise")
-    noise.inputs["Scale"].default_value = 11.0
-    noise.inputs["Detail"].default_value = 3.0
-    bump = tree.nodes.new("ShaderNodeBump")
-    bump.inputs["Strength"].default_value = 0.035
-    bump.inputs["Distance"].default_value = 0.08
-    tree.links.new(coord.outputs["Object"], noise.inputs["Vector"])
-    tree.links.new(noise.outputs["Fac"], bump.inputs["Height"])
-    tree.links.new(bump.outputs["Normal"], node.inputs["Normal"])
+    nodes, link = tree.nodes, tree.links.new
+    bsdf = nodes["Principled BSDF"]
+    bsdf.inputs["Subsurface Radius"].default_value = (1.0, 0.55, 0.4)
+
+    def m(op, a, b=None, clamp=False):
+        n = nodes.new("ShaderNodeMath")
+        n.operation = op
+        n.use_clamp = clamp
+        for i, v in enumerate((a, b)):
+            if v is None:
+                continue
+            if isinstance(v, (int, float)):
+                n.inputs[i].default_value = v
+            else:
+                link(v, n.inputs[i])
+        return n.outputs[0]
+
+    def vmath(op, a, b=None):
+        n = nodes.new("ShaderNodeVectorMath")
+        n.operation = op
+        for i, v in enumerate((a, b)):
+            if v is None:
+                continue
+            if isinstance(v, (tuple, list)):
+                n.inputs[i].default_value = v
+            else:
+                link(v, n.inputs[i])
+        return n.outputs["Value" if op == "DOT_PRODUCT" else "Vector"]
+
+    def noise(vector=None, w=None, scale=1.0, detail=0.0, dims="3D"):
+        n = nodes.new("ShaderNodeTexNoise")
+        n.noise_dimensions = dims
+        n.inputs["Scale"].default_value = scale
+        n.inputs["Detail"].default_value = detail
+        if vector is not None:
+            link(vector, n.inputs["Vector"])
+        if w is not None:
+            link(w, n.inputs["W"])
+        return n.outputs["Fac"]
+
+    coord = nodes.new("ShaderNodeTexCoord").outputs["Object"]
+    attr = nodes.new("ShaderNodeAttribute")
+    attr.attribute_type = "OBJECT"
+    attr.attribute_name = "layer_axis"
+    axis = attr.outputs["Vector"]
+
+    # Height along the print direction, nudged a little so the lines aren't ruler-straight.
+    along = vmath("DOT_PRODUCT", coord, axis)
+    wobble = m("MULTIPLY", m("SUBTRACT", noise(coord, scale=0.35, detail=1.0), 0.5), LAYER_WOBBLE)
+    along = m("ADD", along, wobble)
+    # One rounded bead per layer: 0 in the groove, 1 on the crown.
+    layer = m("DIVIDE", along, LAYER_H)
+    bead = m("POWER", m("ABSOLUTE", m("SINE", m("MULTIPLY", layer, PI))), 0.55)
+    # Some layers stand out a little more than others.
+    unevenness = m("ADD", 0.55, m("MULTIPLY", noise(w=m("FLOOR", layer), scale=0.9, dims="1D"), 0.9))
+    walls = m("MULTIPLY", bead, unevenness)
+
+    # How squarely the surface faces the print direction: 1 on the bed (and top) faces.
+    normal = nodes.new("ShaderNodeVectorTransform")
+    normal.vector_type = "NORMAL"
+    normal.convert_from, normal.convert_to = "WORLD", "OBJECT"
+    link(nodes.new("ShaderNodeNewGeometry").outputs["Normal"], normal.inputs["Vector"])
+    facing = m("ABSOLUTE", vmath("DOT_PRODUCT", normal.outputs["Vector"], axis))
+    ramp = nodes.new("ShaderNodeMapRange")
+    ramp.interpolation_type = "SMOOTHSTEP"
+    ramp.inputs["From Min"].default_value = 0.93
+    ramp.inputs["From Max"].default_value = 0.995
+    link(facing, ramp.inputs["Value"])
+    flat = ramp.outputs["Result"]
+
+    # The first layer's lines, diagonal across the bed face, one extrusion width apart.
+    diagonal = vmath("NORMALIZE", vmath("CROSS_PRODUCT", axis, (1.0, 1.0, 1.0)))
+    across = m("DIVIDE", vmath("DOT_PRODUCT", coord, diagonal), LINE_W)
+    bed = m("MULTIPLY", m("ABSOLUTE", m("SINE", m("MULTIPLY", across, PI))), BED_LINES)
+
+    height = nodes.new("ShaderNodeMix")
+    height.data_type = "FLOAT"
+    link(flat, height.inputs["Factor"])
+    link(walls, height.inputs["A"])
+    link(bed, height.inputs["B"])
+    grain = m("MULTIPLY", noise(coord, scale=11.0, detail=3.0), 0.12)
+    surface = m("ADD", height.outputs["Result"], grain)
+    bump = nodes.new("ShaderNodeBump")
+    bump.inputs["Strength"].default_value = 1.0
+    bump.inputs["Distance"].default_value = LAYER_DEPTH
+    link(surface, bump.inputs["Height"])
+    link(bump.outputs["Normal"], bsdf.inputs["Normal"])
+
+    # Grooves are a touch darker and rougher; the bed face is smoother.
+    base_rough = nodes.new("ShaderNodeValue")
+    base_rough.name = "base roughness"
+    base_rough.outputs[0].default_value = PLA["roughness"]
+    groove = m("SUBTRACT", 1.0, m("MINIMUM", walls, 1.0))
+    on_walls = m("SUBTRACT", 1.0, flat)
+    rough = m("ADD", m("ADD", base_rough.outputs[0], m("MULTIPLY", m("MULTIPLY", groove, on_walls), 0.14)),
+                 m("MULTIPLY", flat, -0.12))
+    link(rough, bsdf.inputs["Roughness"])
+    color = nodes.new("ShaderNodeRGB")
+    color.name = "shell color"
+    shade = nodes.new("ShaderNodeMix")
+    shade.data_type = "RGBA"
+    shade.blend_type = "MULTIPLY"
+    shade.inputs["Factor"].default_value = 1.0
+    link(color.outputs["Color"], shade.inputs["A"])
+    darken = nodes.new("ShaderNodeCombineColor")
+    level = m("SUBTRACT", 1.0, m("MULTIPLY", m("MULTIPLY", groove, on_walls), GROOVE_DARKEN))
+    for socket in ("Red", "Green", "Blue"):
+        link(level, darken.inputs[socket])
+    link(darken.outputs["Color"], shade.inputs["B"])
+    link(shade.outputs["Result"], bsdf.inputs["Base Color"])
     return mat
+
 
 
 def screen_material(image):
@@ -321,7 +461,9 @@ def build_models(shell, screen, glass, metal, dark, steel, board):
     unprint = Matrix(((1, 0, 0, 0), (0, -1, 0, 0), (0, 0, -1, 23.5), (0, 0, 0, 1)))  # the back part prints flipped
     front = moved(load_stl("stl", "lumi_front.stl"), upright)
     back = moved(moved(load_stl("stl", "lumi_back.stl"), unprint), upright)
-    bodies = [shell_object("pocket front", front, root, shell, 0.22), shell_object("pocket back", back, root, shell, 0.22)]
+    # Both parts print with the SCAD model's Z (here Y, front to back) upright.
+    bodies = [shell_object("pocket front", front, root, shell, 0.22, (0, 1, 0)),
+              shell_object("pocket back", back, root, shell, 0.22, (0, 1, 0))]
     active = display(root, screen, glass, {"x": 0, "y": 0.9, "z": -1.8}, (-12, 12, -6.7, 6.7))
     extras = usb_port(-16.4, 9.1, 3.5, 3.2, 8.9, root, metal, dark)
     extras.append(box("XIAO board", (-16.4, 6.3, -5.4), (4.6, 7.5, 12.4), root, board))
@@ -338,7 +480,9 @@ def build_models(shell, screen, glass, metal, dark, steel, board):
     body = moved(load_stl("mini_lumi_pcb", "mini_lumi_pcb_body.stl"), Matrix.Translation((0, 0, sizes["base_z"])))
     lid = moved(load_stl("mini_lumi_pcb", "mini_lumi_pcb_lid.stl"),
                 Matrix(((1, 0, 0, 0), (0, 0, -1, lid_back), (0, 1, 0, 0), (0, 0, 0, 1))))
-    bodies = [shell_object("mini body", body, root, shell, 0.16), shell_object("mini lid", lid, root, shell, 0.16)]
+    # Each prints as it lies in its STL: the body as it stands here, the lid on its back.
+    bodies = [shell_object("mini body", body, root, shell, 0.16, (0, 0, 1)),
+              shell_object("mini lid", lid, root, shell, 0.16, (0, 1, 0))]
     refs = json.load(open(os.path.join(ENCLOSURE, "blender", "lumi_pcb_v1_refs.json")))
     extras = []
     for ref in refs["boxes"]:
@@ -363,7 +507,8 @@ def build_models(shell, screen, glass, metal, dark, steel, board):
     mid = tris[:, :, 1].mean(axis=1)
     body, lid = tris[mid < 24], tris[mid >= 24].copy()
     lid[:, :, 1] -= 22.65
-    bodies = [shell_object("mini2 body", body, root, shell, 0.16), shell_object("mini2 lid", lid, root, shell, 0.16)]
+    bodies = [shell_object("mini2 body", body, root, shell, 0.16, (0, 0, 1)),
+              shell_object("mini2 lid", lid, root, shell, 0.16, (0, 0, 1))]
     active = display(root, screen, glass, {"x": 0.25, "y": -6.0, "z": 24.1}, (-13.1, 13.1, -7.75, 7.75), lean=7)
     models["mini2"] = {"root": root, "bodies": [body, lid], "active": active, "settle": True,
                        "objects": [root, *bodies, active, *[c for c in root.children if c.name.startswith("OLED glass")]]}
@@ -550,7 +695,8 @@ def main():
     scene.camera = camera
     ground = catcher("ground", (0, 0, 0), (0, 0, 0))
 
-    shell_base = shell.node_tree.nodes["Principled BSDF"].inputs["Base Color"]
+    shell_base = shell.node_tree.nodes["shell color"].outputs["Color"]
+    shell_bsdf = shell.node_tree.nodes["Principled BSDF"]
     screen_node = screen.node_tree.nodes["Principled BSDF"]
     listed = []
     for shot in SHOTS:
@@ -577,6 +723,10 @@ def main():
         ground.hide_render = not shot.get("ground")
 
         shell_base.default_value = (*hex_linear(shot["color"]), 1)
+        finish = shot.get("finish", PLA)
+        shell.node_tree.nodes["base roughness"].outputs[0].default_value = finish["roughness"]
+        shell_bsdf.inputs["Subsurface Weight"].default_value = finish["subsurface"]
+        shell_bsdf.inputs["Subsurface Scale"].default_value = finish["subsurface_scale"]
         scene.view_settings.exposure = shot.get("exposure", 0.0)
         cam.angle = math.radians(shot["fov"])
         # The case sits level; the camera looks down on it from "rise" radians above.
@@ -629,7 +779,7 @@ def main():
                 world_strength.default_value, cycles.samples = beauty_world, beauty_samples
             print("rendered", shot["file"], flush=True)
 
-    if not only and "--out" not in sys.argv:
+    if "--out" not in sys.argv:
         with open(os.path.join(WEB, "src", "content", "renders.json"), "w", newline="\n") as fh:
             fh.write(json.dumps(listed, indent=2) + "\n")
 
