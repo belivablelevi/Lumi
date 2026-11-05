@@ -60,6 +60,18 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
         run: python -m pytest tools/studio/tests -q
+      # The Chrome version of Studio (web/src/lib/studio) is tested against what this desktop
+      # code produces. The fresh copy is uploaded so it can be committed when it changes.
+      - name: Web Studio parity fixture
+        if: always()
+        run: python tools/studio/tests/make_parity.py --out build/studio/parity/studio_parity.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: studio-parity
+          path: build/studio/parity
+      - name: Committed parity fixture is up to date
+        run: python tools/studio/tests/make_parity.py --check
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -106,6 +118,25 @@ jobs:
         with:
           name: LumiStudio-${{ runner.os }}
           path: build/studio/dist
+
+  # The face engine for Lumi Studio in Chrome: the firmware's lumi_core compiled to WebAssembly.
+  # It's committed (Vercel can't build it), so this checks the committed file is current.
+  studio-wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the face engine to WebAssembly
+        run: tools/studio/web/build_wasm.sh build/studio-wasm/lumicore.wasm
+      - uses: actions/upload-artifact@v4
+        with:
+          name: studio-wasm
+          path: build/studio-wasm
+      - name: Committed lumicore.wasm is up to date
+        run: |
+          if ! cmp -s build/studio-wasm/lumicore.wasm web/public/studio/lumicore.wasm; then
+            echo "::error::web/public/studio/lumicore.wasm is out of date: download the studio-wasm artifact and commit it"
+            exit 1
+          fi
 
   web:
     runs-on: ubuntu-latest
