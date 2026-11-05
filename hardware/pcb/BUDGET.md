@@ -13,14 +13,14 @@ Edit the tables in `budget.py` and re-run it to update this page.
 
 | | USD | CAD |
 |---|--:|--:|
-| 5 prototypes, all in | $188.64 | $264.10 |
-| … per prototype | $37.73 | $52.82 |
-| 10 prototypes, all in | $268.70 | $376.18 |
-| … per prototype | $26.87 | $37.62 |
-| One Lumi at 100 units | $11.72 | $16.40 |
-| One Lumi at 1,000 units | $8.03 | $11.24 |
-| **Average unit cost at 100 units** (packed, fees, spares, prototypes) | – | **$24.35** |
-| **Average unit cost at 1,000 units** (packed, fees, spares, prototypes) | – | **$14.86** |
+| 5 prototypes, all in | $186.75 | $261.45 |
+| … per prototype | $37.35 | $52.29 |
+| 10 prototypes, all in | $264.92 | $370.89 |
+| … per prototype | $26.49 | $37.09 |
+| One Lumi at 100 units | $11.64 | $16.30 |
+| One Lumi at 1,000 units | $8.40 | $11.77 |
+| **Average unit cost at 100 units** (packed, fees, spares, prototypes) | – | **$24.19** |
+| **Average unit cost at 1,000 units** (packed, fees, spares, prototypes) | – | **$15.41** |
 
 The device figures include:
 - the board, built by JLCPCB,
@@ -34,7 +34,7 @@ Neither includes certification (until you enter a lab quote), customs duty beyon
 
 | Item | USD | CAD |
 |---|--:|--:|
-| Board parts | $27.05 | $37.87 |
+| Board parts | $25.25 | $35.35 |
 | Assembly (solder joints) | $1.75 | $2.45 |
 | Bare boards (order of 5) | $4.00 | $5.60 |
 | Assembly setup, stencil, 8 Extended-part fees | $37.00 | $51.80 |
@@ -44,15 +44,15 @@ Neither includes certification (until you enter a lab quote), customs duty beyon
 | Shipping: JLCPCB boards (DHL) | $25.00 | $35.00 |
 | Shipping: Screens from BuyDisplay | $15.00 | $21.00 |
 | Shipping: Batteries (AliExpress, ground) | $4.00 | $5.60 |
-| GST 5% on imports | $7.96 | $11.15 |
+| GST 5% on imports | $7.87 | $11.02 |
 | Courier brokerage (2 parcels) | $21.43 | $30.00 |
-| **Total** | **$188.64** | **$264.10** |
+| **Total** | **$186.75** | **$261.45** |
 
 ## 10 prototypes
 
 | Item | USD | CAD |
 |---|--:|--:|
-| Board parts | $54.10 | $75.74 |
+| Board parts | $50.50 | $70.70 |
 | Assembly (solder joints) | $3.50 | $4.90 |
 | Bare boards (order of 10) | $6.00 | $8.40 |
 | Assembly setup, stencil, 8 Extended-part fees | $37.00 | $51.80 |
@@ -62,9 +62,9 @@ Neither includes certification (until you enter a lab quote), customs duty beyon
 | Shipping: JLCPCB boards (DHL) | $25.00 | $35.00 |
 | Shipping: Screens from BuyDisplay | $15.00 | $21.00 |
 | Shipping: Batteries (AliExpress, ground) | $4.00 | $5.60 |
-| GST 5% on imports | $11.77 | $16.48 |
+| GST 5% on imports | $11.59 | $16.23 |
 | Courier brokerage (2 parcels) | $21.43 | $30.00 |
-| **Total** | **$268.70** | **$376.18** |
+| **Total** | **$264.92** | **$370.89** |
 
 Notes on the prototype runs:
 - **Fixed costs dominate:**
@@ -79,7 +79,7 @@ Notes on the prototype runs:
 
 | Item | USD | CAD |
 |---|--:|--:|
-| Board parts | $4.14 | $5.80 |
+| Board parts | $4.07 | $5.70 |
 | Bare board | $0.25 | $0.35 |
 | Assembly (joints) | $0.35 | $0.49 |
 | Assembly setup and fees, shared | $0.54 | $0.76 |
@@ -87,14 +87,14 @@ Notes on the prototype runs:
 | Battery | $2.50 | $3.50 |
 | Case and sundries | $0.55 | $0.77 |
 | Shipping share | $0.60 | $0.84 |
-| GST 5% on imports | $0.56 | $0.78 |
-| **Per unit** | **$11.72** | **$16.40** |
+| GST 5% on imports | $0.55 | $0.78 |
+| **Per unit** | **$11.64** | **$16.30** |
 
 ## Per Lumi at 1,000 units
 
 | Item | USD | CAD |
 |---|--:|--:|
-| Board parts | $3.35 | $4.69 |
+| Board parts | $3.71 | $5.19 |
 | Bare board | $0.08 | $0.11 |
 | Assembly (joints) | $0.35 | $0.49 |
 | Assembly setup and fees, shared | $0.05 | $0.08 |
@@ -102,8 +102,8 @@ Notes on the prototype runs:
 | Battery | $1.40 | $1.96 |
 | Case and sundries | $0.51 | $0.71 |
 | Shipping share | $0.20 | $0.28 |
-| GST 5% on imports | $0.38 | $0.54 |
-| **Per unit** | **$8.03** | **$11.24** |
+| GST 5% on imports | $0.40 | $0.56 |
+| **Per unit** | **$8.40** | **$11.77** |
 
 Notes on volume:
 - **Setup:** assembly switches to Standard PCBA ($25 setup), shared across the run.
@@ -120,20 +120,20 @@ prototype run spread over the batch. Packaging prices are estimates; edit `PACKA
 
 | Item | 100 units | 1,000 units |
 |---|--:|--:|
-| Device: board, screen, battery, case, import shipping, GST | $16.40 | $11.24 |
+| Device: board, screen, battery, case, import shipping, GST | $16.30 | $11.77 |
 | Mailer box, 3 x 3 x 2 in | $0.60 | $0.35 |
 | Padding (crinkle paper or foam) | $0.10 | $0.05 |
 | Birth certificate (1/8 Letter sheet of card stock + ink) | $0.15 | $0.10 |
 | Odds card (printed 4 x 6 postcard) | $0.40 | $0.12 |
 | Shipping label | $0.10 | $0.05 |
-| Spares and failed units (5% of the device) | $0.82 | $0.56 |
-| **Cost to make and pack** | **$18.57** | **$12.47** |
+| Spares and failed units (5% of the device) | $0.82 | $0.59 |
+| **Cost to make and pack** | **$18.47** | **$13.02** |
 | Stripe fee at a $59.00 price | $2.01 | $2.01 |
-| Prototype run (10 boards) spread over the run | $3.76 | $0.38 |
+| Prototype run (10 boards) spread over the run | $3.71 | $0.37 |
 | Certification (lab quote) spread over the run | $0.00 | $0.00 |
 | One-time tools spread over the run | $0.00 | $0.00 |
-| **Average unit cost** | **$24.35** | **$14.86** |
-| Left from a $59.00 sale | $34.65 (59%) | $44.14 (75%) |
+| **Average unit cost** | **$24.19** | **$15.41** |
+| Left from a $59.00 sale | $34.81 (59%) | $43.59 (74%) |
 
 Notes:
 - **Shipping** isn't here: the customer pays it at checkout. Stripe's fee on the shipping part (2.9%) is left out too.
@@ -145,15 +145,19 @@ Notes:
 
 | Ref | Part | LCSC | 5–10 boards | 100 | 1,000 |
 |---|---|---|--:|--:|--:|
-| U1 | ESP32-C3-WROOM-02-N4 module | C2934560 | $3.40 | $2.60 | $2.09 |
-| U2 | LIS2DH12TR accelerometer | C110926 | $0.57 | $0.39 | $0.36 |
-| J2 | Hirose FH12-30S-0.5SH screen connector *est.* | C506793 | $0.72 | $0.62 | $0.50 |
-| D1 | USBLC6-2SC6 USB ESD *est.* | C7519 | $0.20 | $0.15 | $0.11 |
-| J1 | USB-C receptacle TYPE-C-31-M-12 | C165948 | $0.18 | $0.13 | $0.10 |
-| U4 | RT9080-33GJ5 3.3 V regulator *est.* | C841192 | $0.12 | $0.09 | $0.07 |
-| U3 | TP4054 charger *est.* | C32574 | $0.06 | $0.05 | $0.04 |
-| SW1 | MSK12C02 slide switch *est.* | C431540 | $0.06 | $0.05 | $0.04 |
+| U1 | ESP32-C3-WROOM-02-N4 module | C2934560 | $2.92 | $2.44 | $2.34 |
+| U2 | LIS2DH12TR accelerometer | C110926 | $0.78 | $0.58 | $0.53 |
+| J2 | Hirose FH12-30S-0.5SH screen connector | C506793 | $0.58 | $0.46 | $0.40 |
+| D1 | USBLC6-2SC6 USB ESD | C7519 | $0.18 | $0.14 | $0.10 |
+| J1 | USB-C receptacle TYPE-C-31-M-12 | C165948 | $0.19 | $0.15 | $0.10 |
+| U4 | RT9080-33GJ5 3.3 V regulator | C841192 | $0.12 | $0.10 | $0.08 |
+| U3 | TP4054 charger | C32574 | $0.13 | $0.10 | $0.08 |
+| SW1 | MSK12C02 slide switch | C431540 | $0.05 | $0.04 | $0.04 |
 | R/C | 27 resistors and capacitors (JLCPCB Basic) *est.* | various | $0.10 | $0.06 | $0.04 |
+
+Board part prices are JLCPCB's parts library on 2026-11-04 (the 10, 100 and 1,000 price breaks).
+
+> **Stock warning (2026-11-04):** JLCPCB and LCSC have **0** LIS2DH12TR (C110926) in stock. Before ordering boards, either wait for a restock, buy them elsewhere and send them to JLCPCB as consigned parts, or switch to an in-stock part with the same 2 × 2 mm LGA-12 package, such as the LIS2DW12TR (C189624, about $0.68 at 100). The LIS2DW12 has a different register map, so the firmware's accelerometer driver and the schematic would need checking first.
 | Screen | BuyDisplay ER-OLED0.96-1 plug-in OLED (1,000: est. factory quote) | – | $2.49 | $2.23 | $1.70 |
 | Battery | 503030 LiPo ~500 mAh, protected, UN38.3 (est.) | – | $6.00 | $2.50 | $1.40 |
 | Case | Mini Lumi PCB case, PLA, ~17 g at $25/kg (your printer; ~2.5 h) | – | $0.45 | $0.45 | $0.45 |

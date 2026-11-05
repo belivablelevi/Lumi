@@ -197,3 +197,12 @@ test("the order admin doesn't exist until a password is set, and robots stay out
   expect((await request.get("/admin/export.csv", { maxRedirects: 0 })).status()).toBe(404);
   expect(await (await request.get("/robots.txt")).text()).toContain("Disallow: /admin");
 });
+
+test("each public page names itself as the canonical address, and no private page claims one", async ({ page }) => {
+  for (const path of PAGES) {
+    await page.goto(path);
+    const canonical = page.locator('link[rel="canonical"]');
+    if (path === "/cart" || path === "/checkout") await expect(canonical).toHaveCount(0);
+    else expect(new URL((await canonical.getAttribute("href"))!).pathname, path).toBe(path);
+  }
+});

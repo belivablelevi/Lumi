@@ -7,7 +7,7 @@ import { Tbc } from "@/components/ui/Section";
 import { JsonLd } from "@/components/JsonLd";
 import { faqLd } from "@/lib/structured-data";
 
-export const metadata: Metadata = { title: "FAQ", description: "Answers about Lumi, Snaggo's keychain companion: what it does, how its personality works, and how pre-orders will work." };
+export const metadata: Metadata = { title: "FAQ", description: "Answers about Lumi, Snaggo's keychain companion: what it does, how its personality works, and how pre-orders will work.", alternates: { canonical: "/faq" } };
 
 const GENERAL = [
   { q: "What is a Lumi?", a: "A small companion with a glowing screen for a face. It reacts to being patted, shaken, tilted and picked up, and it has moods that change over time." },

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { siteUrl } from "@/lib/site-url";
+import { publicSiteUrl, siteUrl } from "@/lib/site-url";
 
 describe("siteUrl", () => {
   it("prefers the explicit setting", () => {
@@ -13,5 +13,14 @@ describe("siteUrl", () => {
   });
   it("falls back to localhost", () => {
     expect(siteUrl({})).toBe("http://localhost:3000");
+  });
+});
+
+describe("publicSiteUrl", () => {
+  it("never points emails at a preview behind Vercel's login", () => {
+    const vercel = { VERCEL_PROJECT_PRODUCTION_URL: "snaggo.tech", VERCEL_BRANCH_URL: "lumi-git-b.vercel.app", VERCEL_ENV: "preview" };
+    expect(publicSiteUrl(vercel)).toBe("https://snaggo.tech");
+    expect(publicSiteUrl({ ...vercel, NEXT_PUBLIC_SITE_URL: "https://www.snaggo.tech" })).toBe("https://www.snaggo.tech");
+    expect(publicSiteUrl({})).toBe("http://localhost:3000");
   });
 });

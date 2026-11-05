@@ -1,5 +1,5 @@
 section,item,usd,cad
-5 prototypes,Board parts,27.05,37.87
+5 prototypes,Board parts,25.25,35.35
 5 prototypes,Assembly (solder joints),1.75,2.45
 5 prototypes,Bare boards (order of 5),4.00,5.60
 5 prototypes,"Assembly setup, stencil, 8 Extended-part fees",37.00,51.80
@@ -9,10 +9,10 @@ section,item,usd,cad
 5 prototypes,Shipping: JLCPCB boards (DHL),25.00,35.00
 5 prototypes,Shipping: Screens from BuyDisplay,15.00,21.00
 5 prototypes,"Shipping: Batteries (AliExpress, ground)",4.00,5.60
-5 prototypes,GST 5% on imports,7.96,11.15
+5 prototypes,GST 5% on imports,7.87,11.02
 5 prototypes,Courier brokerage (2 parcels),21.43,30.00
-5 prototypes,TOTAL,188.64,264.10
-10 prototypes,Board parts,54.10,75.74
+5 prototypes,TOTAL,186.75,261.45
+10 prototypes,Board parts,50.50,70.70
 10 prototypes,Assembly (solder joints),3.50,4.90
 10 prototypes,Bare boards (order of 10),6.00,8.40
 10 prototypes,"Assembly setup, stencil, 8 Extended-part fees",37.00,51.80
@@ -22,10 +22,10 @@ section,item,usd,cad
 10 prototypes,Shipping: JLCPCB boards (DHL),25.00,35.00
 10 prototypes,Shipping: Screens from BuyDisplay,15.00,21.00
 10 prototypes,"Shipping: Batteries (AliExpress, ground)",4.00,5.60
-10 prototypes,GST 5% on imports,11.77,16.48
+10 prototypes,GST 5% on imports,11.59,16.23
 10 prototypes,Courier brokerage (2 parcels),21.43,30.00
-10 prototypes,TOTAL,268.70,376.18
-per unit at 100,Board parts,4.14,5.80
+10 prototypes,TOTAL,264.92,370.89
+per unit at 100,Board parts,4.07,5.70
 per unit at 100,Bare board,0.25,0.35
 per unit at 100,Assembly (joints),0.35,0.49
 per unit at 100,"Assembly setup and fees, shared",0.54,0.76
@@ -33,9 +33,9 @@ per unit at 100,Screen,2.23,3.12
 per unit at 100,Battery,2.50,3.50
 per unit at 100,Case and sundries,0.55,0.77
 per unit at 100,Shipping share,0.60,0.84
-per unit at 100,GST 5% on imports,0.56,0.78
-per unit at 100,TOTAL,11.72,16.40
-per unit at 1000,Board parts,3.35,4.69
+per unit at 100,GST 5% on imports,0.55,0.78
+per unit at 100,TOTAL,11.64,16.30
+per unit at 1000,Board parts,3.71,5.19
 per unit at 1000,Bare board,0.08,0.11
 per unit at 1000,Assembly (joints),0.35,0.49
 per unit at 1000,"Assembly setup and fees, shared",0.05,0.08
@@ -43,31 +43,31 @@ per unit at 1000,Screen,1.70,2.38
 per unit at 1000,Battery,1.40,1.96
 per unit at 1000,Case and sundries,0.51,0.71
 per unit at 1000,Shipping share,0.20,0.28
-per unit at 1000,GST 5% on imports,0.38,0.54
-per unit at 1000,TOTAL,8.03,11.24
-average unit cost at 100,"Device: board, screen, battery, case, import shipping, GST",11.72,16.40
+per unit at 1000,GST 5% on imports,0.40,0.56
+per unit at 1000,TOTAL,8.40,11.77
+average unit cost at 100,"Device: board, screen, battery, case, import shipping, GST",11.64,16.30
 average unit cost at 100,"Mailer box, 3 x 3 x 2 in",0.43,0.60
 average unit cost at 100,Padding (crinkle paper or foam),0.07,0.10
 average unit cost at 100,Birth certificate (1/8 Letter sheet of card stock + ink),0.11,0.15
 average unit cost at 100,Odds card (printed 4 x 6 postcard),0.29,0.40
 average unit cost at 100,Shipping label,0.07,0.10
-average unit cost at 100,Spares and failed units (5% of the device),0.59,0.82
-average unit cost at 100,Cost to make and pack,13.27,18.57
+average unit cost at 100,Spares and failed units (5% of the device),0.58,0.82
+average unit cost at 100,Cost to make and pack,13.19,18.47
 average unit cost at 100,Stripe fee at a $59.00 price,1.44,2.01
-average unit cost at 100,Prototype run (10 boards) spread over the run,2.69,3.76
+average unit cost at 100,Prototype run (10 boards) spread over the run,2.65,3.71
 average unit cost at 100,Certification (lab quote) spread over the run,0.00,0.00
 average unit cost at 100,One-time tools spread over the run,0.00,0.00
-average unit cost at 100,TOTAL,17.39,24.35
-average unit cost at 1000,"Device: board, screen, battery, case, import shipping, GST",8.03,11.24
+average unit cost at 100,TOTAL,17.28,24.19
+average unit cost at 1000,"Device: board, screen, battery, case, import shipping, GST",8.40,11.77
 average unit cost at 1000,"Mailer box, 3 x 3 x 2 in",0.25,0.35
 average unit cost at 1000,Padding (crinkle paper or foam),0.04,0.05
 average unit cost at 1000,Birth certificate (1/8 Letter sheet of card stock + ink),0.07,0.10
 average unit cost at 1000,Odds card (printed 4 x 6 postcard),0.09,0.12
 average unit cost at 1000,Shipping label,0.04,0.05
-average unit cost at 1000,Spares and failed units (5% of the device),0.40,0.56
-average unit cost at 1000,Cost to make and pack,8.91,12.47
+average unit cost at 1000,Spares and failed units (5% of the device),0.42,0.59
+average unit cost at 1000,Cost to make and pack,9.30,13.02
 average unit cost at 1000,Stripe fee at a $59.00 price,1.44,2.01
-average unit cost at 1000,Prototype run (10 boards) spread over the run,0.27,0.38
+average unit cost at 1000,Prototype run (10 boards) spread over the run,0.26,0.37
 average unit cost at 1000,Certification (lab quote) spread over the run,0.00,0.00
 average unit cost at 1000,One-time tools spread over the run,0.00,0.00
-average unit cost at 1000,TOTAL,10.61,14.86
+average unit cost at 1000,TOTAL,11.00,15.41

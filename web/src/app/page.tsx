@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { launches } from "@/content/launches";
 import { personaStories } from "@/content/personas";
 import { listedProducts } from "@/lib/catalogue";
@@ -14,6 +15,8 @@ import { CharacterCard } from "@/components/product/CharacterCard";
 import { SectionHeading } from "@/components/ui/Section";
 import { Reveal } from "@/components/ui/Reveal";
 import { ButtonLink } from "@/components/ui/Button";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 export default function Home() {
   const products = listedProducts();

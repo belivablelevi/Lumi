@@ -7,7 +7,7 @@ import { CharacterCard } from "@/components/product/CharacterCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { SectionHeading } from "@/components/ui/Section";
 
-export const metadata: Metadata = { title: "Pocket Lumis", description: "Keychain-sized companions that feel every pat, shake and tilt." };
+export const metadata: Metadata = { title: "Pocket Lumis", description: "Keychain-sized companions that feel every pat, shake and tilt.", alternates: { canonical: "/pocket" } };
 
 export default function PocketPage() {
   const products = listedProducts().filter((p) => p.category === "pocket");

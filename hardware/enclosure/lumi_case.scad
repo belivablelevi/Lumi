@@ -18,8 +18,10 @@ part = "assembly";  // front | back | assembly | print | fit_check | snap_test |
 //   "s3_tp4056" ESP32-S3 SuperMini without a charger, plus a TP4056 USB-C
 //               charger board in its own layer (case gets deeper and has a
 //               second USB-C opening on the left for charging)
+//   "c3_tp4056" ESP32-C3 SuperMini plus a TP4056 board. The C3 SuperMini is
+//               the same size as the S3 one, so this is the s3_tp4056 case.
 board = "xiao";
-has_charger_board = board == "s3_tp4056";
+has_charger_board = board == "s3_tp4056" || board == "c3_tp4056";
 
 /* [Outer shell] */
 W = 35;            // width  (X)
@@ -68,7 +70,7 @@ assert(len(oled_pin_pos) >= 2, "fewer than two screen pins clear the glass: chec
 
 /* [Electronics: each layer gets room for its solder joints, wires and Kapton] */
 xiao = board == "xiao" ? [21.0, 17.8, 1.2]   // Seeed XIAO ESP32C3 PCB (USB-C on the +X end)
-                       : [22.6, 18.0, 1.2];  // ESP32-S3 SuperMini PCB
+                       : [22.6, 18.0, 1.2];  // ESP32-S3 / C3 SuperMini PCB
 xiao_tall = 3.2;              // USB-C and shield above the PCB
 xiao_y = 3.5;                 // centre of the XIAO in Y (clears the inner corner fillet)
 xiao_z = oled_top_z + 2.2;    // front of the XIAO PCB: the OLED's back parts, wires and battery pads
@@ -77,7 +79,7 @@ usb = [9.4, 3.6];             // USB-C opening (Y height x Z thickness of the pl
 usb_z = xiao_z + xiao[2] + xiao_tall / 2;  // centre of the USB-C receptacle in Z
 imu = [20.5, 15.5, 2.6];      // GY-521 MPU-6050 board, no header, lies behind the XIAO
 imu_z = xiao_z + xiao[2] + xiao_tall + 1.3;  // room for the IMU's solder joints and Kapton
-charger = [27.0, 17.2, 1.6];  // TP4056 USB-C charger board (s3_tp4056 only); USB-C on its -X end
+charger = [27.0, 17.2, 1.6];  // TP4056 USB-C charger board (*_tp4056 only); USB-C on its -X end
 charger_z = imu_z + imu[2] + 0.4;
 charger_usb_z = charger_z + charger[2] + 1.6;
 // 702025 LiPo pouch (nominal 7 x 20 x 25 mm, 300 mAh). The length leaves room for the

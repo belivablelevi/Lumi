@@ -84,12 +84,12 @@ export async function savePacking(id: string, formData: FormData) {
   back(id, f.packed ? "packed" : "saved");
 }
 
-async function sendShipped(id: string) {
+async function sendShipped(id: string, includeNames: boolean) {
   const store = getStore();
   const mailer = getMailer();
   const fresh = store ? await store.getOrder(id) : null;
   if (!store || !fresh?.email || !mailer) return false;
-  await mailer.send(orderShippedEmail(fresh));
+  await mailer.send(orderShippedEmail(fresh, { includeNames }));
   await store.markShippedEmailSent(id);
   return true;
 }
@@ -105,12 +105,12 @@ export async function markShipped(id: string, formData: FormData) {
   if (order.status !== "paid" && order.status !== "review") back(id, "not-paid");
   await store.updateFulfilment(id, { fulfilmentStatus: "shipped", carrier: f.carrier, trackingNumber: f.trackingNumber });
   // The customer hears about it once; "Resend email" is there for corrections.
-  const sent = order.shippedEmailSentAt ? false : await sendShipped(id);
+  const sent = order.shippedEmailSentAt ? false : await sendShipped(id, formData.get("includeNames") === "1");
   back(id, sent ? "shipped-emailed" : "shipped");
 }
 
-export async function resendShipped(id: string) {
+export async function resendShipped(id: string, formData: FormData) {
   const { order } = await orderOrFail(id);
   if (order.fulfilmentStatus !== "shipped") back(id, "not-shipped");
-  back(id, (await sendShipped(id)) ? "emailed" : "no-email");
+  back(id, (await sendShipped(id, formData.get("includeNames") === "1")) ? "emailed" : "no-email");
 }

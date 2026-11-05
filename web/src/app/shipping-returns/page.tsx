@@ -3,6 +3,7 @@ import { PolicyPage } from "@/components/ui/PolicyPage";
 import { PROTECTION_CENTS } from "@/lib/addons";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/shipping-returns" },
   title: "Shipping and Returns",
   description: "Snaggo ships Lumi to Canada and the US with Canada Post. Shipping is worked out from your address at checkout.",
 };

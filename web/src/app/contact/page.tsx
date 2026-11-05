@@ -3,7 +3,7 @@ import { brand } from "@/config/brand";
 import { confirmed } from "@/lib/placeholder";
 import { PageHeader } from "@/components/ui/PageHeader";
 
-export const metadata: Metadata = { title: "Contact" };
+export const metadata: Metadata = { title: "Contact", alternates: { canonical: "/contact" } };
 
 export default function Page() {
   const email = confirmed(brand.contact.email);

@@ -27,13 +27,20 @@ in. Versions without a charger also need a **TP4056 USB-C charger board with
 protection** (~$1) and a tiny slide switch, and the case gets 6.7 mm deeper.
 Wiring for both is in [`wiring.md`](wiring.md#alternative-esp32-s3-supermini).
 
+### Alternative controller: ESP32-C3 SuperMini + TP4056
+
+The ESP32-C3 SuperMini (~$2–3) has the XIAO's chip but no charger. Add a
+**TP4056 USB-C charger board with protection** (~$1) and a Schottky diode
+(SS14 or 1N5817). It uses the same 32.2 mm deep case as the S3 + TP4056. **Lower the TP4056's
+charge current** for the 300 mAh cell before using it, and remove the
+SuperMini's power LED. Wiring is in [`wiring.md`](wiring.md#alternative-esp32-c3-supermini--tp4056).
+
 ## Why these parts
 
 - **XIAO ESP32C3** has USB-C, a LiPo charger and battery pads, and it's
   21 × 17.8 mm. The ESP32-C3 has the radio for ESP-NOW (used by Boop Pong)
   and enough flash for over-the-air updates. A bare "ESP32-C3 SuperMini"
-  also works if you add a TP4056 USB-C charger board, but it won't fit the
-  35 × 37 mm case as easily.
+  also works with a TP4056 USB-C charger board, but the case is 6.7 mm deeper.
 - **SSD1306** is the standard 0.96" 128×64 OLED (the same resolution as the
   original). It sleeps at a few µA when its charge pump is off.
 - **MPU-6050** has a hardware *wake-on-motion* interrupt. That lets the

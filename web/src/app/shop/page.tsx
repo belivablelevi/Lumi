@@ -3,7 +3,7 @@ import { listedProducts } from "@/lib/catalogue";
 import { ShopGrid } from "@/components/product/ShopGrid";
 import { PageHeader } from "@/components/ui/PageHeader";
 
-export const metadata: Metadata = { title: "Shop", description: "Every Lumi, from keychain companions to the ones still in the works." };
+export const metadata: Metadata = { title: "Shop", description: "Every Lumi, from keychain companions to the ones still in the works.", alternates: { canonical: "/shop" } };
 
 export default function ShopPage() {
   return (
