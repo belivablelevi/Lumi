@@ -140,3 +140,28 @@ describe("the admin's Canada Post check", () => {
     expect((await checkCanadaPost(CP, PARCEL, invalid))[0]).toMatchObject({ ok: false, error: "Canada Post wouldn't price it (400): No services are appropriate. (9111)" });
   });
 });
+
+describe("telling Canada Post's refusals apart", () => {
+  it("asks for a counter price without the customer number", () => {
+    const r = rateRequest(CP, PARCEL, "CA", "K1A0B1", 1, true);
+    expect(r).not.toHaveProperty("customerNumber");
+    expect(r).toMatchObject({ quoteType: "counter" });
+  });
+
+  it("shows the headers when Canada Post answers with nothing", async () => {
+    const empty = canadaPost(() => new Response("", { status: 403, headers: { "x-global-transaction-id": "abc123" } }));
+    const [first] = await checkCanadaPost(CP, PARCEL, empty);
+    expect(first).toMatchObject({ ok: false, error: expect.stringMatching(/^Canada Post wouldn't price it \(403\): no message \(.*x-global-transaction-id: abc123\)$/) });
+  });
+
+  it("flags a customer number that only fails for discounted prices", async () => {
+    const fetch = canadaPost(() => json([], 403));
+    fetch.mockImplementation(async (url, init) => {
+      if (String(url) === CP_TOKEN_URL) return json({ access_token: "tok", expires_in: 3600 });
+      return JSON.parse(String(init?.body)).customerNumber ? new Response("", { status: 403 }) : json(RESPONSE);
+    });
+    const results = await checkCanadaPost(CP, PARCEL, fetch);
+    expect(results.filter((r) => !r.counter).every((r) => !r.ok)).toBe(true);
+    expect(results.find((r) => r.counter)).toMatchObject({ ok: true, cents: 1131 });
+  });
+});
