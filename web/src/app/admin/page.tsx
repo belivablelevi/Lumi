@@ -32,6 +32,7 @@ export default async function Page({ searchParams }: PageProps<"/admin">) {
           {view === "to_ship" && orders.length ? (
             <a href="/admin/export.csv" className={buttonClass("outline")}>Download CSV</a>
           ) : null}
+          <Link href="/admin/canada-post" className={buttonClass("outline")}>Canada Post test</Link>
           <form action={logout}>
             <button type="submit" className={buttonClass("ghost")}>Sign out</button>
           </form>

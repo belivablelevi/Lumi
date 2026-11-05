@@ -117,6 +117,25 @@ export const forgetCanadaPostToken = () => {
   token = null;
 };
 
+const readJson = (text: string): unknown => {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+};
+
+/** Canada Post's own words for what went wrong (never includes our key or secret). */
+function reason(body: unknown, text: string): string {
+  const b = (Array.isArray(body) ? body[0] : body) as Record<string, unknown> | null;
+  const errors = b && Array.isArray(b.errors) ? (b.errors as { errorCode?: string; message?: string }[]) : null;
+  if (errors?.length) return errors.map((e) => `${e.message ?? ""}${e.errorCode ? ` (${e.errorCode})` : ""}`.trim()).join(" ");
+  for (const k of ["error_description", "moreInformation", "detail", "title", "error"]) {
+    if (b && typeof b[k] === "string" && b[k]) return b[k] as string;
+  }
+  return text.slice(0, 300) || "no details";
+}
+
 async function accessToken(cp: CanadaPostConfig, f: typeof fetch, signal: AbortSignal): Promise<string> {
   if (token && token.key === cp.apiKey && token.until > Date.now()) return token.value;
   const res = await f(CP_TOKEN_URL, {
@@ -129,11 +148,43 @@ async function accessToken(cp: CanadaPostConfig, f: typeof fetch, signal: AbortS
     body: new URLSearchParams({ grant_type: "client_credentials", scope: "merchant" }).toString(),
     signal,
   });
-  const body = (await res.json().catch(() => null)) as { access_token?: string; expires_in?: number } | null;
-  if (!res.ok || !body?.access_token) throw new Error(`token ${res.status}`);
+  const text = await res.text();
+  const body = readJson(text) as { access_token?: string; expires_in?: number } | null;
+  if (!res.ok || !body?.access_token) throw new Error(`Canada Post refused the API key and secret (${res.status}): ${reason(body, text)}`);
   const life = Number(body.expires_in) > 0 ? Number(body.expires_in) : 600;
   token = { key: cp.apiKey, value: body.access_token, until: Date.now() + Math.max(life - 60, 30) * 1000 };
   return token.value;
+}
+
+/** Canada Post's pre-tax price for one parcel. Throws with Canada Post's reason if it can't get one. */
+export async function canadaPostRate(
+  cp: CanadaPostConfig,
+  parcel: ParcelConfig,
+  country: ShipCountry,
+  postal: string,
+  units: number,
+  f: typeof fetch = fetch,
+  timeoutMs = 8000,
+): Promise<{ cents: number; transitDays?: number }> {
+  const signal = AbortSignal.timeout(timeoutMs);
+  const res = await f(CP_RATES_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${await accessToken(cp, f, signal)}`,
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "Accept-Language": "en-CA",
+    },
+    body: JSON.stringify(rateRequest(cp, parcel, country, postal, units)),
+    signal,
+  });
+  const text = await res.text();
+  const body = readJson(text);
+  if (res.status === 401) forgetCanadaPostToken();
+  if (!res.ok) throw new Error(`Canada Post wouldn't price it (${res.status}): ${reason(body, text)}`);
+  const rate = parseRateResponse(body, SERVICES[country].code);
+  if (!rate) throw new Error(`Canada Post's answer had no ${SERVICES[country].code} price: ${text.slice(0, 300)}`);
+  return rate;
 }
 
 export interface QuoteDeps {
@@ -151,44 +202,49 @@ export async function quoteShipping(to: ShipTo, units: number, deps: QuoteDeps):
   const country = to.country as ShipCountry;
   const postal = normalPostal(to.country, to.postalCode)!;
   const handling = deps.parcel.handlingCents;
-  const cp = deps.canadaPost;
-  if (cp) {
-    const f = deps.fetch ?? fetch;
-    const signal = AbortSignal.timeout(deps.timeoutMs ?? 8000);
+  if (deps.canadaPost) {
     try {
-      const res = await f(CP_RATES_URL, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${await accessToken(cp, f, signal)}`,
-          Accept: "application/json",
-          "Content-Type": "application/json",
-          "Accept-Language": "en-CA",
-        },
-        body: JSON.stringify(rateRequest(cp, deps.parcel, country, postal, units)),
-        signal,
-      });
-      const text = await res.text();
-      let body: unknown = null;
-      try {
-        body = JSON.parse(text);
-      } catch {}
-      if (res.status === 401) forgetCanadaPostToken();
-      const rate = res.ok ? parseRateResponse(body, SERVICES[country].code) : null;
-      if (rate) {
-        const svc = SERVICES[country];
-        const days = rate.transitDays;
-        return {
-          amount: rate.cents + handling,
-          label: svc.label,
-          minDays: days ?? svc.days[0],
-          maxDays: days ? days + 2 : svc.days[1],
-          source: "canada_post",
-        };
-      }
-      deps.log?.(`canada post rate failed (${res.status}): ${text.slice(0, 300)}`);
+      const rate = await canadaPostRate(deps.canadaPost, deps.parcel, country, postal, units, deps.fetch, deps.timeoutMs);
+      const svc = SERVICES[country];
+      const days = rate.transitDays;
+      return {
+        amount: rate.cents + handling,
+        label: svc.label,
+        minDays: days ?? svc.days[0],
+        maxDays: days ? days + 2 : svc.days[1],
+        source: "canada_post",
+      };
     } catch (e) {
       deps.log?.("canada post rate failed", e);
     }
   }
   return { ...table, amount: table.amount + handling };
+}
+
+/** Sample addresses for the admin's "Test Canada Post" check. */
+export const TEST_ADDRESSES: { place: string; country: ShipCountry; postal: string }[] = [
+  { place: "Ottawa, ON", country: "CA", postal: "K1A0B1" },
+  { place: "Vancouver, BC", country: "CA", postal: "V6B1A1" },
+  { place: "New York, NY (US)", country: "US", postal: "10001" },
+];
+
+export type CanadaPostCheck = { place: string; service: string } & (
+  | { ok: true; cents: number; checkoutCents: number; transitDays?: number }
+  | { ok: false; error: string }
+);
+
+/** Asks Canada Post for one Lumi to each sample address, keeping the exact error when it fails. */
+export async function checkCanadaPost(cp: CanadaPostConfig, parcel: ParcelConfig, f: typeof fetch = fetch): Promise<CanadaPostCheck[]> {
+  const out: CanadaPostCheck[] = [];
+  for (const a of TEST_ADDRESSES) {
+    const service = SERVICES[a.country].label;
+    try {
+      const r = await canadaPostRate(cp, parcel, a.country, a.postal, 1, f);
+      out.push({ place: a.place, service, ok: true, cents: r.cents, checkoutCents: r.cents + parcel.handlingCents, transitDays: r.transitDays });
+    } catch (e) {
+      const error = e instanceof Error ? (e.name === "TimeoutError" ? "Canada Post didn't answer within 8 seconds." : e.message) : String(e);
+      out.push({ place: a.place, service, ok: false, error });
+    }
+  }
+  return out;
 }
