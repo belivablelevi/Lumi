@@ -7,6 +7,7 @@ import {
   EFFECTS, PackError, encodePack, faceFrom, faceFromBytes, faceToBytes, firmwareHeader, hex, newAnimation, newKey,
   problems, projectFromJson, projectToJson, type Persona,
 } from "@/lib/studio/model";
+import { GENE, geneOdds, percents, rarityOdds } from "@/lib/studio/odds";
 import { sha256 } from "@/lib/studio/sha256";
 
 const repo = (p: string) => new URL(`../../../${p}`, import.meta.url);
@@ -149,5 +150,22 @@ describe("Studio's factory batches", () => {
     expect(csv).toContain('"Odd, ""quoted"""');
     expect(csv.endsWith("\r\n")).toBe(true);
     expect(readManifest(csv)).toEqual(rows);
+  });
+});
+
+describe("Studio's odds card numbers", () => {
+  it("weigh every combination like the desktop: about 60 / 25 / 12 / 3 %", () => {
+    const shares = rarityOdds(core);
+    expect(Object.values(shares).reduce((a, b) => a + b, 0)).toBeCloseTo(1, 9);
+    expect(percents([shares.common, shares.uncommon, shares.rare, shares.legendary])).toEqual([60, 25, 12, 3]);
+  });
+
+  it("round to whole percentages that add up to 100", () => {
+    expect(percents([1 / 3, 1 / 3, 1 / 3])).toEqual([34, 33, 33]);
+    for (let g = 0; g < 7; g++) {
+      const odds = geneOdds(core, g);
+      expect(percents(odds.map(([, s]) => s)).reduce((a, b) => a + b, 0)).toBe(100);
+    }
+    expect(geneOdds(core, GENE.temperament).map(([n]) => n)).toEqual(["cheerful", "sleepy", "shy", "grumpy", "hyper"]);
   });
 });

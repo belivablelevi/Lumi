@@ -48,6 +48,34 @@ A unit's personality comes from one of two places:
 
 The unit shows its name and rarity on the battery screen (menu → battery).
 
+## Lumi Studio in Chrome (Chromebook, or any computer)
+
+Studio also runs in the browser, with nothing to install: sign in to the
+site's admin and open **www.snaggo.tech/admin/studio** (or the **Lumi
+Studio** button on the orders page).
+
+- **What's there:** the Faces, Animations, Personality and Factory batch
+  tabs, with the same face engine as the desktop app (the firmware's own
+  code, compiled to WebAssembly), so the previews are exact.
+- **Files:** projects (`.lumiproject`), packs (`.lumipack`),
+  `default_pack.h` and manifests (CSV) are the same files the desktop app
+  uses, so you can move between the two. Chrome shows real Open and Save
+  dialogs; other browsers download instead. Your work in progress is also
+  kept in the browser, so closing the tab loses nothing, but use **Save
+  project** to keep a real copy.
+- **Printing:** on the Factory batch tab, **Print birth certificates**,
+  **Print odds card** and **Odds card, 2 per Letter** open the cards
+  laid out at their real size. Press **Print or save as PDF**, pick **Save
+  as PDF** (or a printer), and set Margins to **None** and Scale to 100%.
+  The page size is set for you.
+- **Desktop only:** setting up units over USB (the Provision tab) and
+  flashing firmware.
+
+The same seed and settings give the same batch in both apps, and packs are
+identical byte for byte; the tests check both against
+`tests/golden/studio_parity.json`. How the browser engine is built:
+[`tools/studio/web/README.md`](../tools/studio/web/README.md).
+
 ## Install
 
 **Download:** get the latest version from the repository's
