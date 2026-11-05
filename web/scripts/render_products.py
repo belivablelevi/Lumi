@@ -34,7 +34,7 @@ ENCLOSURE = os.path.join(WEB, "..", "hardware", "enclosure")
 
 LAVENDER, MINT, PEACH = "#c99be0", "#8fd6b6", "#ffb592"
 # The filament the prototypes are printed in (ELEGOO PETG), and a limited-edition milky green.
-GREY, BLACK, MILKY_GREEN = "#8e9194", "#26272b", "#b6dfc2"
+GREY, BLACK, MILKY_GREEN = "#dcddda", "#26272b", "#b6dfc2"
 
 # How each filament takes the light. PETG is glossier than PLA; milky filament lets light far inside.
 PLA = {"roughness": 0.36, "subsurface": 0.12, "subsurface_scale": 0.6}
@@ -70,16 +70,16 @@ SHOTS = [
     {"file": "front-lavender.png", "alt": "Pocket Lumi, front", "color": LAVENDER, "dist": 172, "look": 3.5, "exposure": 0.55, **FRONT},
     {"file": "front-mint.png", "alt": "Pocket Lumi in a mint shell, front", "color": MINT, "dist": 172, "look": 3.5, "exposure": 0.55, **FRONT},
     {"file": "front-peach.png", "alt": "Pocket Lumi in a peach shell, front", "color": PEACH, "dist": 172, "look": 3.5, "exposure": 0.55, **FRONT},
-    {"file": "three-quarter.png", "alt": "Pocket Lumi from the side, showing its face", "color": LAVENDER,
-     "yaw": -0.62, "rise": 0.2, "dist": 230, "look": 3, "face": ("yotos", "happy"), **SIDE},
-    {"file": "usb-side.png", "alt": "Pocket Lumi from the left, showing the USB-C port", "color": LAVENDER,
-     "yaw": 1.05, "rise": 0.18, "dist": 230, "look": 3, "face": ("yotos", "neutral"), "no_glare": True, **SIDE},
-    {"file": "on-keyring.png", "alt": "Pocket Lumi on a keyring", "color": MINT, "tall": True, "fov": 18,
+    {"file": "three-quarter.png", "alt": "Pocket Lumi in black PETG from the side, showing its face", "color": BLACK,
+     "finish": PETG, "yaw": -0.62, "rise": 0.2, "dist": 230, "look": 3, "face": ("yotos", "happy"), **SIDE},
+    {"file": "usb-side.png", "alt": "Pocket Lumi from the left, showing the USB-C port", "color": GREY,
+     "finish": PETG, "yaw": 1.05, "rise": 0.18, "dist": 230, "look": 3, "face": ("yotos", "neutral"), "no_glare": True, **SIDE},
+    {"file": "on-keyring.png", "alt": "Pocket Lumi on a keyring", "color": GREY, "finish": PETG, "tall": True, "fov": 18,
      "yaw": -0.35, "rise": 0.05, "dist": 260, "look": 10, "ring": True, "face": ("ni", "sleepy")},
     # The real filament, and the limited edition.
-    {"file": "front-grey.png", "alt": "Pocket Lumi in grey PETG, front", "color": GREY, "finish": PETG,
+    {"file": "front-grey.png", "alt": "Pocket Lumi in light grey PETG, front", "color": GREY, "finish": PETG,
      "dist": 172, "look": 3.5, "exposure": 0.55, **FRONT},
-    {"file": "three-quarter-grey.png", "alt": "Pocket Lumi in grey PETG, from the side", "color": GREY, "finish": PETG,
+    {"file": "three-quarter-grey.png", "alt": "Pocket Lumi in light grey PETG, from the side", "color": GREY, "finish": PETG,
      "yaw": -0.62, "rise": 0.2, "dist": 230, "look": 3, "face": ("ni", "happy"), **SIDE},
     {"file": "front-black.png", "alt": "Pocket Lumi in black PETG, front", "color": BLACK, "finish": PETG,
      "dist": 172, "look": 3.5, "exposure": 0.55, **FRONT},
@@ -97,9 +97,9 @@ SHOTS = [
      "color": MINT, "yaw": -0.62, "rise": 0.2, "dist": 250, "look": 3, "face": ("yotos", "happy"), **SIDE},
     {"model": "mini-pcb", "file": "mini-pcb-usb.png", "alt": "Mini Lumi case for the PCB from the left, showing the USB-C port",
      "color": MINT, "yaw": 1.05, "rise": 0.18, "dist": 250, "look": 3, "face": ("ni", "neutral"), "no_glare": True, **SIDE},
-    {"model": "mini2", "file": "mini-lumi2-front.png", "alt": "Mini Lumi 2 case, front", "color": PEACH,
+    {"model": "mini2", "file": "mini-lumi2-front.png", "alt": "Mini Lumi 2 case, front", "color": GREY,
      "dist": 190, "look": 0, "exposure": 0.3, "no_glare": True, **FRONT},
-    {"model": "mini2", "file": "mini-lumi2-three-quarter.png", "alt": "Mini Lumi 2 case, from the side", "color": PEACH,
+    {"model": "mini2", "file": "mini-lumi2-three-quarter.png", "alt": "Mini Lumi 2 case, from the side", "color": GREY,
      "yaw": -0.62, "rise": 0.2, "dist": 250, "look": 0, "face": ("katos", "happy"), **SIDE},
 ]
 

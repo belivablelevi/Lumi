@@ -59,7 +59,7 @@ export function PurchasePanel({
               <button key={x.id} type="button" onClick={() => setVariant(x.id)} aria-pressed={variant === x.id}
                 aria-label={x.limited ? `${x.name}, limited edition` : x.name} title={x.limited ? `${x.name} (limited edition)` : x.name}
                 className={clsx("relative size-10 rounded-full ring-2 ring-offset-2 ring-offset-cloud", variant === x.id ? "ring-ink" : "ring-transparent")}
-                style={{ background: x.swatch }}>
+                style={{ background: x.swatch, boxShadow: "inset 0 0 0 1px rgb(0 0 0 / 0.12)" }}>
                 {x.limited ? (
                   <span className="absolute -top-1 -right-1 grid size-4 place-items-center rounded-full bg-ink text-white" aria-hidden>
                     <Sparkles className="size-2.5" />

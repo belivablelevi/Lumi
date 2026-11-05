@@ -68,7 +68,6 @@ export interface Product {
 
 const render = (file: string, caption?: string): GalleryImage => ({ ...renderImage(file), caption });
 
-const CONCEPT = "Render of the prototype design. Shell colours aren't final.";
 const PETG = "Render in the PETG filament the prototypes are printed in.";
 const MILKY_GREEN = "Milky green limited edition. Render of the prototype design.";
 const MINI_PCB ="Mini Lumi case for the PCB: prototype design, not printed yet.";
@@ -90,28 +89,25 @@ export const products: Product[] = [
     ],
     price: tbc("Retail price in CAD"),
     variants: [
-      { id: "grey", name: "Grey", swatch: "#8e9194", image: 0 },
-      { id: "black", name: "Black", swatch: "#26272b", image: 2 },
+      { id: "grey", name: "Light grey", swatch: "#dcddda", image: 0 },
+      { id: "black", name: "Black", swatch: "#26272b", image: 4 },
       {
         id: "milky-green",
         name: "Milky green",
         swatch: "#b6dfc2",
-        image: 3,
+        image: 6,
         limited: "A small, one-off run in a soft, milky green. Once they're gone, they're gone.",
       },
     ],
     images: [
       render("front-grey.png", PETG),
       render("three-quarter-grey.png", PETG),
+      render("usb-side.png", PETG),
+      render("on-keyring.png", PETG),
       render("front-black.png", PETG),
+      render("three-quarter.png", PETG),
       render("front-milky-green.png", MILKY_GREEN),
       render("three-quarter-milky-green.png", MILKY_GREEN),
-      render("on-keyring.png", CONCEPT),
-      render("usb-side.png", CONCEPT),
-      render("front-lavender.png", CONCEPT),
-      render("three-quarter.png", CONCEPT),
-      render("front-mint.png", CONCEPT),
-      render("front-peach.png", CONCEPT),
       render("mini-pcb-front.png", MINI_PCB),
       render("mini-pcb-three-quarter.png", MINI_PCB),
       render("mini-pcb-usb.png", MINI_PCB),
