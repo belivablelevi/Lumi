@@ -28,9 +28,9 @@ export default function Home() {
       <Hero
         statusLabel={STATUS_LABEL[pocket.status]}
         units={[
-          { persona: "yotos", image: renderImage("front-lavender.png") },
-          { persona: "ni", image: renderImage("front-mint.png") },
-          { persona: "katos", image: renderImage("front-peach.png") },
+          { persona: "yotos", image: renderImage("front-grey.png") },
+          { persona: "ni", image: renderImage("front-milky-green.png") },
+          { persona: "katos", image: renderImage("front-black.png") },
         ]}
       />
 

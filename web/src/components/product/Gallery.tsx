@@ -10,9 +10,25 @@ import { persona } from "@/lib/lumi-frames";
 import { duration, ease } from "@/lib/motion";
 import { DeviceFrame } from "../lumi/DeviceFrame";
 
-export function Gallery({ images, personaId, name }: { images: GalleryImage[]; personaId?: string; name: string }) {
+export function Gallery({
+  images,
+  personaId,
+  name,
+  select,
+}: {
+  images: GalleryImage[];
+  personaId?: string;
+  name: string;
+  /** Jump to this image whenever `key` changes (for example when a colour is picked). */
+  select?: { image: number; key: number };
+}) {
   const [i, setI] = useState(0);
+  const [seen, setSeen] = useState(select?.key);
   const start = useRef<number | null>(null);
+  if (select && select.key !== seen && images.length) {
+    setSeen(select.key);
+    setI(select.image % images.length);
+  }
   if (!images.length) return null;
   const n = images.length;
   const go = (d: number) => setI((x) => (x + d + n) % n);

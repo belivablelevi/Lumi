@@ -22,6 +22,8 @@ export interface Variant {
   swatch: string;
   /** Index into the product's images to show when this variant is picked. */
   image?: number;
+  /** Set for a limited-edition colour: a short line shown when it's picked. */
+  limited?: string;
 }
 
 export interface PreorderTerms {
@@ -68,7 +70,7 @@ const render = (file: string, caption?: string): GalleryImage => ({ ...renderIma
 
 const CONCEPT = "Render of the prototype design. Shell colours aren't final.";
 const PETG = "Render in the PETG filament the prototypes are printed in.";
-const MILKY_GREEN = "Milky green: a planned limited edition. Render of the prototype design.";
+const MILKY_GREEN = "Milky green limited edition. Render of the prototype design.";
 const MINI_PCB ="Mini Lumi case for the PCB: prototype design, not printed yet.";
 const MINI_2 = "Mini Lumi 2: alternative case design, untested.";
 
@@ -87,17 +89,27 @@ export const products: Product[] = [
       "Which Lumi you get is pure luck. The shape of its eyes, the glint in them, a little accent, and whether it's cheerful, sleepy, shy, grumpy or hyper are all picked at random when it's made, and no two are the same. You meet yours when it arrives.",
     ],
     price: tbc("Retail price in CAD"),
-    variants: [],
+    variants: [
+      { id: "grey", name: "Grey", swatch: "#8e9194", image: 0 },
+      { id: "black", name: "Black", swatch: "#26272b", image: 2 },
+      {
+        id: "milky-green",
+        name: "Milky green",
+        swatch: "#b6dfc2",
+        image: 3,
+        limited: "A small, one-off run in a soft, milky green. Once they're gone, they're gone.",
+      },
+    ],
     images: [
-      render("front-lavender.png", CONCEPT),
-      render("three-quarter.png", CONCEPT),
-      render("on-keyring.png", CONCEPT),
-      render("usb-side.png", CONCEPT),
       render("front-grey.png", PETG),
       render("three-quarter-grey.png", PETG),
       render("front-black.png", PETG),
       render("front-milky-green.png", MILKY_GREEN),
       render("three-quarter-milky-green.png", MILKY_GREEN),
+      render("on-keyring.png", CONCEPT),
+      render("usb-side.png", CONCEPT),
+      render("front-lavender.png", CONCEPT),
+      render("three-quarter.png", CONCEPT),
       render("front-mint.png", CONCEPT),
       render("front-peach.png", CONCEPT),
       render("mini-pcb-front.png", MINI_PCB),
@@ -148,6 +160,10 @@ export const products: Product[] = [
       {
         q: "How do I wake my Lumi when it arrives?",
         a: "Lumi travels asleep, so bumps in the post can't wake it. Tap its screen three times and it'll wake up and say hello.",
+      },
+      {
+        q: "What's the milky green limited edition?",
+        a: "A small, one-off run of Pocket Lumis in a soft, milky green shell. How many are made will be announced before pre-orders open, and once they're gone, that colour won't be made again.",
       },
       {
         q: "How long does the battery last?",

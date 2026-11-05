@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, Sparkles } from "lucide-react";
 import clsx from "clsx";
 import type { Product } from "@/content/products";
 import { formatMoney, multiply } from "@/lib/money";
@@ -13,8 +13,19 @@ import { Price } from "../ui/Price";
 import { StatusBadge } from "../ui/StatusBadge";
 import { AddToCartButton } from "./AddToCartButton";
 
-export function PurchasePanel({ product }: { product: Product }) {
-  const [variant, setVariant] = useState(product.variants[0]?.id);
+export function PurchasePanel({
+  product,
+  variant: picked,
+  onVariant,
+}: {
+  product: Product;
+  /** Pass both to control the colour from outside (the gallery follows it). */
+  variant?: string;
+  onVariant?: (id: string) => void;
+}) {
+  const [own, setOwn] = useState(product.variants[0]?.id);
+  const variant = onVariant ? picked : own;
+  const setVariant = onVariant ?? setOwn;
   const [qty, setQty] = useState(1);
   const cta = ctaFor(product);
   const price = confirmed(product.price);
@@ -35,14 +46,29 @@ export function PurchasePanel({ product }: { product: Product }) {
 
       {product.variants.length > 0 ? (
         <fieldset>
-          <legend className="text-sm font-bold">Colour: <span className="font-semibold text-muted">{v?.name}</span></legend>
+          <legend className="flex flex-wrap items-center gap-2 text-sm font-bold">
+            <span>Colour: <span className="font-semibold text-muted">{v?.name}</span></span>
+            {v?.limited ? (
+              <span className="inline-flex items-center gap-1 rounded-chip bg-mint-pale px-2.5 py-0.5 text-xs font-bold text-ink">
+                <Sparkles className="size-3" aria-hidden /> Limited edition
+              </span>
+            ) : null}
+          </legend>
           <div className="mt-3 flex gap-2">
             {product.variants.map((x) => (
-              <button key={x.id} type="button" onClick={() => setVariant(x.id)} aria-pressed={variant === x.id} aria-label={x.name}
-                className={clsx("size-10 rounded-full ring-2 ring-offset-2 ring-offset-cloud", variant === x.id ? "ring-ink" : "ring-transparent")}
-                style={{ background: x.swatch }} />
+              <button key={x.id} type="button" onClick={() => setVariant(x.id)} aria-pressed={variant === x.id}
+                aria-label={x.limited ? `${x.name}, limited edition` : x.name} title={x.limited ? `${x.name} (limited edition)` : x.name}
+                className={clsx("relative size-10 rounded-full ring-2 ring-offset-2 ring-offset-cloud", variant === x.id ? "ring-ink" : "ring-transparent")}
+                style={{ background: x.swatch }}>
+                {x.limited ? (
+                  <span className="absolute -top-1 -right-1 grid size-4 place-items-center rounded-full bg-ink text-white" aria-hidden>
+                    <Sparkles className="size-2.5" />
+                  </span>
+                ) : null}
+              </button>
             ))}
           </div>
+          {v?.limited ? <p className="mt-3 text-sm text-ink-soft">{v.limited}</p> : null}
         </fieldset>
       ) : null}
 
@@ -59,7 +85,7 @@ export function PurchasePanel({ product }: { product: Product }) {
           </div>
 
           <dl className="space-y-2 rounded-card bg-white p-5 text-[0.9375rem] ring-1 ring-line">
-            <div className="flex justify-between gap-4"><dt className="text-muted">Item</dt><dd className="text-right font-semibold">{product.name}{v ? `, ${v.name}` : ""}</dd></div>
+            <div className="flex justify-between gap-4"><dt className="text-muted">Item</dt><dd className="text-right font-semibold">{product.name}{v ? `, ${v.name}${v.limited ? " (limited edition)" : ""}` : ""}</dd></div>
             <div className="flex justify-between gap-4"><dt className="text-muted">Quantity</dt><dd className="font-semibold tabular-nums">{qty}</dd></div>
             <div className="flex justify-between gap-4"><dt className="text-muted">Subtotal</dt><dd className="font-bold tabular-nums">{price ? formatMoney(multiply(price, qty)) : "—"}</dd></div>
             <div className="flex justify-between gap-4"><dt className="text-muted">Shipping and taxes</dt><dd className="text-right text-muted">Calculated at checkout</dd></div>
