@@ -1,25 +1,34 @@
-import { describe, expect, it, vi } from "vitest";
-import { TABLE_CENTS, normalPostal, parcelKg, parseRateResponse, quoteShipping, rateRequestXml, tableQuote, type ParcelConfig } from "@/lib/shipping";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { CP_RATES_URL, CP_TOKEN_URL, TABLE_CENTS, forgetCanadaPostToken, normalPostal, parcelKg, parseRateResponse, quoteShipping, rateRequest, tableQuote, type ParcelConfig } from "@/lib/shipping";
 
 const PARCEL: ParcelConfig = { boxKg: 0.08, unitKg: 0.03, cm: [10, 10, 6], handlingCents: 0, fromPostalCode: "K1R 6A1" };
-const CP = { username: "user", password: "pass", customerNumber: "0001234567", sandbox: true };
+const CP = { apiKey: "key", apiSecret: "secret", customerNumber: "0001234567" };
 
-// The shape of a Canada Post rate-v4 answer (one service, with HST and a fuel surcharge).
-const RESPONSE = `<?xml version="1.0" encoding="UTF-8"?>
-<price-quotes xmlns="http://www.canadapost.ca/ws/ship/rate-v4">
-  <price-quote>
-    <service-code>DOM.EP</service-code>
-    <service-link rel="service" href="https://ct.soa-gw.canadapost.ca/rs/ship/service/DOM.EP" media-type="application/vnd.cpc.ship.rate-v4+xml"/>
-    <service-name>Expedited Parcel</service-name>
-    <price-details>
-      <base>9.59</base>
-      <taxes><gst percent="0.000">0.00</gst><pst>0.00</pst><hst percent="13.000">1.47</hst></taxes>
-      <due>12.78</due>
-      <adjustments><adjustment><adjustment-code>FUELSC</adjustment-code><adjustment-cost>1.72</adjustment-cost></adjustment></adjustments>
-    </price-details>
-    <service-standard><expected-transit-time>2</expected-transit-time><expected-delivery-date>2026-11-05</expected-delivery-date></service-standard>
-  </price-quote>
-</price-quotes>`;
+// The shape of a Rating API answer (one service, with HST and a fuel surcharge).
+const RESPONSE = [
+  {
+    serviceCode: "DOM.EP",
+    serviceName: "Expedited Parcel",
+    priceDetails: {
+      base: 9.59,
+      taxes: { gst: { amt: 0, percent: 0 }, pst: { amt: 0, percent: 0 }, hst: { amt: 1.47, percent: 13 } },
+      due: 12.78,
+      adjustments: [{ adjustmentCode: "FUELSC", adjustmentName: "Fuel surcharge", adjustmentCost: 1.72 }],
+    },
+    serviceStandard: { expectedTransitTime: 2, expectedDeliveryDate: "2026-11-05T00:00:00.000Z" },
+  },
+];
+
+const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+
+/** A fake Canada Post: hands out a token, then answers rate requests with `rates`. */
+function canadaPost(rates: () => Response) {
+  return vi.fn(async (url: string | URL | Request, _init?: RequestInit) =>
+    String(url) === CP_TOKEN_URL ? json({ access_token: "tok", expires_in: 3600 }) : rates(),
+  );
+}
+
+beforeEach(() => forgetCanadaPostToken());
 
 describe("postal codes and the region table", () => {
   it("accepts real Canadian postal codes and US ZIP codes only", () => {
@@ -43,39 +52,65 @@ describe("postal codes and the region table", () => {
 
 describe("Canada Post rates", () => {
   it("asks for the right service, parcel and addresses", () => {
-    const xml = rateRequestXml(CP, PARCEL, "CA", "V6B1A1", 2);
-    expect(xml).toContain("<customer-number>0001234567</customer-number>");
-    expect(xml).toContain("<weight>0.14</weight>");
-    expect(xml).toContain("<length>10</length><width>10</width><height>6</height>");
-    expect(xml).toContain("<service-code>DOM.EP</service-code>");
-    expect(xml).toContain("<origin-postal-code>K1R6A1</origin-postal-code>");
-    expect(xml).toContain("<domestic><postal-code>V6B1A1</postal-code></domestic>");
-    expect(rateRequestXml(CP, PARCEL, "US", "10001", 1)).toContain("<united-states><zip-code>10001</zip-code></united-states>");
+    expect(rateRequest(CP, PARCEL, "CA", "V6B1A1", 2)).toEqual({
+      customerNumber: "0001234567",
+      quoteType: "commercial",
+      parcelCharacteristics: { weight: 0.14, dimensions: { length: 10, width: 10, height: 6 } },
+      services: ["DOM.EP"],
+      originPostalCode: "K1R6A1",
+      destination: { domestic: { postalCode: "V6B1A1" } },
+    });
+    expect(rateRequest(CP, PARCEL, "US", "10001", 1)).toMatchObject({ services: ["USA.TP"], destination: { unitedStates: { zipCode: "10001" } } });
     expect(parcelKg(PARCEL, 0)).toBe(0.11); // never weighs less than one Lumi
   });
 
   it("reads the price before tax and the transit time", () => {
     expect(parseRateResponse(RESPONSE, "DOM.EP")).toEqual({ cents: 1131, transitDays: 2 });
     expect(parseRateResponse(RESPONSE, "USA.TP")).toBeNull();
-    expect(parseRateResponse("<messages><message><code>9111</code></message></messages>", "DOM.EP")).toBeNull();
+    expect(parseRateResponse({ title: "Validation failed", errors: [{ errorCode: "9111" }] }, "DOM.EP")).toBeNull();
+    expect(parseRateResponse(null, "DOM.EP")).toBeNull();
   });
 
-  it("uses Canada Post's price, plus any packing charge", async () => {
-    const fetch = vi.fn(async () => new Response(RESPONSE, { status: 200 }));
+  it("gets a token with the key and secret, then uses Canada Post's price plus any packing charge", async () => {
+    const fetch = canadaPost(() => json(RESPONSE));
     const q = await quoteShipping({ country: "CA", postalCode: "K1A 0B1" }, 1, { parcel: { ...PARCEL, handlingCents: 150 }, canadaPost: CP, fetch });
     expect(q).toEqual({ amount: 1281, label: "Canada Post Expedited Parcel", minDays: 2, maxDays: 4, source: "canada_post" });
-    const [url, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
-    expect(url).toBe("https://ct.soa-gw.canadapost.ca/rs/ship/price");
-    expect((init.headers as Record<string, string>).Authorization).toBe(`Basic ${Buffer.from("user:pass").toString("base64")}`);
+    const [tokenUrl, tokenInit] = fetch.mock.calls[0] as unknown as [string, RequestInit];
+    expect(tokenUrl).toBe(CP_TOKEN_URL);
+    expect((tokenInit.headers as Record<string, string>).Authorization).toBe(`Basic ${Buffer.from("key:secret").toString("base64")}`);
+    expect(String(tokenInit.body)).toBe("grant_type=client_credentials&scope=merchant");
+    const [rateUrl, rateInit] = fetch.mock.calls[1] as unknown as [string, RequestInit];
+    expect(rateUrl).toBe(CP_RATES_URL);
+    expect((rateInit.headers as Record<string, string>).Authorization).toBe("Bearer tok");
+    expect(JSON.parse(String(rateInit.body))).toMatchObject({ customerNumber: "0001234567", destination: { domestic: { postalCode: "K1A0B1" } } });
+  });
+
+  it("reuses the token, and gets a new one after a 401", async () => {
+    let status = 200;
+    const fetch = canadaPost(() => (status === 200 ? json(RESPONSE) : json([{ httpCode: 401 }], 401)));
+    const to = { country: "CA", postalCode: "K1A 0B1" };
+    const tokens = () => fetch.mock.calls.filter(([u]) => String(u) === CP_TOKEN_URL).length;
+    await quoteShipping(to, 1, { parcel: PARCEL, canadaPost: CP, fetch });
+    await quoteShipping(to, 1, { parcel: PARCEL, canadaPost: CP, fetch });
+    expect(tokens()).toBe(1);
+    status = 401;
+    expect(await quoteShipping(to, 1, { parcel: PARCEL, canadaPost: CP, fetch, log: () => {} })).toMatchObject({ source: "table" });
+    status = 200;
+    expect(await quoteShipping(to, 1, { parcel: PARCEL, canadaPost: CP, fetch })).toMatchObject({ source: "canada_post" });
+    expect(tokens()).toBe(2);
   });
 
   it("falls back to the table when Canada Post fails or isn't set up", async () => {
     const log = vi.fn();
-    const down = vi.fn(async () => new Response("<messages><message><code>Server</code></message></messages>", { status: 500 }));
+    const down = canadaPost(() => json({ title: "Server error" }, 500));
     expect(await quoteShipping({ country: "CA", postalCode: "K1A 0B1" }, 1, { parcel: PARCEL, canadaPost: CP, fetch: down, log })).toMatchObject({ source: "table", amount: TABLE_CENTS.near });
-    const throws = vi.fn(async () => { throw new Error("timeout"); });
+    const throws = vi.fn(async () => {
+      throw new Error("timeout");
+    });
     expect(await quoteShipping({ country: "US", postalCode: "10001" }, 1, { parcel: PARCEL, canadaPost: CP, fetch: throws, log })).toMatchObject({ source: "table", amount: TABLE_CENTS.us });
-    expect(log).toHaveBeenCalledTimes(2);
+    const badKey = vi.fn(async () => json({ error: "invalid_client" }, 401));
+    expect(await quoteShipping({ country: "CA", postalCode: "K1A 0B1" }, 1, { parcel: PARCEL, canadaPost: CP, fetch: badKey, log })).toMatchObject({ source: "table" });
+    expect(log).toHaveBeenCalledTimes(3);
     const unused = vi.fn();
     expect(await quoteShipping({ country: "CA", postalCode: "V6B 1A1" }, 1, { parcel: PARCEL, canadaPost: null, fetch: unused })).toMatchObject({ source: "table", amount: TABLE_CENTS.far });
     expect(unused).not.toHaveBeenCalled();

@@ -34,12 +34,11 @@ export const env = {
   adminPassword: get("ADMIN_PASSWORD"),
   // Live shipping prices from Canada Post's Rating API. Without these, checkout uses the region table in lib/shipping.ts.
   canadaPost:
-    get("CANADA_POST_USERNAME") && get("CANADA_POST_PASSWORD") && get("CANADA_POST_CUSTOMER_NUMBER")
+    get("CANADA_POST_API_KEY") && get("CANADA_POST_API_SECRET") && get("CANADA_POST_CUSTOMER_NUMBER")
       ? {
-          username: get("CANADA_POST_USERNAME")!,
-          password: get("CANADA_POST_PASSWORD")!,
+          apiKey: get("CANADA_POST_API_KEY")!,
+          apiSecret: get("CANADA_POST_API_SECRET")!,
           customerNumber: get("CANADA_POST_CUSTOMER_NUMBER")!,
-          sandbox: get("CANADA_POST_SANDBOX") === "1",
         }
       : null,
   // The packed parcel: box + padding, plus each Lumi. Weigh a real one and adjust.

@@ -1,6 +1,10 @@
-// Shipping prices at checkout. With Canada Post API keys set, each address gets
-// Canada Post's own (discounted) price for the parcel; otherwise, or if Canada
-// Post doesn't answer in time, the region table below is used.
+// Shipping prices at checkout. With a Canada Post API key set, each address gets
+// Canada Post's own (Solutions for Small Business) price for the parcel; otherwise,
+// or if Canada Post doesn't answer in time, the region table below is used.
+//
+// Canada Post's Rating API (developer portal, since April 2026): JSON, with an
+// OAuth 2.0 token from the app's API key and secret. A "Test" app's key gets
+// made-up prices from the same address; a "Production" app's key gets real ones.
 //
 // Lumi has a lithium battery, so only ground parcel services are offered inside
 // Canada (Expedited Parcel), and Tracked Packet to the US. See docs/assembly.md
@@ -32,11 +36,14 @@ export interface ParcelConfig {
 }
 
 export interface CanadaPostConfig {
-  username: string;
-  password: string;
+  apiKey: string;
+  apiSecret: string;
   customerNumber: string;
-  sandbox: boolean;
 }
+
+const CP_API = "https://api.canadapost-postescanada.ca/prod/devportal-portaildesdeveloppeurs";
+export const CP_TOKEN_URL = `${CP_API}/cpc-api-native-oauth-provider/oauth2/token`;
+export const CP_RATES_URL = `${CP_API}/rating/v1/prices`;
 
 const SERVICES: Record<ShipCountry, { code: string; label: string; days: [number, number] }> = {
   CA: { code: "DOM.EP", label: "Canada Post Expedited Parcel", days: [2, 8] },
@@ -74,43 +81,59 @@ export function tableQuote(to: ShipTo): ShippingQuote | null {
 
 export const parcelKg = (p: ParcelConfig, units: number) => Math.round((p.boxKg + p.unitKg * Math.max(1, units)) * 1000) / 1000;
 
-const esc = (s: string) => s.replace(/[<>&'"]/g, "");
-
-export function rateRequestXml(cp: CanadaPostConfig, p: ParcelConfig, country: ShipCountry, postal: string, units: number): string {
-  const [l, w, h] = p.cm;
-  const dest =
-    country === "CA"
-      ? `<domestic><postal-code>${esc(postal)}</postal-code></domestic>`
-      : `<united-states><zip-code>${esc(postal)}</zip-code></united-states>`;
-  return `<?xml version="1.0" encoding="utf-8"?>
-<mailing-scenario xmlns="http://www.canadapost.ca/ws/ship/rate-v4">
-  <customer-number>${esc(cp.customerNumber)}</customer-number>
-  <parcel-characteristics>
-    <weight>${parcelKg(p, units)}</weight>
-    <dimensions><length>${l}</length><width>${w}</width><height>${h}</height></dimensions>
-  </parcel-characteristics>
-  <services><service-code>${SERVICES[country].code}</service-code></services>
-  <origin-postal-code>${esc(p.fromPostalCode.replace(/\s+/g, "").toUpperCase())}</origin-postal-code>
-  <destination>${dest}</destination>
-</mailing-scenario>`;
+/** The Rating API's request body for one service. */
+export function rateRequest(cp: CanadaPostConfig, p: ParcelConfig, country: ShipCountry, postal: string, units: number) {
+  const [length, width, height] = p.cm;
+  return {
+    customerNumber: cp.customerNumber,
+    quoteType: "commercial",
+    parcelCharacteristics: { weight: parcelKg(p, units), dimensions: { length, width, height } },
+    services: [SERVICES[country].code],
+    originPostalCode: p.fromPostalCode.replace(/\s+/g, "").toUpperCase(),
+    destination: country === "CA" ? { domestic: { postalCode: postal } } : { unitedStates: { zipCode: postal } },
+  };
 }
 
-const tag = (xml: string, name: string) => {
-  const m = xml.match(new RegExp(`<${name}(?:\\s[^>]*)?>([^<]*)</${name}>`));
-  return m ? m[1]!.trim() : undefined;
+interface PriceQuote {
+  serviceCode?: string;
+  priceDetails?: { due?: number; taxes?: Record<string, { amt?: number } | undefined> };
+  serviceStandard?: { expectedTransitTime?: number };
+}
+
+/** Reads one service's pre-tax price and transit time from a Rating API answer. */
+export function parseRateResponse(body: unknown, serviceCode: string): { cents: number; transitDays?: number } | null {
+  const quotes: PriceQuote[] = Array.isArray(body) ? body : [];
+  const q = quotes.find((x) => x?.serviceCode === serviceCode);
+  const due = Number(q?.priceDetails?.due);
+  if (!q || !Number.isFinite(due) || due <= 0) return null;
+  const taxes = ["gst", "pst", "hst"].reduce((sum, t) => sum + (Number(q.priceDetails?.taxes?.[t]?.amt) || 0), 0);
+  const transit = Number(q.serviceStandard?.expectedTransitTime);
+  return { cents: Math.round((due - taxes) * 100), transitDays: Number.isFinite(transit) && transit > 0 ? transit : undefined };
+}
+
+// Tokens last a while, so one is reused until shortly before it runs out.
+let token: { key: string; value: string; until: number } | null = null;
+export const forgetCanadaPostToken = () => {
+  token = null;
 };
 
-/** Reads one service's pre-tax price and transit time from a Canada Post rate response. */
-export function parseRateResponse(xml: string, serviceCode: string): { cents: number; transitDays?: number } | null {
-  for (const block of xml.match(/<price-quote>[\s\S]*?<\/price-quote>/g) ?? []) {
-    if (tag(block, "service-code") !== serviceCode) continue;
-    const due = Number(tag(block, "due"));
-    if (!Number.isFinite(due) || due <= 0) return null;
-    const taxes = ["gst", "pst", "hst"].reduce((sum, t) => sum + (Number(tag(block, t)) || 0), 0);
-    const transit = Number(tag(block, "expected-transit-time"));
-    return { cents: Math.round((due - taxes) * 100), transitDays: Number.isFinite(transit) && transit > 0 ? transit : undefined };
-  }
-  return null;
+async function accessToken(cp: CanadaPostConfig, f: typeof fetch, signal: AbortSignal): Promise<string> {
+  if (token && token.key === cp.apiKey && token.until > Date.now()) return token.value;
+  const res = await f(CP_TOKEN_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${Buffer.from(`${cp.apiKey}:${cp.apiSecret}`).toString("base64")}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+      Accept: "application/json",
+    },
+    body: new URLSearchParams({ grant_type: "client_credentials", scope: "merchant" }).toString(),
+    signal,
+  });
+  const body = (await res.json().catch(() => null)) as { access_token?: string; expires_in?: number } | null;
+  if (!res.ok || !body?.access_token) throw new Error(`token ${res.status}`);
+  const life = Number(body.expires_in) > 0 ? Number(body.expires_in) : 600;
+  token = { key: cp.apiKey, value: body.access_token, until: Date.now() + Math.max(life - 60, 30) * 1000 };
+  return token.value;
 }
 
 export interface QuoteDeps {
@@ -130,21 +153,27 @@ export async function quoteShipping(to: ShipTo, units: number, deps: QuoteDeps):
   const handling = deps.parcel.handlingCents;
   const cp = deps.canadaPost;
   if (cp) {
-    const host = cp.sandbox ? "https://ct.soa-gw.canadapost.ca" : "https://soa-gw.canadapost.ca";
+    const f = deps.fetch ?? fetch;
+    const signal = AbortSignal.timeout(deps.timeoutMs ?? 8000);
     try {
-      const res = await (deps.fetch ?? fetch)(`${host}/rs/ship/price`, {
+      const res = await f(CP_RATES_URL, {
         method: "POST",
         headers: {
-          Authorization: `Basic ${Buffer.from(`${cp.username}:${cp.password}`).toString("base64")}`,
-          Accept: "application/vnd.cpc.ship.rate-v4+xml",
-          "Content-Type": "application/vnd.cpc.ship.rate-v4+xml",
-          "Accept-language": "en-CA",
+          Authorization: `Bearer ${await accessToken(cp, f, signal)}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "Accept-Language": "en-CA",
         },
-        body: rateRequestXml(cp, deps.parcel, country, postal, units),
-        signal: AbortSignal.timeout(deps.timeoutMs ?? 8000),
+        body: JSON.stringify(rateRequest(cp, deps.parcel, country, postal, units)),
+        signal,
       });
-      const xml = await res.text();
-      const rate = res.ok ? parseRateResponse(xml, SERVICES[country].code) : null;
+      const text = await res.text();
+      let body: unknown = null;
+      try {
+        body = JSON.parse(text);
+      } catch {}
+      if (res.status === 401) forgetCanadaPostToken();
+      const rate = res.ok ? parseRateResponse(body, SERVICES[country].code) : null;
       if (rate) {
         const svc = SERVICES[country];
         const days = rate.transitDays;
@@ -156,7 +185,7 @@ export async function quoteShipping(to: ShipTo, units: number, deps: QuoteDeps):
           source: "canada_post",
         };
       }
-      deps.log?.(`canada post rate failed (${res.status}): ${xml.slice(0, 300)}`);
+      deps.log?.(`canada post rate failed (${res.status}): ${text.slice(0, 300)}`);
     } catch (e) {
       deps.log?.("canada post rate failed", e);
     }
