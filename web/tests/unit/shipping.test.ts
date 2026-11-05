@@ -145,7 +145,8 @@ describe("telling Canada Post's refusals apart", () => {
   it("asks for a counter price without the customer number", () => {
     const r = rateRequest(CP, PARCEL, "CA", "K1A0B1", 1, true);
     expect(r).not.toHaveProperty("customerNumber");
-    expect(r).toMatchObject({ quoteType: "counter" });
+    expect(r).toMatchObject({ quoteType: "counter", services: ["DOM.RP"] });
+    expect(rateRequest(CP, PARCEL, "CA", "K1A0B1", 1)).toMatchObject({ quoteType: "commercial", services: ["DOM.EP"] });
   });
 
   it("shows the headers when Canada Post answers with nothing", async () => {
@@ -158,10 +159,12 @@ describe("telling Canada Post's refusals apart", () => {
     const fetch = canadaPost(() => json([], 403));
     fetch.mockImplementation(async (url, init) => {
       if (String(url) === CP_TOKEN_URL) return json({ access_token: "tok", expires_in: 3600 });
-      return JSON.parse(String(init?.body)).customerNumber ? new Response("", { status: 403 }) : json(RESPONSE);
+      return JSON.parse(String(init?.body)).customerNumber
+        ? new Response("", { status: 403 })
+        : json([{ ...RESPONSE[0], serviceCode: "DOM.RP", serviceName: "Regular Parcel" }]);
     });
     const results = await checkCanadaPost(CP, PARCEL, fetch);
     expect(results.filter((r) => !r.counter).every((r) => !r.ok)).toBe(true);
-    expect(results.find((r) => r.counter)).toMatchObject({ ok: true, cents: 1131 });
+    expect(results.find((r) => r.counter)).toMatchObject({ ok: true, cents: 1131, service: "Canada Post Regular Parcel" });
   });
 });

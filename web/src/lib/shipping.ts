@@ -50,6 +50,11 @@ const SERVICES: Record<ShipCountry, { code: string; label: string; days: [number
   US: { code: "USA.TP", label: "Canada Post Tracked Packet USA", days: [4, 10] },
 };
 
+// Expedited Parcel is for business accounts only, so a counter (regular) price inside
+// Canada has to ask for Regular Parcel. Only the admin test asks for counter prices.
+const COUNTER_CA = { code: "DOM.RP", label: "Canada Post Regular Parcel" };
+const service = (country: ShipCountry, counter = false) => (counter && country === "CA" ? COUNTER_CA : SERVICES[country]);
+
 // Backup prices before tax, in cents. Estimates for a small, light box from Ottawa:
 // check them against Snap Ship now and then.
 export const TABLE_CENTS = {
@@ -88,7 +93,7 @@ export function rateRequest(cp: CanadaPostConfig, p: ParcelConfig, country: Ship
     // Counter (regular) prices must leave the customer number out.
     ...(counter ? { quoteType: "counter" } : { customerNumber: cp.customerNumber, quoteType: "commercial" }),
     parcelCharacteristics: { weight: parcelKg(p, units), dimensions: { length, width, height } },
-    services: [SERVICES[country].code],
+    services: [service(country, counter).code],
     originPostalCode: p.fromPostalCode.replace(/\s+/g, "").toUpperCase(),
     destination: country === "CA" ? { domestic: { postalCode: postal } } : { unitedStates: { zipCode: postal } },
   };
@@ -189,8 +194,9 @@ export async function canadaPostRate(
   const body = readJson(text);
   if (res.status === 401) forgetCanadaPostToken();
   if (!res.ok) throw new Error(`Canada Post wouldn't price it (${res.status}): ${reason(body, text, res.headers)}`);
-  const rate = parseRateResponse(body, SERVICES[country].code);
-  if (!rate) throw new Error(`Canada Post's answer had no ${SERVICES[country].code} price: ${text.slice(0, 300)}`);
+  const code = service(country, counter).code;
+  const rate = parseRateResponse(body, code);
+  if (!rate) throw new Error(`Canada Post's answer had no ${code} price: ${text.slice(0, 300)}`);
   return rate;
 }
 
@@ -246,13 +252,13 @@ export type CanadaPostCheck = { place: string; service: string; counter?: boolea
 export async function checkCanadaPost(cp: CanadaPostConfig, parcel: ParcelConfig, f: typeof fetch = fetch): Promise<CanadaPostCheck[]> {
   const out: CanadaPostCheck[] = [];
   for (const a of TEST_ADDRESSES) {
-    const service = SERVICES[a.country].label;
+    const label = service(a.country, a.counter).label;
     try {
       const r = await canadaPostRate(cp, parcel, a.country, a.postal, 1, f, 8000, a.counter);
-      out.push({ place: a.place, service, counter: a.counter, ok: true, cents: r.cents, checkoutCents: r.cents + parcel.handlingCents, transitDays: r.transitDays });
+      out.push({ place: a.place, service: label, counter: a.counter, ok: true, cents: r.cents, checkoutCents: r.cents + parcel.handlingCents, transitDays: r.transitDays });
     } catch (e) {
       const error = e instanceof Error ? (e.name === "TimeoutError" ? "Canada Post didn't answer within 8 seconds." : e.message) : String(e);
-      out.push({ place: a.place, service, counter: a.counter, ok: false, error });
+      out.push({ place: a.place, service: label, counter: a.counter, ok: false, error });
     }
   }
   return out;
