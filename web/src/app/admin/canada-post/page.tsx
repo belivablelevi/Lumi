@@ -18,7 +18,10 @@ export default async function Page({ searchParams }: PageProps<"/admin/canada-po
   const cp = env.canadaPost;
   const missing = SETTINGS.filter((k) => !process.env[k]?.trim());
   const results = cp && run === "1" ? await checkCanadaPost(cp, env.parcel) : null;
-  const allGood = results?.every((r) => r.ok);
+  const main = results?.filter((r) => !r.counter);
+  const allGood = main?.every((r) => r.ok);
+  const counterOnly = !!results && !main?.some((r) => r.ok) && results.some((r) => r.counter && r.ok);
+  const forbidden = !!results && results.every((r) => !r.ok && r.error.includes("(403)"));
   const p = env.parcel;
 
   return (
@@ -84,7 +87,17 @@ export default async function Page({ searchParams }: PageProps<"/admin/canada-po
                   </li>
                 ))}
               </ul>
-              {!allGood ? (
+              {counterOnly ? (
+                <p className="mt-3 text-sm font-semibold">
+                  Regular prices work but your discounted ones don&apos;t: the customer number in Vercel doesn&apos;t match the account the
+                  API key was made under. Check the customer number on the app in the Developer Portal.
+                </p>
+              ) : forbidden ? (
+                <p className="mt-3 text-sm text-muted">
+                  403 means Canada Post accepted the key but won&apos;t let it get prices. Check that the app is a Production app and its
+                  Rating subscription is approved, not pending. If both look right, send this page to Snaggo&apos;s developer.
+                </p>
+              ) : !allGood ? (
                 <p className="mt-3 text-sm text-muted">
                   &quot;Refused the API key and secret&quot; usually means the secret doesn&apos;t belong to that key (reset it in the Developer
                   Portal and update Vercel), or the app isn&apos;t subscribed to Rating. After changing a setting in Vercel, redeploy before testing again.
