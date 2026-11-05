@@ -22,7 +22,7 @@ export const personaStories: PersonaStory[] = [
   { id: "yotos", line: temperamentLine.cheerful!, shell: "lavender", render: "front-grey.png" },
   { id: "ni", line: temperamentLine.sleepy!, shell: "mint", render: "front-milky-green.png" },
   { id: "katos", line: temperamentLine.shy!, shell: "peach", render: "front-black.png" },
-  { id: "mimox", line: temperamentLine.hyper!, shell: "lavender", render: "front-lavender.png" },
+  { id: "mimox", line: temperamentLine.hyper!, shell: "lavender", render: "front-grey.png" },
 ];
 
 /** "Find your kind of Lumi": each emotion is a real firmware animation. */

@@ -20,7 +20,7 @@ export function PongSection({ compact = false }: { compact?: boolean }) {
             </p>
           </div>
         </div>
-        <PongDuel you={renderImage("front-lavender.png")} pal={renderImage("front-mint.png")} />
+        <PongDuel you={renderImage("front-grey.png")} pal={renderImage("front-milky-green.png")} />
       </div>
     </section>
   );

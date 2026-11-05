@@ -40,31 +40,31 @@
   },
   {
     "src": "/renders/three-quarter.png",
-    "alt": "Pocket Lumi from the side, showing its face",
+    "alt": "Pocket Lumi in black PETG from the side, showing its face",
     "width": 2000,
     "height": 2000,
-    "color": "#c99be0"
+    "color": "#26272b"
   },
   {
     "src": "/renders/usb-side.png",
     "alt": "Pocket Lumi from the left, showing the USB-C port",
     "width": 2000,
     "height": 2000,
-    "color": "#c99be0"
+    "color": "#dcddda"
   },
   {
     "src": "/renders/on-keyring.png",
     "alt": "Pocket Lumi on a keyring",
     "width": 2000,
     "height": 2285,
-    "color": "#8fd6b6"
+    "color": "#dcddda"
   },
   {
     "src": "/renders/front-grey.png",
-    "alt": "Pocket Lumi in grey PETG, front",
+    "alt": "Pocket Lumi in light grey PETG, front",
     "width": 2000,
     "height": 2000,
-    "color": "#8e9194",
+    "color": "#dcddda",
     "screen": {
       "left": 0.27674445509910583,
       "top": 0.4969136714935303,
@@ -74,10 +74,10 @@
   },
   {
     "src": "/renders/three-quarter-grey.png",
-    "alt": "Pocket Lumi in grey PETG, from the side",
+    "alt": "Pocket Lumi in light grey PETG, from the side",
     "width": 2000,
     "height": 2000,
-    "color": "#8e9194"
+    "color": "#dcddda"
   },
   {
     "src": "/renders/front-black.png",
@@ -151,7 +151,7 @@
     "alt": "Mini Lumi 2 case, front",
     "width": 2000,
     "height": 2000,
-    "color": "#ffb592",
+    "color": "#dcddda",
     "screen": {
       "left": 0.2885274887084961,
       "top": 0.31767964363098145,
@@ -164,6 +164,6 @@
     "alt": "Mini Lumi 2 case, from the side",
     "width": 2000,
     "height": 2000,
-    "color": "#ffb592"
+    "color": "#dcddda"
   }
 ]

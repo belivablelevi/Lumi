@@ -12,6 +12,10 @@ test("every page loads with no errors, no horizontal scroll and no accessibility
     await expect(page.locator("h1").first()).toBeVisible();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow, `${path} overflows`).toBeLessThanOrEqual(0);
+    // Let entrance fades finish, or contrast is measured on half-transparent text. Looping animations never finish.
+    await page.waitForFunction(() =>
+      document.getAnimations().every((a) => a.playState !== "running" || a.effect?.getTiming().iterations === Infinity),
+    );
     const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
     expect(axe.violations.map((v) => `${path}: ${v.id} (${v.nodes.length}) ${v.nodes[0]?.target}`)).toEqual([]);
   }
