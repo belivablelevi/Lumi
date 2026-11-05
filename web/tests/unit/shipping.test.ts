@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { CP_RATES_URL, CP_TOKEN_URL, TABLE_CENTS, forgetCanadaPostToken, normalPostal, parcelKg, parseRateResponse, quoteShipping, rateRequest, tableQuote, type ParcelConfig } from "@/lib/shipping";
+import { CP_RATES_URL, CP_TOKEN_URL, TABLE_CENTS, checkCanadaPost, forgetCanadaPostToken, normalPostal, parcelKg, parseRateResponse, quoteShipping, rateRequest, tableQuote, type ParcelConfig } from "@/lib/shipping";
 
 const PARCEL: ParcelConfig = { boxKg: 0.08, unitKg: 0.03, cm: [10, 10, 6], handlingCents: 0, fromPostalCode: "K1R 6A1" };
 const CP = { apiKey: "key", apiSecret: "secret", customerNumber: "0001234567" };
@@ -120,5 +120,23 @@ describe("Canada Post rates", () => {
     const fetch = vi.fn();
     expect(await quoteShipping({ country: "FR", postalCode: "75001" }, 1, { parcel: PARCEL, canadaPost: CP, fetch })).toBeNull();
     expect(fetch).not.toHaveBeenCalled();
+  });
+});
+
+describe("the admin's Canada Post check", () => {
+  it("shows each sample address's price, or Canada Post's reason for refusing", async () => {
+    const good = await checkCanadaPost(CP, { ...PARCEL, handlingCents: 150 }, canadaPost(() => json(RESPONSE)));
+    expect(good[0]).toEqual({ place: "Ottawa, ON", service: "Canada Post Expedited Parcel", ok: true, cents: 1131, checkoutCents: 1281, transitDays: 2 });
+    expect(good.find((r) => r.place.includes("US"))).toMatchObject({ ok: false, error: expect.stringMatching(/no USA\.TP price/) });
+
+    forgetCanadaPostToken();
+    const refused = vi.fn(async () => json({ error: "unauthorized_client", error_description: "Invalid client ID or secret, or client not subscribed to this API" }, 401));
+    const bad = await checkCanadaPost(CP, PARCEL, refused);
+    expect(bad[0]).toMatchObject({ ok: false, error: "Canada Post refused the API key and secret (401): Invalid client ID or secret, or client not subscribed to this API" });
+    expect(bad[0]!.ok === false && bad[0]!.error).not.toContain("secret\"");
+
+    forgetCanadaPostToken();
+    const invalid = canadaPost(() => json({ title: "Validation failed", errors: [{ errorCode: "9111", message: "No services are appropriate." }] }, 400));
+    expect((await checkCanadaPost(CP, PARCEL, invalid))[0]).toMatchObject({ ok: false, error: "Canada Post wouldn't price it (400): No services are appropriate. (9111)" });
   });
 });
