@@ -1,13 +1,30 @@
 "use client";
 
-import { formatMoney } from "@/lib/money";
+import { formatMoney, type Money } from "@/lib/money";
 import { confirmed } from "@/lib/placeholder";
 import { useCart } from "./CartProvider";
 import { CheckoutButton } from "./CheckoutButton";
 
+/** "Add $X more for free shipping", shown early so shipping is never a surprise. */
+function FreeShippingNote({ over, subtotal }: { over: number; subtotal: Money }) {
+  const left = over - subtotal.amount;
+  return (
+    <p className="rounded-control bg-mint-pale p-3 text-sm text-ink-soft">
+      {left > 0 ? (
+        <>
+          Add <b className="text-ink">{formatMoney({ amount: left, currency: subtotal.currency })}</b> more for free shipping in Canada.
+        </>
+      ) : (
+        <b className="text-ink">This order ships free in Canada.</b>
+      )}
+    </p>
+  );
+}
+
 export function CartSummary() {
-  const { check, lines } = useCart();
+  const { check, lines, services } = useCart();
   const preorders = check.items.filter((i) => i.product.status === "preorder");
+  const freeOver = services.freeShippingOver;
   return (
     <div className="space-y-4">
       {check.problems.length > 0 && lines.length > 0 ? (
@@ -27,6 +44,7 @@ export function CartSummary() {
           <dd className="text-right text-muted">Calculated at checkout</dd>
         </div>
       </dl>
+      {freeOver && check.subtotal && check.subtotal.currency === "CAD" ? <FreeShippingNote over={freeOver} subtotal={check.subtotal} /> : null}
       {preorders.length > 0 ? (
         <div className="rounded-control bg-mint-pale p-3 text-sm text-ink-soft">
           <p className="font-bold text-ink">This is a pre-order</p>

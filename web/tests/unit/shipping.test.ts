@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { CP_RATES_URL, CP_TOKEN_URL, TABLE_CENTS, checkCanadaPost, forgetCanadaPostToken, normalPostal, parcelKg, parseRateResponse, quotedCm, quoteShipping, rateRequest, shippingTable, tableQuote, type ParcelConfig } from "@/lib/shipping";
+import { CP_RATES_URL, CP_TOKEN_URL, TABLE_CENTS, checkCanadaPost, forgetCanadaPostToken, normalPostal, parcelKg, parseRateResponse, quotedCm, quoteShipping, rateRequest, settingCents, shippingRules, shippingTable, tableQuote, usDutyCents, DEFAULT_RULES, type ParcelConfig } from "@/lib/shipping";
 
 const PARCEL: ParcelConfig = { boxKg: 0.08, unitKg: 0.03, cm: [10, 10, 6], handlingCents: 0, fromPostalCode: "K1R 6A1" };
 const CP = { apiKey: "key", apiSecret: "secret", customerNumber: "0001234567" };
@@ -60,6 +60,58 @@ describe("postal codes and the region table", () => {
     expect(table).toEqual({ near: 950, far: 1275, north: TABLE_CENTS.north, us: TABLE_CENTS.us });
     expect(tableQuote({ country: "CA", postalCode: "M5V 2T6" }, table)!.amount).toBe(950);
     expect(shippingTable(() => undefined)).toEqual(TABLE_CENTS);
+  });
+
+  it("reads prices as dollars, with or without a $", () => {
+    expect(settingCents("12")).toBe(1200);
+    expect(settingCents(" $7.5 ")).toBe(750);
+    expect(settingCents("7.505")).toBeNull();
+    expect(settingCents("-3")).toBeNull();
+    expect(settingCents(undefined)).toBeNull();
+  });
+
+  it("reads the duty and free-shipping settings, with defaults", () => {
+    expect(shippingRules(() => undefined)).toEqual(DEFAULT_RULES);
+    expect(DEFAULT_RULES.freeOverCents).toBeNull(); // free shipping is off until it's set
+    const set: Record<string, string> = { SHIPPING_US_DUTY_PERCENT: "9.5%", SHIPPING_US_DUTY_FEE: "$2", SHIPPING_FREE_OVER: "75" };
+    expect(shippingRules((n) => set[n])).toEqual({ usDutyPercent: 9.5, usDutyFeeCents: 200, freeOverCents: 7500 });
+    const bad: Record<string, string> = { SHIPPING_US_DUTY_PERCENT: "lots", SHIPPING_US_DUTY_FEE: "x", SHIPPING_FREE_OVER: "0" };
+    expect(shippingRules((n) => bad[n])).toEqual(DEFAULT_RULES);
+    expect(shippingRules((n) => (n === "SHIPPING_US_DUTY_PERCENT" ? "150" : undefined)).usDutyPercent).toBe(10);
+  });
+
+  it("adds the US duties on the order's value, plus the fees", async () => {
+    const rules = { usDutyPercent: 10, usDutyFeeCents: 210, freeOverCents: 7500 };
+    expect(usDutyCents(rules, 4000)).toBe(610);
+    expect(usDutyCents(rules, 12000)).toBe(1410);
+    const us = { country: "US", postalCode: "10001" };
+    expect(await quoteShipping(us, 1, { parcel: PARCEL, table: TABLE_CENTS, rules }, 4000)).toEqual({
+      amount: TABLE_CENTS.us + 610,
+      label: "Shipping and import duties",
+      minDays: 4,
+      maxDays: 10,
+      source: "table",
+    });
+    // Free shipping is for Canada only: a big US order still pays shipping and duties.
+    expect(await quoteShipping(us, 3, { parcel: PARCEL, table: TABLE_CENTS, rules }, 12000)).toMatchObject({ amount: TABLE_CENTS.us + 1410 });
+    // Canadian orders pay no duties.
+    expect(await quoteShipping({ country: "CA", postalCode: "K1A 0B1" }, 1, { parcel: PARCEL, rules }, 4000)).toMatchObject({
+      amount: TABLE_CENTS.near,
+      label: "Tracked shipping",
+    });
+  });
+
+  it("ships Canadian orders free from the amount set, packing charge included", async () => {
+    const rules = { ...DEFAULT_RULES, freeOverCents: 7500 };
+    const parcel = { ...PARCEL, handlingCents: 150 };
+    const to = { country: "CA", postalCode: "V6B 1A1" };
+    expect(await quoteShipping(to, 1, { parcel, rules }, 7499)).toMatchObject({ amount: TABLE_CENTS.far + 150 });
+    expect(await quoteShipping(to, 2, { parcel, rules }, 7500)).toMatchObject({ amount: 0, label: "Free tracked shipping", source: "table" });
+    expect(await quoteShipping(to, 2, { parcel, rules: DEFAULT_RULES }, 20000)).toMatchObject({ amount: TABLE_CENTS.far + 150 });
+    // Free shipping doesn't wait on Canada Post.
+    const unused = vi.fn();
+    expect(await quoteShipping(to, 2, { parcel, rules, canadaPost: CP, fetch: unused }, 8000)).toMatchObject({ amount: 0 });
+    expect(unused).not.toHaveBeenCalled();
   });
 
   it("uses the region prices from the settings at checkout", async () => {

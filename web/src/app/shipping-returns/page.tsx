@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { PolicyPage } from "@/components/ui/PolicyPage";
 import { PROTECTION_CENTS } from "@/lib/addons";
+import { env } from "@/lib/env";
+import { formatMoney } from "@/lib/money";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/shipping-returns" },
@@ -11,6 +13,7 @@ export const metadata: Metadata = {
 const protection = `$${(PROTECTION_CENTS / 100).toFixed(2)}`;
 
 export default function Page() {
+  const freeOver = env.shippingRules.freeOverCents;
   return (
     <PolicyPage
       title="Shipping and Returns"
@@ -28,10 +31,16 @@ export default function Page() {
           body: [
             "Checkout shows the shipping price for your address, so you see the exact price before you pay. Prices are in Canadian dollars.",
             "Every order is tracked. Checkout shows the estimated delivery time for your address, and we email you the tracking number when your order ships.",
+            ...(freeOver ? [`Orders of ${formatMoney({ amount: freeOver, currency: "CAD" })} or more ship free within Canada.`] : []),
             `You can add shipping protection at checkout for ${protection}.`,
           ],
         },
-        { heading: "US orders", note: "who pays US duties and import fees, and how." },
+        {
+          heading: "US orders",
+          body: [
+            "US shipping prices include the import duties and fees, and we pay them when your order ships, so there's nothing more to pay when it arrives.",
+          ],
+        },
         { heading: "When your Lumi arrives", body: ["Lumi travels asleep, so bumps in the post can't wake it. Tap its screen three times and it'll wake up and say hello."] },
         { heading: "Pre-orders", note: "when pre-ordered Lumis are dispatched, when payment is taken, and what happens if a launch is delayed." },
         { heading: "Mixed orders", note: "pre-orders and in-stock items are checked out separately; explain how each ships." },

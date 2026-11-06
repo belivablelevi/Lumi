@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ChitChatsPanel } from "@/components/admin/ChitChatsPanel";
 import { CopyButton } from "@/components/admin/CopyButton";
 import { OrderPill } from "@/components/admin/OrderPill";
 import { Button } from "@/components/ui/Button";
@@ -23,6 +24,13 @@ const DONE: Record<string, string> = {
   "no-email": "Couldn't send: the order has no email address, or email isn't set up.",
   "not-paid": "Only paid orders can be shipped.",
   "not-shipped": "Mark it shipped first.",
+  "cc-off": "Chit Chats isn't connected: add its settings in Vercel first.",
+  "cc-created": "Chit Chats shipment created. Pick a rate below.",
+  "cc-exists": "This order already has a Chit Chats shipment.",
+  "cc-bought": "Buying the label. Its tracking is filled in below; press Mark shipped once you've dropped it off.",
+  "cc-deleted": "Chit Chats shipment deleted.",
+  "cc-missing": "That rate isn't offered for this shipment anymore. Pick one from the list.",
+  "cc-not-unpaid": "That shipment's label is already bought or being bought.",
 };
 
 const field = "h-11 w-full rounded-chip border border-line bg-white px-4 text-[0.9375rem] outline-none focus:border-ink/40";
@@ -31,7 +39,7 @@ const card = "rounded-card bg-white p-6 ring-1 ring-line";
 export default async function Page({ params, searchParams }: PageProps<"/admin/orders/[id]">) {
   await requireAdmin();
   const { id } = await params;
-  const { done } = await searchParams;
+  const { done, cc } = await searchParams;
   const store = getStore();
   const order = store && /^[0-9a-f-]{36}$/i.test(id) ? await store.getOrder(id) : null;
   if (!order || !order.paidAt) notFound();
@@ -77,6 +85,7 @@ export default async function Page({ params, searchParams }: PageProps<"/admin/o
         {order.fulfilment === "preorder" ? " · pre-order" : ""}
       </p>
       {message ? <p role="status" className="mt-4 rounded-card bg-mint/40 px-4 py-3 text-sm font-semibold">{message}</p> : null}
+      {typeof cc === "string" && cc ? <p role="alert" className="mt-4 rounded-card bg-peach-pale px-4 py-3 text-sm text-peach-deep">{cc}</p> : null}
       {order.status === "review" ? (
         <p className="mt-4 rounded-card bg-[#ffe6b3] px-4 py-3 text-sm">
           <b>Check this payment before shipping.</b> The amount Stripe charged didn&apos;t match the order, or it was paid after its checkout
@@ -156,8 +165,8 @@ export default async function Page({ params, searchParams }: PageProps<"/admin/o
             </p>
           ) : (
             <p className="mt-3 text-sm text-muted">
-              Buy the label (Snap Ship or Chit Chats), then enter the tracking number here. The customer gets an email with the tracking link
-              and how to wake their Lumi.
+              Buy the label (below, or in Chit Chats), then mark it shipped here. The customer gets an email with the tracking link and how
+              to wake their Lumi.
             </p>
           )}
           {canShip ? (
@@ -165,7 +174,7 @@ export default async function Page({ params, searchParams }: PageProps<"/admin/o
               <div className="grid gap-3 sm:grid-cols-[10rem_1fr]">
                 <div>
                   <label htmlFor="carrier" className="text-sm font-semibold">Carrier</label>
-                  <select id="carrier" name="carrier" defaultValue={order.carrier ?? "canada_post"} className={field}>
+                  <select id="carrier" name="carrier" defaultValue={order.carrier ?? "chit_chats"} className={field}>
                     {CARRIERS.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
                   </select>
                 </div>
@@ -186,6 +195,11 @@ export default async function Page({ params, searchParams }: PageProps<"/admin/o
               <Button type="submit" variant="ghost" className="px-0">Resend shipping email</Button>
             </form>
           ) : null}
+        </section>
+
+        <section className={`${card} lg:col-span-2`} aria-labelledby="chit-chats">
+          <h2 id="chit-chats" className="text-h3 font-bold">Chit Chats label</h2>
+          <ChitChatsPanel order={order} cfg={env.chitChats} parcel={env.parcel} customs={env.customs} canShip={canShip} />
         </section>
       </div>
     </>

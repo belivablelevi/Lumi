@@ -33,6 +33,8 @@ export interface Order {
   fulfilmentStatus?: FulfilmentStatus;
   carrier?: Carrier;
   trackingNumber?: string;
+  /** The Chit Chats shipment made for it from the admin (0004_chitchats.sql). */
+  chitchatsShipmentId?: string;
   shippedAt?: string;
   shippedEmailSentAt?: string;
   /** The Lumi(s) packed for this order, for the card in the box. */
@@ -60,6 +62,7 @@ export interface FulfilmentPatch {
   fulfilmentStatus?: FulfilmentStatus;
   carrier?: Carrier | null;
   trackingNumber?: string | null;
+  chitchatsShipmentId?: string | null;
   unitNames?: string | null;
   adminNote?: string | null;
 }

@@ -119,7 +119,8 @@ export interface ShippingDeps {
   store: Store;
   payments: Payments;
   countries: string[];
-  quote: (to: ShipTo, units: number) => Promise<ShippingQuote | null>;
+  /** Prices shipping for `units` Lumis worth `subtotal` cents (US prices include duties on it). */
+  quote: (to: ShipTo, units: number, subtotal: number) => Promise<ShippingQuote | null>;
 }
 
 /** Prices shipping for the address the customer entered and puts both on the session. */
@@ -132,7 +133,7 @@ export async function setCheckoutShipping(input: unknown, deps: ShippingDeps): P
   const country = shipping.address.country.toUpperCase();
   if (!deps.countries.includes(country)) return { ok: false, status: 422, error: "Sorry, we can't ship there yet." };
   const units = open.order.items.reduce((n, i) => n + i.qty, 0);
-  const quote = await deps.quote({ country, postalCode: shipping.address.postal_code }, units);
+  const quote = await deps.quote({ country, postalCode: shipping.address.postal_code }, units, open.order.subtotal);
   if (!quote) return { ok: false, status: 422, error: "That postal code doesn't look right. Please check it." };
   const a = shipping.address;
   await deps.payments.setShipping(

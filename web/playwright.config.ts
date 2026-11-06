@@ -4,7 +4,7 @@ import { defineConfig, devices } from "@playwright/test";
 // catalogue, with checkout keys set to fakes so the checkout button is live; the
 // checkout API call itself is intercepted in the test). Each needs its own build:
 //   NEXT_DIST_DIR=.next-e2e-site next build
-//   LUMI_DEMO_CATALOGUE=1 NEXT_DIST_DIR=.next-e2e-demo next build
+//   LUMI_DEMO_CATALOGUE=1 SHIPPING_FREE_OVER=100 NEXT_DIST_DIR=.next-e2e-demo next build
 const MODE = process.env.E2E_MODE === "demo" ? "demo" : "site";
 const PORT = MODE === "demo" ? 3201 : 3200;
 const env: Record<string, string> = { NEXT_DIST_DIR: `.next-e2e-${MODE}`, NEXT_PUBLIC_SITE_URL: `http://localhost:${PORT}` };
@@ -17,6 +17,7 @@ if (MODE === "demo") {
     SUPABASE_URL: "http://127.0.0.1:9",
     SUPABASE_SERVICE_ROLE_KEY: "e2e-fake",
     ADMIN_PASSWORD: "e2e-admin-password",
+    SHIPPING_FREE_OVER: "100",
   });
 }
 

@@ -151,7 +151,7 @@ export const products: Product[] = [
       },
       {
         q: "Where do you ship, and how much does shipping cost?",
-        a: "Canada and the US, tracked. Checkout shows the shipping price for your address, so you see the exact price before you pay.",
+        a: "Canada and the US, tracked. Checkout shows the shipping price for your address, so you see the exact price before you pay. US prices include the import duties, so there's nothing more to pay on delivery.",
       },
       {
         q: "How do I wake my Lumi when it arrives?",

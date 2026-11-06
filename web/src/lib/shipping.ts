@@ -1,7 +1,8 @@
 // Shipping prices at checkout. Normally a flat price per region, set in Vercel
-// (SHIPPING_PRICE_*, see shippingTable below). With a Canada Post API key set, each
-// address instead gets Canada Post's own price for the parcel, and the region table
-// is the backup if Canada Post doesn't answer.
+// (SHIPPING_PRICE_*, see shippingTable below). US orders also pay the import duties
+// up front (see ShippingRules), and Canadian orders can ship free over an amount.
+// With a Canada Post API key set, each address instead gets Canada Post's own price
+// for the parcel, and the region table is the backup if Canada Post doesn't answer.
 //
 // Canada Post's Rating API (developer portal, since April 2026): JSON, with an
 // OAuth 2.0 token from the app's API key and secret. A "Test" app's key gets
@@ -64,8 +65,10 @@ export interface ShippingTable {
   us: number;
 }
 
-// Used when the Vercel settings below aren't set. Estimates for a small, light box from Ottawa.
-export const TABLE_CENTS: ShippingTable = { near: 1400, far: 1900, north: 2800, us: 1600 };
+// Used when the Vercel settings below aren't set. From Chit Chats quotes from Ottawa
+// (November 2026): Select $5.06 Toronto, $5.71 Vancouver, $12.74 Whitehorse, $9.94 New York,
+// with some headroom for addresses only Canada Tracked reaches ($12 to $14).
+export const TABLE_CENTS: ShippingTable = { near: 800, far: 900, north: 1500, us: 1000 };
 
 // The Vercel settings for each region, in dollars (for example 12.50).
 export const PRICE_SETTINGS: Record<keyof ShippingTable, string> = {
@@ -75,15 +78,56 @@ export const PRICE_SETTINGS: Record<keyof ShippingTable, string> = {
   us: "SHIPPING_PRICE_US",
 };
 
+/** A price setting such as "12.50" or "$12.50", in cents, or null if it isn't one. */
+export function settingCents(v: string | undefined): number | null {
+  const s = v?.trim().replace(/^\$/, "").trim();
+  return s && /^\d+(\.\d{1,2})?$/.test(s) ? Math.round(Number(s) * 100) : null;
+}
+
 /** The region prices from the settings, falling back to TABLE_CENTS for any that are unset or not a price. */
 export function shippingTable(read: (name: string) => string | undefined): ShippingTable {
-  const cents = (key: keyof ShippingTable) => {
-    const v = read(PRICE_SETTINGS[key])?.replace(/^\$/, "").trim();
-    const dollars = v && /^\d+(\.\d{1,2})?$/.test(v) ? Number(v) : NaN;
-    return Number.isFinite(dollars) ? Math.round(dollars * 100) : TABLE_CENTS[key];
-  };
+  const cents = (key: keyof ShippingTable) => settingCents(read(PRICE_SETTINGS[key])) ?? TABLE_CENTS[key];
   return { near: cents("near"), far: cents("far"), north: cents("north"), us: cents("us") };
 }
+
+// What goes on top of (or replaces) the region price.
+export interface ShippingRules {
+  /** US import duties, as a percent of the order's value, paid when the label is bought. */
+  usDutyPercent: number;
+  /** The broker and items fees on each US label, in cents. */
+  usDutyFeeCents: number;
+  /** Canadian orders at or over this subtotal ship free, in cents; null = never. */
+  freeOverCents: number | null;
+}
+
+// US duties: Chit Chats charged $3.76 on a $40 Lumi (9.4%, China origin) plus $1.88
+// broker and $0.21 items fees. Free shipping is off until it's set.
+export const DEFAULT_RULES: ShippingRules = { usDutyPercent: 10, usDutyFeeCents: 210, freeOverCents: null };
+
+export const RULE_SETTINGS = {
+  usDutyPercent: "SHIPPING_US_DUTY_PERCENT",
+  usDutyFeeCents: "SHIPPING_US_DUTY_FEE",
+  freeOverCents: "SHIPPING_FREE_OVER",
+} as const;
+
+/** The rules from the settings (a percent like "10" or "9.5%", and dollars), with defaults for any unset or unreadable. */
+export function shippingRules(read: (name: string) => string | undefined): ShippingRules {
+  const pct = read(RULE_SETTINGS.usDutyPercent)?.trim().replace(/%$/, "").trim();
+  const percent = pct && /^\d+(\.\d+)?$/.test(pct) && Number(pct) <= 100 ? Number(pct) : DEFAULT_RULES.usDutyPercent;
+  return {
+    usDutyPercent: percent,
+    usDutyFeeCents: settingCents(read(RULE_SETTINGS.usDutyFeeCents)) ?? DEFAULT_RULES.usDutyFeeCents,
+    freeOverCents: settingCents(read(RULE_SETTINGS.freeOverCents)) || DEFAULT_RULES.freeOverCents,
+  };
+}
+
+/** The US duties and fees on an order worth `subtotalCents`. */
+export const usDutyCents = (rules: ShippingRules, subtotalCents: number) =>
+  Math.round((Math.max(0, subtotalCents) * rules.usDutyPercent) / 100) + rules.usDutyFeeCents;
+
+/** Whether a Canadian order this size ships free. */
+export const shipsFree = (rules: ShippingRules | undefined, subtotalCents: number) =>
+  !!rules?.freeOverCents && subtotalCents >= rules.freeOverCents;
 
 // The table doesn't know which carrier will take the parcel, so it names the service only.
 const TABLE_SERVICES: Record<ShipCountry, { label: string; days: [number, number] }> = {
@@ -241,19 +285,27 @@ export async function canadaPostRate(
 export interface QuoteDeps {
   parcel: ParcelConfig;
   table?: ShippingTable;
+  /** Duties and free shipping. Without them, the region price is all there is. */
+  rules?: ShippingRules;
   canadaPost?: CanadaPostConfig | null;
   fetch?: typeof fetch;
   timeoutMs?: number;
   log?: (msg: string, e?: unknown) => void;
 }
 
-/** The price to ship an order of `units` Lumis to this address, or null if we don't ship there. */
-export async function quoteShipping(to: ShipTo, units: number, deps: QuoteDeps): Promise<ShippingQuote | null> {
+/**
+ * The price to ship an order of `units` Lumis worth `subtotalCents` to this address,
+ * or null if we don't ship there. US prices include the import duties.
+ */
+export async function quoteShipping(to: ShipTo, units: number, deps: QuoteDeps, subtotalCents = 0): Promise<ShippingQuote | null> {
   const table = tableQuote(to, deps.table);
   if (!table) return null;
   const country = to.country as ShipCountry;
   const postal = normalPostal(to.country, to.postalCode)!;
-  const handling = deps.parcel.handlingCents;
+  if (country === "CA" && shipsFree(deps.rules, subtotalCents)) return { ...table, amount: 0, label: "Free tracked shipping" };
+  const duties = country === "US" && deps.rules ? usDutyCents(deps.rules, subtotalCents) : 0;
+  const handling = deps.parcel.handlingCents + duties;
+  const withDuties = (label: string) => (duties ? `${label}, import duties included` : label);
   if (deps.canadaPost) {
     try {
       const rate = await canadaPostRate(deps.canadaPost, deps.parcel, country, postal, units, deps.fetch, deps.timeoutMs);
@@ -261,7 +313,7 @@ export async function quoteShipping(to: ShipTo, units: number, deps: QuoteDeps):
       const days = rate.transitDays;
       return {
         amount: rate.cents + handling,
-        label: svc.label,
+        label: withDuties(svc.label),
         minDays: days ?? svc.days[0],
         maxDays: days ? days + 2 : svc.days[1],
         source: "canada_post",
@@ -270,7 +322,7 @@ export async function quoteShipping(to: ShipTo, units: number, deps: QuoteDeps):
       deps.log?.("canada post rate failed", e);
     }
   }
-  return { ...table, amount: table.amount + handling };
+  return { ...table, amount: table.amount + handling, label: duties ? "Shipping and import duties" : table.label };
 }
 
 /** Sample addresses for the admin's "Test Canada Post" check. */

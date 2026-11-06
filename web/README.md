@@ -74,12 +74,17 @@ Pre-orders and in-stock items check out separately (`allowMixedCarts` in `brand.
 
 Copy `.env.example` to `.env.local` for local work. On Vercel, put the same values in **Project → Settings → Environment Variables**. Secret keys are only read on the server.
 
-1. **Supabase.** Create a project, then run `supabase/migrations/0001_init.sql`, `0002_cleanup.sql` and `0003_fulfilment.sql` in the SQL editor, in that order. The second one deletes old signup data every day, as the privacy policy promises; the third adds shipping and refunds to orders. Copy `SUPABASE_URL` and the **service role** key. Every table has row-level security with no public policies, so only the server can read or write.
+1. **Supabase.** Create a project, then run `supabase/migrations/0001_init.sql`, `0002_cleanup.sql`, `0003_fulfilment.sql` and `0004_chitchats.sql` in the SQL editor, in that order. The second one deletes old signup data every day, as the privacy policy promises; the third adds shipping and refunds to orders; the fourth remembers each order's Chit Chats shipment. Copy `SUPABASE_URL` and the **service role** key. Every table has row-level security with no public policies, so only the server can read or write.
 2. **Stripe.** Use test keys first.
    - Set `STRIPE_SECRET_KEY` and `STRIPE_PUBLISHABLE_KEY` (the `pk_` key; the checkout page gives it to Stripe.js).
    - Add a webhook endpoint at `https://<your-domain>/api/stripe/webhook` for these events: `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired` and `charge.refunded`. Put its signing secret in `STRIPE_WEBHOOK_SECRET`.
    - Optional: `STRIPE_AUTOMATIC_TAX=1` (after setting up Stripe Tax for your GST/HST/PST registrations) and `STRIPE_SHIPPING_COUNTRIES` (`CA,US` by default; `CA` for Canada only).
-   - **Shipping prices** are worked out from each address at checkout. For Canada Post's own prices, create an app in the [Canada Post Developer Portal](https://developer-developpeur.canadapost-postescanada.ca/devportal-portaildesdeveloppeurs/), add the Rating API to it, then set `CANADA_POST_API_KEY`, `CANADA_POST_API_SECRET` and `CANADA_POST_CUSTOMER_NUMBER` (your Solutions for Small Business number). A "Test" app gives made-up prices, a "Production" app real ones. Without them, or if Canada Post doesn't answer, checkout uses the region table in `src/lib/shipping.ts`. Weigh a packed Lumi and set `SHIPPING_BOX_KG`, `SHIPPING_UNIT_KG` and `SHIPPING_BOX_CM` (see `.env.example`).
+   - **Shipping prices** are a flat price per region, in dollars: `SHIPPING_PRICE_ON_QC`, `SHIPPING_PRICE_REST_OF_CANADA`, `SHIPPING_PRICE_NORTH` and `SHIPPING_PRICE_US` (defaults 8, 9, 15 and 10, from Chit Chats quotes).
+     - US orders also pay the import duties up front, so customers have nothing to pay on delivery: `SHIPPING_US_DUTY_PERCENT` of the order's value (default 10) plus `SHIPPING_US_DUTY_FEE` (default 2.10, the broker and items fees).
+     - `SHIPPING_FREE_OVER` (dollars, off by default) ships Canadian orders at or over that amount free, and the cart shows how much more to add.
+     - Optional live prices from Canada Post: `CANADA_POST_API_KEY`, `CANADA_POST_API_SECRET` and `CANADA_POST_CUSTOMER_NUMBER` from the [Canada Post Developer Portal](https://developer-developpeur.canadapost-postescanada.ca/devportal-portaildesdeveloppeurs/). The flat prices are the backup if Canada Post doesn't answer.
+     - Weigh a packed Lumi and set `SHIPPING_BOX_KG`, `SHIPPING_UNIT_KG` and `SHIPPING_BOX_CM` (see `.env.example`).
+   - **Chit Chats labels** in the order admin: set `CHIT_CHATS_CLIENT_ID` and `CHIT_CHATS_ACCESS_TOKEN` (Sensitive) from Chit Chats → Settings → Developer → API Access Tokens. Each order page can then create the shipment, show its rates, buy one with your Chit Chats credits and give you the PDF label. `CHIT_CHATS_SANDBOX=1` uses Chit Chats' test site, with a token from there. US labels also need `CUSTOMS_ORIGIN_COUNTRY` (two letters, confirmed by a customs broker); `CUSTOMS_HS_CODE` defaults to 9503.00 and `SHIPPING_PACKAGE_TYPE` to `parcel` (or `thick_envelope` for a padded mailer).
    - Shipping protection ($3.98) and the tip buttons are set in `src/lib/addons.ts`. Ask your accountant how to treat tips and protection for GST/HST before turning on Stripe Tax.
    - Test locally with `stripe listen --forward-to localhost:3000/api/stripe/webhook`.
 3. **Resend.** Verify your sending domain, then set `RESEND_API_KEY` and `EMAIL_FROM` (e.g. `Snaggo <hello@snaggo.tech>`). Also fill in `legal.businessName` and `legal.mailingAddress` in `brand.ts`: CASL requires a mailing address in every marketing email, so signups stay closed until it's set.
@@ -101,7 +106,7 @@ fill in most of these for you:
 | `EMAIL_FROM` | You, e.g. `Snaggo <hello@snaggo.tech>`, on a domain verified in Resend |
 
 Still to do by hand, once:
-1. Paste `supabase/migrations/0001_init.sql` into Supabase's **SQL editor** and run it, then do the same with `0002_cleanup.sql` and `0003_fulfilment.sql`.
+1. Paste `supabase/migrations/0001_init.sql` into Supabase's **SQL editor** and run it, then do the same with `0002_cleanup.sql`, `0003_fulfilment.sql` and `0004_chitchats.sql`.
 2. Set how many can be pre-ordered: `insert into capacity (sku, total) values ('LUMI-POCKET-01', 100);`.
 3. In Stripe, add a webhook endpoint `https://<your-site>/api/stripe/webhook` for `checkout.session.completed`,
    `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired`

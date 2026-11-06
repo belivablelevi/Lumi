@@ -24,6 +24,7 @@ export default async function Page({ searchParams }: PageProps<"/admin/canada-po
   const forbidden = !!results && results.every((r) => !r.ok && r.error.includes("(403)"));
   const p = env.parcel;
   const t = env.shippingTable;
+  const rules = env.shippingRules;
 
   return (
     <>
@@ -59,8 +60,10 @@ export default async function Page({ searchParams }: PageProps<"/admin/canada-po
       {!cp ? (
         <p className={`mt-6 ${card}`}>
           Live Canada Post prices are off, so checkout uses your flat prices: {cad(t.near)} Ontario and Quebec, {cad(t.far)} rest of
-          Canada, {cad(t.north)} the North, {cad(t.us)} US. To turn live prices on, add the settings marked &quot;not set&quot; in Vercel
-          (Project → Settings → Environment Variables), then redeploy.
+          Canada, {cad(t.north)} the North, {cad(t.us)} US. US orders add {rules.usDutyPercent}% of the order&apos;s value plus{" "}
+          {cad(rules.usDutyFeeCents)} for import duties and fees.{" "}
+          {rules.freeOverCents ? `Canadian orders of ${cad(rules.freeOverCents)} or more ship free.` : "Free shipping is off."} To turn live
+          prices on, add the settings marked &quot;not set&quot; in Vercel (Project → Settings → Environment Variables), then redeploy.
         </p>
       ) : (
         <section className={`mt-6 ${card}`} aria-labelledby="test">
