@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { brand } from "@/config/brand";
 import { listedProducts, productBySlug } from "@/lib/catalogue";
 import { env, serviceStatus } from "@/lib/env";
+import { freeShippingArea } from "@/lib/shipping";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -41,7 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
         <Providers
           catalogue={listedProducts()}
-          services={{ checkout: services.checkout, signup: services.signup, freeShippingOver: env.shippingRules.freeOverCents }}
+          services={{ checkout: services.checkout, signup: services.signup, freeShippingOver: env.shippingRules.freeOverCents, freeShippingArea: freeShippingArea(env.shippingRules, env.shippingTable, env.parcel.handlingCents) }}
           allowMixed={brand.allowMixedCarts}
         >
             <AnnouncementBar />

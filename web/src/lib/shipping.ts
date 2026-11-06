@@ -98,16 +98,20 @@ export interface ShippingRules {
   usDutyFeeCents: number;
   /** Canadian orders at or over this subtotal ship free, in cents; null = never. */
   freeOverCents: number | null;
+  /** ...but only where the shipping would cost less than this, in cents; null = everywhere in Canada. */
+  freeMaxCents: number | null;
 }
 
 // US duties: Chit Chats charged $3.76 on a $40 Lumi (9.4%, China origin) plus $1.88
-// broker and $0.21 items fees. Free shipping is off until it's set.
-export const DEFAULT_RULES: ShippingRules = { usDutyPercent: 10, usDutyFeeCents: 210, freeOverCents: null };
+// broker and $0.21 items fees. Free shipping is off until it's set, and then leaves out
+// shipping of $15 or more (the North at the default prices).
+export const DEFAULT_RULES: ShippingRules = { usDutyPercent: 10, usDutyFeeCents: 210, freeOverCents: null, freeMaxCents: 1500 };
 
 export const RULE_SETTINGS = {
   usDutyPercent: "SHIPPING_US_DUTY_PERCENT",
   usDutyFeeCents: "SHIPPING_US_DUTY_FEE",
   freeOverCents: "SHIPPING_FREE_OVER",
+  freeMaxCents: "SHIPPING_FREE_MAX",
 } as const;
 
 /** The rules from the settings (a percent like "10" or "9.5%", and dollars), with defaults for any unset or unreadable. */
@@ -118,6 +122,7 @@ export function shippingRules(read: (name: string) => string | undefined): Shipp
     usDutyPercent: percent,
     usDutyFeeCents: settingCents(read(RULE_SETTINGS.usDutyFeeCents)) ?? DEFAULT_RULES.usDutyFeeCents,
     freeOverCents: settingCents(read(RULE_SETTINGS.freeOverCents)) || DEFAULT_RULES.freeOverCents,
+    freeMaxCents: freeMax(read(RULE_SETTINGS.freeMaxCents)),
   };
 }
 
@@ -125,9 +130,29 @@ export function shippingRules(read: (name: string) => string | undefined): Shipp
 export const usDutyCents = (rules: ShippingRules, subtotalCents: number) =>
   Math.round((Math.max(0, subtotalCents) * rules.usDutyPercent) / 100) + rules.usDutyFeeCents;
 
-/** Whether a Canadian order this size ships free. */
-export const shipsFree = (rules: ShippingRules | undefined, subtotalCents: number) =>
-  !!rules?.freeOverCents && subtotalCents >= rules.freeOverCents;
+// SHIPPING_FREE_MAX: dollars, or "none" for no limit. Unset or unreadable keeps the default.
+function freeMax(v: string | undefined): number | null {
+  if (v?.trim().toLowerCase() === "none") return null;
+  return settingCents(v) || DEFAULT_RULES.freeMaxCents;
+}
+
+/** Whether a Canadian order this size ships free, where its shipping would cost `shippingCents`. */
+export const shipsFree = (rules: ShippingRules | undefined, subtotalCents: number, shippingCents: number) =>
+  !!rules?.freeOverCents && subtotalCents >= rules.freeOverCents && (rules.freeMaxCents === null || shippingCents < rules.freeMaxCents);
+
+/**
+ * Where free shipping reaches, for the cart and the shipping page ("Canada", "Canada, except
+ * the territories", "Ontario and Quebec"...). Null when it's off or reaches nowhere.
+ */
+export function freeShippingArea(rules: ShippingRules, table: ShippingTable = TABLE_CENTS, handlingCents = 0): string | null {
+  if (!rules.freeOverCents) return null;
+  const free = (cents: number) => rules.freeMaxCents === null || cents + handlingCents < rules.freeMaxCents;
+  const near = free(table.near), far = free(table.far), north = free(table.north);
+  if (near && far && north) return "Canada";
+  if (near && far) return "Canada, except the territories";
+  const parts = [near && "Ontario and Quebec", far && "the other provinces", north && "the territories"].filter((p): p is string => !!p);
+  return parts.length ? parts.join(" and ") : null;
+}
 
 // The table doesn't know which carrier will take the parcel, so it names the service only.
 const TABLE_SERVICES: Record<ShipCountry, { label: string; days: [number, number] }> = {
@@ -302,7 +327,7 @@ export async function quoteShipping(to: ShipTo, units: number, deps: QuoteDeps, 
   if (!table) return null;
   const country = to.country as ShipCountry;
   const postal = normalPostal(to.country, to.postalCode)!;
-  if (country === "CA" && shipsFree(deps.rules, subtotalCents)) return { ...table, amount: 0, label: "Free tracked shipping" };
+  if (country === "CA" && shipsFree(deps.rules, subtotalCents, table.amount + deps.parcel.handlingCents)) return { ...table, amount: 0, label: "Free tracked shipping" };
   const duties = country === "US" && deps.rules ? usDutyCents(deps.rules, subtotalCents) : 0;
   const handling = deps.parcel.handlingCents + duties;
   const withDuties = (label: string) => (duties ? `${label}, import duties included` : label);

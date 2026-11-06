@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PolicyPage } from "@/components/ui/PolicyPage";
 import { PROTECTION_CENTS } from "@/lib/addons";
 import { env } from "@/lib/env";
+import { freeShippingArea } from "@/lib/shipping";
 import { formatMoney } from "@/lib/money";
 
 export const metadata: Metadata = {
@@ -14,6 +15,7 @@ const protection = `$${(PROTECTION_CENTS / 100).toFixed(2)}`;
 
 export default function Page() {
   const freeOver = env.shippingRules.freeOverCents;
+  const freeArea = freeShippingArea(env.shippingRules, env.shippingTable, env.parcel.handlingCents);
   return (
     <PolicyPage
       title="Shipping and Returns"
@@ -31,7 +33,7 @@ export default function Page() {
           body: [
             "Checkout shows the shipping price for your address, so you see the exact price before you pay. Prices are in Canadian dollars.",
             "Every order is tracked. Checkout shows the estimated delivery time for your address, and we email you the tracking number when your order ships.",
-            ...(freeOver ? [`Orders of ${formatMoney({ amount: freeOver, currency: "CAD" })} or more ship free within Canada.`] : []),
+            ...(freeOver && freeArea ? [`Orders of ${formatMoney({ amount: freeOver, currency: "CAD" })} or more ship free within ${freeArea}.`] : []),
             `You can add shipping protection at checkout for ${protection}.`,
           ],
         },

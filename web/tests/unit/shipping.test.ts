@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { CP_RATES_URL, CP_TOKEN_URL, TABLE_CENTS, checkCanadaPost, forgetCanadaPostToken, normalPostal, parcelKg, parseRateResponse, quotedCm, quoteShipping, rateRequest, settingCents, shippingRules, shippingTable, tableQuote, usDutyCents, DEFAULT_RULES, type ParcelConfig } from "@/lib/shipping";
+import { CP_RATES_URL, CP_TOKEN_URL, TABLE_CENTS, checkCanadaPost, forgetCanadaPostToken, normalPostal, parcelKg, parseRateResponse, quotedCm, quoteShipping, rateRequest, settingCents, shippingRules, shippingTable, tableQuote, usDutyCents, DEFAULT_RULES, freeShippingArea, type ParcelConfig } from "@/lib/shipping";
 
 const PARCEL: ParcelConfig = { boxKg: 0.08, unitKg: 0.03, cm: [10, 10, 6], handlingCents: 0, fromPostalCode: "K1R 6A1" };
 const CP = { apiKey: "key", apiSecret: "secret", customerNumber: "0001234567" };
@@ -74,14 +74,16 @@ describe("postal codes and the region table", () => {
     expect(shippingRules(() => undefined)).toEqual(DEFAULT_RULES);
     expect(DEFAULT_RULES.freeOverCents).toBeNull(); // free shipping is off until it's set
     const set: Record<string, string> = { SHIPPING_US_DUTY_PERCENT: "9.5%", SHIPPING_US_DUTY_FEE: "$2", SHIPPING_FREE_OVER: "75" };
-    expect(shippingRules((n) => set[n])).toEqual({ usDutyPercent: 9.5, usDutyFeeCents: 200, freeOverCents: 7500 });
-    const bad: Record<string, string> = { SHIPPING_US_DUTY_PERCENT: "lots", SHIPPING_US_DUTY_FEE: "x", SHIPPING_FREE_OVER: "0" };
+    expect(shippingRules((n) => set[n])).toEqual({ usDutyPercent: 9.5, usDutyFeeCents: 200, freeOverCents: 7500, freeMaxCents: 1500 });
+    expect(shippingRules((n) => ({ SHIPPING_FREE_MAX: "12.50" })[n]).freeMaxCents).toBe(1250);
+    expect(shippingRules((n) => ({ SHIPPING_FREE_MAX: " None " })[n]).freeMaxCents).toBeNull();
+    const bad: Record<string, string> = { SHIPPING_US_DUTY_PERCENT: "lots", SHIPPING_US_DUTY_FEE: "x", SHIPPING_FREE_OVER: "0", SHIPPING_FREE_MAX: "cheap" };
     expect(shippingRules((n) => bad[n])).toEqual(DEFAULT_RULES);
     expect(shippingRules((n) => (n === "SHIPPING_US_DUTY_PERCENT" ? "150" : undefined)).usDutyPercent).toBe(10);
   });
 
   it("adds the US duties on the order's value, plus the fees", async () => {
-    const rules = { usDutyPercent: 10, usDutyFeeCents: 210, freeOverCents: 7500 };
+    const rules = { usDutyPercent: 10, usDutyFeeCents: 210, freeOverCents: 7500, freeMaxCents: 1500 };
     expect(usDutyCents(rules, 4000)).toBe(610);
     expect(usDutyCents(rules, 12000)).toBe(1410);
     const us = { country: "US", postalCode: "10001" };
@@ -112,6 +114,29 @@ describe("postal codes and the region table", () => {
     const unused = vi.fn();
     expect(await quoteShipping(to, 2, { parcel, rules, canadaPost: CP, fetch: unused }, 8000)).toMatchObject({ amount: 0 });
     expect(unused).not.toHaveBeenCalled();
+  });
+
+  it("only ships free where shipping costs under the limit ($15 by default)", async () => {
+    const rules = { ...DEFAULT_RULES, freeOverCents: 7500 };
+    const north = { country: "CA", postalCode: "Y1A 1B2" }; // Whitehorse: $15
+    expect(await quoteShipping(north, 2, { parcel: PARCEL, rules }, 8000)).toMatchObject({ amount: TABLE_CENTS.north, label: "Tracked shipping" });
+    expect(await quoteShipping({ country: "CA", postalCode: "M5V 3L9" }, 2, { parcel: PARCEL, rules }, 8000)).toMatchObject({ amount: 0 });
+    // The packing charge counts towards the limit: $14 + $1 isn't under $15.
+    const table = { ...TABLE_CENTS, north: 1400 };
+    expect(await quoteShipping(north, 2, { parcel: PARCEL, table, rules }, 8000)).toMatchObject({ amount: 0 });
+    expect(await quoteShipping(north, 2, { parcel: { ...PARCEL, handlingCents: 100 }, table, rules }, 8000)).toMatchObject({ amount: 1500 });
+    // No limit: everywhere in Canada.
+    expect(await quoteShipping(north, 2, { parcel: PARCEL, rules: { ...rules, freeMaxCents: null } }, 8000)).toMatchObject({ amount: 0 });
+  });
+
+  it("names where free shipping reaches", () => {
+    const rules = { ...DEFAULT_RULES, freeOverCents: 7500 };
+    expect(freeShippingArea(DEFAULT_RULES)).toBeNull(); // off
+    expect(freeShippingArea(rules)).toBe("Canada, except the territories");
+    expect(freeShippingArea({ ...rules, freeMaxCents: null })).toBe("Canada");
+    expect(freeShippingArea({ ...rules, freeMaxCents: 850 })).toBe("Ontario and Quebec");
+    expect(freeShippingArea({ ...rules, freeMaxCents: 1500 }, TABLE_CENTS, 600)).toBe("Ontario and Quebec");
+    expect(freeShippingArea({ ...rules, freeMaxCents: 500 })).toBeNull();
   });
 
   it("uses the region prices from the settings at checkout", async () => {

@@ -34,7 +34,8 @@ const DONE: Record<string, string> = {
   "cc-not-unpaid": "That shipment's label is already bought or being bought.",
   "demo-made": "Demo order made. Try Create shipment under Chit Chats label below.",
   "demo-real": "Only demo orders can be deleted here.",
-  "demo-has-shipment": "Delete its Chit Chats shipment first (under Chit Chats label), then delete the demo order.",
+  "demo-has-label": "This demo order has a bought Chit Chats label, so it's kept. Ask Chit Chats for a refund of the label, then delete its shipment here.",
+  "demo-not-deleted": "The demo order wasn't deleted. Refresh and try again; if it stays, tell Claude.",
 };
 
 const field = "h-11 w-full rounded-chip border border-line bg-white px-4 text-[0.9375rem] outline-none focus:border-ink/40";

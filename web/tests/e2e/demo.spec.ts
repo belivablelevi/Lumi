@@ -31,7 +31,8 @@ test("add to cart, change quantity, survive a reload, remove", async ({ page }) 
   await expect(drawer.getByText("$98.00 CAD").first()).toBeVisible();
   await expect(drawer.getByText("This is a pre-order")).toBeVisible();
   // Free shipping over $100 in this build: two $49 Lumis are $2 short.
-  await expect(drawer.getByText(/more for free shipping in Canada/)).toContainText("Add $2.00 CAD more");
+  // The North's $15 shipping is over the $15 limit, so it's left out.
+  await expect(drawer.getByText(/more for free shipping in Canada, except the territories/)).toContainText("Add $2.00 CAD more");
   await page.keyboard.press("Escape");
   await expect(drawer).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Cart, 2 items" })).toBeVisible();
@@ -41,7 +42,7 @@ test("add to cart, change quantity, survive a reload, remove", async ({ page }) 
   await page.goto("/cart");
   await page.getByRole("button", { name: "Increase quantity of Pocket Lumi" }).click();
   await expect(page.getByText("$147.00 CAD").first()).toBeVisible();
-  await expect(page.getByText("This order ships free in Canada.")).toBeVisible();
+  await expect(page.getByText("This order ships free in Canada, except the territories.")).toBeVisible();
   await page.getByRole("button", { name: "Increase quantity of Pocket Lumi" }).click();
   await expect(page.getByRole("button", { name: "Increase quantity of Pocket Lumi" })).toBeDisabled(); // max 4
   await page.getByRole("button", { name: "Remove" }).click();
