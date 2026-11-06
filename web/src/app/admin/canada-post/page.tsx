@@ -3,7 +3,7 @@ import { buttonClass } from "@/components/ui/Button";
 import { requireAdmin } from "@/lib/admin-session";
 import { env } from "@/lib/env";
 import { formatMoney } from "@/lib/money";
-import { TABLE_CENTS, checkCanadaPost } from "@/lib/shipping";
+import { TABLE_CENTS, checkCanadaPost, quotedCm } from "@/lib/shipping";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +49,9 @@ export default async function Page({ searchParams }: PageProps<"/admin/canada-po
         <p className="mt-3 text-sm text-muted">
           Ships from {p.fromPostalCode}. Parcel: {p.cm.join(" × ")} cm, {p.boxKg} kg box plus {p.unitKg} kg per Lumi
           {p.handlingCents ? `, plus ${cad(p.handlingCents)} packing charge` : ""}.
+          {quotedCm(p, "CA").join() !== [...p.cm].sort((a, b) => b - a).join()
+            ? ` Inside Canada it's priced as ${quotedCm(p, "CA").join(" × ")} cm, Canada Post's smallest parcel.`
+            : ""}
         </p>
       </section>
 

@@ -86,9 +86,20 @@ export function tableQuote(to: ShipTo): ShippingQuote | null {
 
 export const parcelKg = (p: ParcelConfig, units: number) => Math.round((p.boxKg + p.unitKg * Math.max(1, units)) * 1000) / 1000;
 
+// Canada Post's smallest parcel inside Canada (Regular, Expedited, Xpresspost, Priority):
+// 23 x 20 x 2.5 cm. It won't price anything smaller (error 9111) and charges a smaller box
+// as this size, so domestic quotes round each side up to it.
+export const CA_MIN_CM: [number, number, number] = [23, 20, 2.5];
+
+/** The parcel's sides, longest first, rounded up to Canada Post's minimum inside Canada. */
+export function quotedCm(p: ParcelConfig, country: ShipCountry): [number, number, number] {
+  const sides = [...p.cm].sort((a, b) => b - a) as [number, number, number];
+  return country === "CA" ? (sides.map((s, i) => Math.max(s, CA_MIN_CM[i]!)) as [number, number, number]) : sides;
+}
+
 /** The Rating API's request body for one service. */
 export function rateRequest(cp: CanadaPostConfig, p: ParcelConfig, country: ShipCountry, postal: string, units: number, counter = false) {
-  const [length, width, height] = p.cm;
+  const [length, width, height] = quotedCm(p, country);
   return {
     // Counter (regular) prices must leave the customer number out.
     ...(counter ? { quoteType: "counter" } : { customerNumber: cp.customerNumber, quoteType: "commercial" }),
