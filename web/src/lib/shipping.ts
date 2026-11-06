@@ -50,6 +50,11 @@ const SERVICES: Record<ShipCountry, { code: string; label: string; days: [number
   US: { code: "USA.TP", label: "Canada Post Tracked Packet USA", days: [4, 10] },
 };
 
+// Expedited Parcel is for business accounts only, so a counter (regular) price inside
+// Canada has to ask for Regular Parcel. Only the admin test asks for counter prices.
+const COUNTER_CA = { code: "DOM.RP", label: "Canada Post Regular Parcel" };
+const service = (country: ShipCountry, counter = false) => (counter && country === "CA" ? COUNTER_CA : SERVICES[country]);
+
 // Backup prices before tax, in cents. Estimates for a small, light box from Ottawa:
 // check them against Snap Ship now and then.
 export const TABLE_CENTS = {
@@ -81,14 +86,25 @@ export function tableQuote(to: ShipTo): ShippingQuote | null {
 
 export const parcelKg = (p: ParcelConfig, units: number) => Math.round((p.boxKg + p.unitKg * Math.max(1, units)) * 1000) / 1000;
 
+// Canada Post's smallest parcel inside Canada (Regular, Expedited, Xpresspost, Priority):
+// 23 x 20 x 2.5 cm. It won't price anything smaller (error 9111) and charges a smaller box
+// as this size, so domestic quotes round each side up to it.
+export const CA_MIN_CM: [number, number, number] = [23, 20, 2.5];
+
+/** The parcel's sides, longest first, rounded up to Canada Post's minimum inside Canada. */
+export function quotedCm(p: ParcelConfig, country: ShipCountry): [number, number, number] {
+  const sides = [...p.cm].sort((a, b) => b - a) as [number, number, number];
+  return country === "CA" ? (sides.map((s, i) => Math.max(s, CA_MIN_CM[i]!)) as [number, number, number]) : sides;
+}
+
 /** The Rating API's request body for one service. */
 export function rateRequest(cp: CanadaPostConfig, p: ParcelConfig, country: ShipCountry, postal: string, units: number, counter = false) {
-  const [length, width, height] = p.cm;
+  const [length, width, height] = quotedCm(p, country);
   return {
     // Counter (regular) prices must leave the customer number out.
     ...(counter ? { quoteType: "counter" } : { customerNumber: cp.customerNumber, quoteType: "commercial" }),
     parcelCharacteristics: { weight: parcelKg(p, units), dimensions: { length, width, height } },
-    services: [SERVICES[country].code],
+    services: [service(country, counter).code],
     originPostalCode: p.fromPostalCode.replace(/\s+/g, "").toUpperCase(),
     destination: country === "CA" ? { domestic: { postalCode: postal } } : { unitedStates: { zipCode: postal } },
   };
@@ -189,8 +205,9 @@ export async function canadaPostRate(
   const body = readJson(text);
   if (res.status === 401) forgetCanadaPostToken();
   if (!res.ok) throw new Error(`Canada Post wouldn't price it (${res.status}): ${reason(body, text, res.headers)}`);
-  const rate = parseRateResponse(body, SERVICES[country].code);
-  if (!rate) throw new Error(`Canada Post's answer had no ${SERVICES[country].code} price: ${text.slice(0, 300)}`);
+  const code = service(country, counter).code;
+  const rate = parseRateResponse(body, code);
+  if (!rate) throw new Error(`Canada Post's answer had no ${code} price: ${text.slice(0, 300)}`);
   return rate;
 }
 
@@ -246,13 +263,13 @@ export type CanadaPostCheck = { place: string; service: string; counter?: boolea
 export async function checkCanadaPost(cp: CanadaPostConfig, parcel: ParcelConfig, f: typeof fetch = fetch): Promise<CanadaPostCheck[]> {
   const out: CanadaPostCheck[] = [];
   for (const a of TEST_ADDRESSES) {
-    const service = SERVICES[a.country].label;
+    const label = service(a.country, a.counter).label;
     try {
       const r = await canadaPostRate(cp, parcel, a.country, a.postal, 1, f, 8000, a.counter);
-      out.push({ place: a.place, service, counter: a.counter, ok: true, cents: r.cents, checkoutCents: r.cents + parcel.handlingCents, transitDays: r.transitDays });
+      out.push({ place: a.place, service: label, counter: a.counter, ok: true, cents: r.cents, checkoutCents: r.cents + parcel.handlingCents, transitDays: r.transitDays });
     } catch (e) {
       const error = e instanceof Error ? (e.name === "TimeoutError" ? "Canada Post didn't answer within 8 seconds." : e.message) : String(e);
-      out.push({ place: a.place, service, counter: a.counter, ok: false, error });
+      out.push({ place: a.place, service: label, counter: a.counter, ok: false, error });
     }
   }
   return out;

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { CP_RATES_URL, CP_TOKEN_URL, TABLE_CENTS, checkCanadaPost, forgetCanadaPostToken, normalPostal, parcelKg, parseRateResponse, quoteShipping, rateRequest, tableQuote, type ParcelConfig } from "@/lib/shipping";
+import { CP_RATES_URL, CP_TOKEN_URL, TABLE_CENTS, checkCanadaPost, forgetCanadaPostToken, normalPostal, parcelKg, parseRateResponse, quotedCm, quoteShipping, rateRequest, tableQuote, type ParcelConfig } from "@/lib/shipping";
 
 const PARCEL: ParcelConfig = { boxKg: 0.08, unitKg: 0.03, cm: [10, 10, 6], handlingCents: 0, fromPostalCode: "K1R 6A1" };
 const CP = { apiKey: "key", apiSecret: "secret", customerNumber: "0001234567" };
@@ -55,12 +55,18 @@ describe("Canada Post rates", () => {
     expect(rateRequest(CP, PARCEL, "CA", "V6B1A1", 2)).toEqual({
       customerNumber: "0001234567",
       quoteType: "commercial",
-      parcelCharacteristics: { weight: 0.14, dimensions: { length: 10, width: 10, height: 6 } },
+      // A 10 x 10 x 6 cm box is smaller than Canada Post's minimum parcel, so it's priced as 23 x 20 x 6.
+      parcelCharacteristics: { weight: 0.14, dimensions: { length: 23, width: 20, height: 6 } },
       services: ["DOM.EP"],
       originPostalCode: "K1R6A1",
       destination: { domestic: { postalCode: "V6B1A1" } },
     });
-    expect(rateRequest(CP, PARCEL, "US", "10001", 1)).toMatchObject({ services: ["USA.TP"], destination: { unitedStates: { zipCode: "10001" } } });
+    expect(rateRequest(CP, PARCEL, "US", "10001", 1)).toMatchObject({
+      services: ["USA.TP"],
+      parcelCharacteristics: { dimensions: { length: 10, width: 10, height: 6 } },
+      destination: { unitedStates: { zipCode: "10001" } },
+    });
+    expect(quotedCm({ ...PARCEL, cm: [2, 30, 18] }, "CA")).toEqual([30, 20, 2.5]);
     expect(parcelKg(PARCEL, 0)).toBe(0.11); // never weighs less than one Lumi
   });
 
@@ -145,7 +151,8 @@ describe("telling Canada Post's refusals apart", () => {
   it("asks for a counter price without the customer number", () => {
     const r = rateRequest(CP, PARCEL, "CA", "K1A0B1", 1, true);
     expect(r).not.toHaveProperty("customerNumber");
-    expect(r).toMatchObject({ quoteType: "counter" });
+    expect(r).toMatchObject({ quoteType: "counter", services: ["DOM.RP"] });
+    expect(rateRequest(CP, PARCEL, "CA", "K1A0B1", 1)).toMatchObject({ quoteType: "commercial", services: ["DOM.EP"] });
   });
 
   it("shows the headers when Canada Post answers with nothing", async () => {
@@ -158,10 +165,12 @@ describe("telling Canada Post's refusals apart", () => {
     const fetch = canadaPost(() => json([], 403));
     fetch.mockImplementation(async (url, init) => {
       if (String(url) === CP_TOKEN_URL) return json({ access_token: "tok", expires_in: 3600 });
-      return JSON.parse(String(init?.body)).customerNumber ? new Response("", { status: 403 }) : json(RESPONSE);
+      return JSON.parse(String(init?.body)).customerNumber
+        ? new Response("", { status: 403 })
+        : json([{ ...RESPONSE[0], serviceCode: "DOM.RP", serviceName: "Regular Parcel" }]);
     });
     const results = await checkCanadaPost(CP, PARCEL, fetch);
     expect(results.filter((r) => !r.counter).every((r) => !r.ok)).toBe(true);
-    expect(results.find((r) => r.counter)).toMatchObject({ ok: true, cents: 1131 });
+    expect(results.find((r) => r.counter)).toMatchObject({ ok: true, cents: 1131, service: "Canada Post Regular Parcel" });
   });
 });
