@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { CP_RATES_URL, CP_TOKEN_URL, TABLE_CENTS, checkCanadaPost, forgetCanadaPostToken, normalPostal, parcelKg, parseRateResponse, quotedCm, quoteShipping, rateRequest, tableQuote, type ParcelConfig } from "@/lib/shipping";
+import { CP_RATES_URL, CP_TOKEN_URL, TABLE_CENTS, checkCanadaPost, forgetCanadaPostToken, normalPostal, parcelKg, parseRateResponse, quotedCm, quoteShipping, rateRequest, shippingTable, tableQuote, type ParcelConfig } from "@/lib/shipping";
 
 const PARCEL: ParcelConfig = { boxKg: 0.08, unitKg: 0.03, cm: [10, 10, 6], handlingCents: 0, fromPostalCode: "K1R 6A1" };
 const CP = { apiKey: "key", apiSecret: "secret", customerNumber: "0001234567" };
@@ -45,8 +45,30 @@ describe("postal codes and the region table", () => {
     expect(tableQuote({ country: "CA", postalCode: "H2X 1Y4" })!.amount).toBe(TABLE_CENTS.near);
     expect(tableQuote({ country: "CA", postalCode: "V6B 1A1" })!.amount).toBe(TABLE_CENTS.far);
     expect(tableQuote({ country: "CA", postalCode: "X1A 2L9" })!.amount).toBe(TABLE_CENTS.north);
-    expect(tableQuote({ country: "US", postalCode: "10001" })).toMatchObject({ amount: TABLE_CENTS.us, label: "Canada Post Tracked Packet USA" });
+    expect(tableQuote({ country: "US", postalCode: "10001" })).toMatchObject({ amount: TABLE_CENTS.us, label: "Tracked shipping to the US" });
+    expect(tableQuote({ country: "CA", postalCode: "K1A 0B1" })).toMatchObject({ label: "Tracked shipping" });
     expect(tableQuote({ country: "CA", postalCode: "nope" })).toBeNull();
+  });
+
+  it("reads the region prices from the settings, in dollars", () => {
+    const settings: Record<string, string> = {
+      SHIPPING_PRICE_ON_QC: "9.5",
+      SHIPPING_PRICE_REST_OF_CANADA: "$12.75",
+      SHIPPING_PRICE_NORTH: "lots",
+    };
+    const table = shippingTable((name) => settings[name]);
+    expect(table).toEqual({ near: 950, far: 1275, north: TABLE_CENTS.north, us: TABLE_CENTS.us });
+    expect(tableQuote({ country: "CA", postalCode: "M5V 2T6" }, table)!.amount).toBe(950);
+    expect(shippingTable(() => undefined)).toEqual(TABLE_CENTS);
+  });
+
+  it("uses the region prices from the settings at checkout", async () => {
+    const table = { near: 800, far: 1100, north: 2000, us: 900 };
+    expect(await quoteShipping({ country: "US", postalCode: "10001" }, 2, { parcel: { ...PARCEL, handlingCents: 100 }, table })).toMatchObject({
+      source: "table",
+      amount: 1000,
+      label: "Tracked shipping to the US",
+    });
   });
 });
 

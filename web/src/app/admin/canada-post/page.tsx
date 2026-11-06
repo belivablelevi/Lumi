@@ -3,7 +3,7 @@ import { buttonClass } from "@/components/ui/Button";
 import { requireAdmin } from "@/lib/admin-session";
 import { env } from "@/lib/env";
 import { formatMoney } from "@/lib/money";
-import { TABLE_CENTS, checkCanadaPost, quotedCm } from "@/lib/shipping";
+import { checkCanadaPost, quotedCm } from "@/lib/shipping";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +23,7 @@ export default async function Page({ searchParams }: PageProps<"/admin/canada-po
   const counterOnly = !!results && !main?.some((r) => r.ok) && results.some((r) => r.counter && r.ok);
   const forbidden = !!results && results.every((r) => !r.ok && r.error.includes("(403)"));
   const p = env.parcel;
+  const t = env.shippingTable;
 
   return (
     <>
@@ -57,9 +58,9 @@ export default async function Page({ searchParams }: PageProps<"/admin/canada-po
 
       {!cp ? (
         <p className={`mt-6 ${card}`}>
-          Add the settings marked &quot;not set&quot; in Vercel (Project → Settings → Environment Variables), then redeploy. Until then,
-          checkout uses the backup price table ({cad(TABLE_CENTS.near)} Ontario and Quebec, {cad(TABLE_CENTS.far)} rest of Canada,{" "}
-          {cad(TABLE_CENTS.north)} the North, {cad(TABLE_CENTS.us)} US).
+          Live Canada Post prices are off, so checkout uses your flat prices: {cad(t.near)} Ontario and Quebec, {cad(t.far)} rest of
+          Canada, {cad(t.north)} the North, {cad(t.us)} US. To turn live prices on, add the settings marked &quot;not set&quot; in Vercel
+          (Project → Settings → Environment Variables), then redeploy.
         </p>
       ) : (
         <section className={`mt-6 ${card}`} aria-labelledby="test">

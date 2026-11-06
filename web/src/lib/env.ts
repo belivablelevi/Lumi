@@ -1,5 +1,6 @@
 import { brand } from "@/config/brand";
 import { confirmed } from "./placeholder";
+import { shippingTable } from "./shipping";
 
 /** Server-side configuration. Never import from client components. */
 const get = (name: string) => {
@@ -32,7 +33,9 @@ export const env = {
   hashSalt: get("SIGNUP_HASH_SALT") ?? "lumi-dev-salt",
   // The order admin (/admin) is off unless this is set. Use a long random password.
   adminPassword: get("ADMIN_PASSWORD"),
-  // Live shipping prices from Canada Post's Rating API. Without these, checkout uses the region table in lib/shipping.ts.
+  // Flat shipping prices per region (SHIPPING_PRICE_ON_QC, _REST_OF_CANADA, _NORTH, _US, in dollars).
+  shippingTable: shippingTable(get),
+  // Live shipping prices from Canada Post's Rating API. Without these, checkout uses shippingTable.
   canadaPost:
     get("CANADA_POST_API_KEY") && get("CANADA_POST_API_SECRET") && get("CANADA_POST_CUSTOMER_NUMBER")
       ? {

@@ -61,6 +61,7 @@ describe("fulfilment helpers", () => {
   it("links tracking pages only for carriers and numbers it knows", () => {
     expect(trackingUrl("canada_post", "1234 5678 9012 3456")).toBe("https://www.canadapost-postescanada.ca/track-reperage/en#/details/1234567890123456");
     expect(trackingUrl("chit_chats", "ABC123")).toBe("https://chitchats.com/tracking/ABC123");
+    expect(trackingUrl("stallion", "ABC123")).toBeNull(); // no public link yet: the email shows the number
     expect(trackingUrl("other", "ABC123")).toBeNull();
     expect(trackingUrl("canada_post", "<script>")).toBeNull();
     expect(trackingUrl("canada_post", undefined)).toBeNull();

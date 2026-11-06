@@ -3,6 +3,7 @@ import type { Carrier, Order } from "./store/types";
 export const CARRIERS: { id: Carrier; label: string }[] = [
   { id: "canada_post", label: "Canada Post" },
   { id: "chit_chats", label: "Chit Chats" },
+  { id: "stallion", label: "Stallion Express" },
   { id: "other", label: "Other" },
 ];
 

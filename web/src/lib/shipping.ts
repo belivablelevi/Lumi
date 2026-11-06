@@ -1,6 +1,7 @@
-// Shipping prices at checkout. With a Canada Post API key set, each address gets
-// Canada Post's own (Solutions for Small Business) price for the parcel; otherwise,
-// or if Canada Post doesn't answer in time, the region table below is used.
+// Shipping prices at checkout. Normally a flat price per region, set in Vercel
+// (SHIPPING_PRICE_*, see shippingTable below). With a Canada Post API key set, each
+// address instead gets Canada Post's own price for the parcel, and the region table
+// is the backup if Canada Post doesn't answer.
 //
 // Canada Post's Rating API (developer portal, since April 2026): JSON, with an
 // OAuth 2.0 token from the app's API key and secret. A "Test" app's key gets
@@ -55,13 +56,39 @@ const SERVICES: Record<ShipCountry, { code: string; label: string; days: [number
 const COUNTER_CA = { code: "DOM.RP", label: "Canada Post Regular Parcel" };
 const service = (country: ShipCountry, counter = false) => (counter && country === "CA" ? COUNTER_CA : SERVICES[country]);
 
-// Backup prices before tax, in cents. Estimates for a small, light box from Ottawa:
-// check them against Snap Ship now and then.
-export const TABLE_CENTS = {
-  near: 1400, // Ontario and Quebec
-  far: 1900, // Atlantic, Prairies, BC
-  north: 2800, // Yukon, NWT, Nunavut
-  us: 1600,
+// Flat prices per region before tax, in cents.
+export interface ShippingTable {
+  near: number; // Ontario and Quebec
+  far: number; // Atlantic, Prairies, BC
+  north: number; // Yukon, NWT, Nunavut
+  us: number;
+}
+
+// Used when the Vercel settings below aren't set. Estimates for a small, light box from Ottawa.
+export const TABLE_CENTS: ShippingTable = { near: 1400, far: 1900, north: 2800, us: 1600 };
+
+// The Vercel settings for each region, in dollars (for example 12.50).
+export const PRICE_SETTINGS: Record<keyof ShippingTable, string> = {
+  near: "SHIPPING_PRICE_ON_QC",
+  far: "SHIPPING_PRICE_REST_OF_CANADA",
+  north: "SHIPPING_PRICE_NORTH",
+  us: "SHIPPING_PRICE_US",
+};
+
+/** The region prices from the settings, falling back to TABLE_CENTS for any that are unset or not a price. */
+export function shippingTable(read: (name: string) => string | undefined): ShippingTable {
+  const cents = (key: keyof ShippingTable) => {
+    const v = read(PRICE_SETTINGS[key])?.replace(/^\$/, "").trim();
+    const dollars = v && /^\d+(\.\d{1,2})?$/.test(v) ? Number(v) : NaN;
+    return Number.isFinite(dollars) ? Math.round(dollars * 100) : TABLE_CENTS[key];
+  };
+  return { near: cents("near"), far: cents("far"), north: cents("north"), us: cents("us") };
+}
+
+// The table doesn't know which carrier will take the parcel, so it names the service only.
+const TABLE_SERVICES: Record<ShipCountry, { label: string; days: [number, number] }> = {
+  CA: { label: "Tracked shipping", days: [2, 8] },
+  US: { label: "Tracked shipping to the US", days: [4, 10] },
 };
 
 const NEAR = new Set(["K", "L", "M", "N", "P", "G", "H", "J"]);
@@ -74,13 +101,13 @@ export const normalPostal = (country: string, postal?: string) => {
   return null;
 };
 
-export function tableQuote(to: ShipTo): ShippingQuote | null {
+export function tableQuote(to: ShipTo, table: ShippingTable = TABLE_CENTS): ShippingQuote | null {
   const country = to.country as ShipCountry;
-  const svc = SERVICES[country];
+  const svc = TABLE_SERVICES[country];
   const postal = normalPostal(to.country, to.postalCode);
   if (!svc || !postal) return null;
   const first = postal[0]!;
-  const amount = country === "US" ? TABLE_CENTS.us : NORTH.has(first) ? TABLE_CENTS.north : NEAR.has(first) ? TABLE_CENTS.near : TABLE_CENTS.far;
+  const amount = country === "US" ? table.us : NORTH.has(first) ? table.north : NEAR.has(first) ? table.near : table.far;
   return { amount, label: svc.label, minDays: svc.days[0], maxDays: svc.days[1], source: "table" };
 }
 
@@ -213,6 +240,7 @@ export async function canadaPostRate(
 
 export interface QuoteDeps {
   parcel: ParcelConfig;
+  table?: ShippingTable;
   canadaPost?: CanadaPostConfig | null;
   fetch?: typeof fetch;
   timeoutMs?: number;
@@ -221,7 +249,7 @@ export interface QuoteDeps {
 
 /** The price to ship an order of `units` Lumis to this address, or null if we don't ship there. */
 export async function quoteShipping(to: ShipTo, units: number, deps: QuoteDeps): Promise<ShippingQuote | null> {
-  const table = tableQuote(to);
+  const table = tableQuote(to, deps.table);
   if (!table) return null;
   const country = to.country as ShipCountry;
   const postal = normalPostal(to.country, to.postalCode)!;
