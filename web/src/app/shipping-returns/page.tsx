@@ -27,7 +27,7 @@ export default function Page() {
           heading: "Shipping rates and times",
           body: [
             "Checkout shows the shipping price for your address, so you see the exact price before you pay. Prices are in Canadian dollars.",
-            "Every order is tracked, and because of the battery it travels by ground, not air. Checkout shows the estimated delivery time for your address, and we email you the tracking number when your order ships.",
+            "Every order is tracked. Checkout shows the estimated delivery time for your address, and we email you the tracking number when your order ships.",
             `You can add shipping protection at checkout for ${protection}.`,
           ],
         },
