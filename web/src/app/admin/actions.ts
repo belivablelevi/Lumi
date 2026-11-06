@@ -130,9 +130,31 @@ export async function makeDemoOrder(formData: FormData) {
 export async function removeDemoOrder(id: string) {
   const { store, order } = await orderOrFail(id);
   if (!isDemoOrder(order)) back(id, "demo-real");
-  // A shipment left in Chit Chats would lose the only link to it.
-  if (order.chitchatsShipmentId) back(id, "demo-has-shipment");
-  await store.deleteDemoOrder(id);
+  // Its test shipment goes too, so nothing is left in Chit Chats without a link to it.
+  // A bought label is kept: deleting the order would lose track of the money spent.
+  const shipmentId = order.chitchatsShipmentId;
+  if (shipmentId) {
+    const cfg = env.chitChats;
+    if (!cfg) back(id, "cc-off");
+    let bought = false;
+    try {
+      const s = await getShipment(cfg!, shipmentId);
+      bought = s.status !== "unpaid" && s.status !== "postage_purchase_failed";
+      if (!bought) await deleteShipment(cfg!, shipmentId);
+    } catch (e) {
+      // Already gone from Chit Chats: nothing to clean up there.
+      if (!(e instanceof Error && e.message.includes("(404)"))) return ccProblem(id, e);
+    }
+    if (bought) back(id, "demo-has-label");
+  }
+  let deleted: boolean;
+  try {
+    deleted = await store.deleteDemoOrder(id);
+  } catch (e) {
+    console.error("delete demo order failed", e);
+    return ccProblem(id, e);
+  }
+  if (!deleted) back(id, "demo-not-deleted");
   redirect("/admin?demo=deleted");
 }
 
