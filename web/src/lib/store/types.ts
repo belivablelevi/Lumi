@@ -112,6 +112,10 @@ export interface Store {
   /** Shipping it also stamps shippedAt the first time. */
   updateFulfilment(orderId: string, patch: FulfilmentPatch): Promise<void>;
   markShippedEmailSent(orderId: string): Promise<void>;
+  /** Saves a demo order as given (already paid), without reserving or selling any capacity. */
+  addDemoOrder(order: Order): Promise<void>;
+  /** Deletes an order only if it's a demo order (its session id starts with "demo_"). */
+  deleteDemoOrder(orderId: string): Promise<boolean>;
   /** A refund made in Stripe, found by its payment intent. */
   markRefunded(paymentIntent: string, refundedAmount: number, full: boolean): Promise<RefundResult>;
   /** Returns false if this webhook event was already recorded. */

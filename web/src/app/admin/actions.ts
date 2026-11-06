@@ -6,6 +6,7 @@ import { z } from "zod";
 import { ADMIN_COOKIE, LOGIN_LIMIT, SESSION_MS, passwordMatches, signSession } from "@/lib/admin-auth";
 import { requireAdmin } from "@/lib/admin-session";
 import { buyLabel, createShipment, deleteShipment, getShipment, type ChitChatsShipment } from "@/lib/chitchats";
+import { DEMO_PLACES, demoOrder, isDemoOrder, type DemoPlace } from "@/lib/demo-order";
 import { getMailer, orderShippedEmail } from "@/lib/email";
 import { env } from "@/lib/env";
 import { hash } from "@/lib/signup";
@@ -108,6 +109,31 @@ export async function markShipped(id: string, formData: FormData) {
   // The customer hears about it once; "Resend email" is there for corrections.
   const sent = order.shippedEmailSentAt ? false : await sendShipped(id, formData.get("includeNames") === "1");
   back(id, sent ? "shipped-emailed" : "shipped");
+}
+
+// Demo orders, for trying packing and labels without a real checkout.
+export async function makeDemoOrder(formData: FormData) {
+  await requireAdmin();
+  const store = getStore();
+  if (!store) redirect("/admin?demo=no-db");
+  const place = DEMO_PLACES.find((p) => p.id === formData.get("place"))?.id ?? "toronto";
+  const order = demoOrder(place as DemoPlace);
+  try {
+    await store!.addDemoOrder(order);
+  } catch (e) {
+    console.error("make demo order failed", e);
+    redirect("/admin?demo=failed");
+  }
+  back(order.id, "demo-made");
+}
+
+export async function removeDemoOrder(id: string) {
+  const { store, order } = await orderOrFail(id);
+  if (!isDemoOrder(order)) back(id, "demo-real");
+  // A shipment left in Chit Chats would lose the only link to it.
+  if (order.chitchatsShipmentId) back(id, "demo-has-shipment");
+  await store.deleteDemoOrder(id);
+  redirect("/admin?demo=deleted");
 }
 
 // Chit Chats labels. Each step shows Chit Chats' reason on the order page if it fails.

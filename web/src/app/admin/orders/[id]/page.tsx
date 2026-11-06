@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/Button";
 import { PROTECTION_LABEL } from "@/lib/addons";
 import { requireAdmin } from "@/lib/admin-session";
 import { lumiNames, shippedHeading } from "@/lib/email";
+import { isDemoOrder } from "@/lib/demo-order";
 import { env } from "@/lib/env";
 import { CARRIERS, addressLines, dateTime, shippingAddress, trackingUrl } from "@/lib/fulfilment";
 import { formatMoney } from "@/lib/money";
 import { getStore } from "@/lib/store";
-import { markShipped, resendShipped, savePacking } from "../../actions";
+import { markShipped, removeDemoOrder, resendShipped, savePacking } from "../../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,9 @@ const DONE: Record<string, string> = {
   "cc-deleted": "Chit Chats shipment deleted.",
   "cc-missing": "That rate isn't offered for this shipment anymore. Pick one from the list.",
   "cc-not-unpaid": "That shipment's label is already bought or being bought.",
+  "demo-made": "Demo order made. Try Create shipment under Chit Chats label below.",
+  "demo-real": "Only demo orders can be deleted here.",
+  "demo-has-shipment": "Delete its Chit Chats shipment first (under Chit Chats label), then delete the demo order.",
 };
 
 const field = "h-11 w-full rounded-chip border border-line bg-white px-4 text-[0.9375rem] outline-none focus:border-ink/40";
@@ -86,6 +90,17 @@ export default async function Page({ params, searchParams }: PageProps<"/admin/o
       </p>
       {message ? <p role="status" className="mt-4 rounded-card bg-mint/40 px-4 py-3 text-sm font-semibold">{message}</p> : null}
       {typeof cc === "string" && cc ? <p role="alert" className="mt-4 rounded-card bg-peach-pale px-4 py-3 text-sm text-peach-deep">{cc}</p> : null}
+      {isDemoOrder(order) ? (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-card bg-lavender-pale px-4 py-3 text-sm">
+          <p>
+            <b>Demo order, not a real customer.</b> Creating a Chit Chats shipment is free, but buying a label spends real credits unless
+            CHIT_CHATS_SANDBOX=1 is set.
+          </p>
+          <form action={removeDemoOrder.bind(null, order.id)}>
+            <Button type="submit" variant="outline">Delete demo order</Button>
+          </form>
+        </div>
+      ) : null}
       {order.status === "review" ? (
         <p className="mt-4 rounded-card bg-[#ffe6b3] px-4 py-3 text-sm">
           <b>Check this payment before shipping.</b> The amount Stripe charged didn&apos;t match the order, or it was paid after its checkout

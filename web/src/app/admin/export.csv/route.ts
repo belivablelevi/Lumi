@@ -1,5 +1,6 @@
 import { isAdmin } from "@/lib/admin-session";
 import { env } from "@/lib/env";
+import { isDemoOrder } from "@/lib/demo-order";
 import { ordersCsv } from "@/lib/fulfilment";
 import { getStore } from "@/lib/store";
 
@@ -12,7 +13,8 @@ export async function GET() {
   if (!(await isAdmin())) return new Response("Sign in first", { status: 401 });
   const store = getStore();
   if (!store) return new Response("The database isn't set up", { status: 503 });
-  const csv = ordersCsv(await store.listOrders("to_ship"));
+  // Demo orders stay out, so they never end up in a bulk label upload.
+  const csv = ordersCsv((await store.listOrders("to_ship")).filter((o) => !isDemoOrder(o)));
   const day = new Date().toISOString().slice(0, 10);
   return new Response(csv, {
     headers: {
