@@ -168,6 +168,8 @@ jobs:
           STRIPE_WEBHOOK_SECRET: whsec_e2e_fake
           SUPABASE_URL: http://127.0.0.1:9
           SUPABASE_SERVICE_ROLE_KEY: e2e-fake
+          # The cart reads this when the layout is built, so it must match playwright.config.ts.
+          SHIPPING_FREE_OVER: "100"
       - run: npx playwright install --with-deps chromium
       - name: Browser tests
         run: |
