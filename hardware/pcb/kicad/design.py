@@ -36,10 +36,11 @@ C0603 = "Capacitor_SMD:C_0603_1608Metric"
 TP = "TestPoint:TestPoint_Pad_D1.0mm"
 BATPAD = "TestPoint:TestPoint_Pad_1.5x1.5mm"
 
-# JLCPCB "Basic" passives (no loading fee). Check each number in the JLCPCB
-# parts library before ordering; values matter, the exact maker doesn't.
-LCSC_R = {"5.1k": "C25905", "3.9k": "C51721", "1M": "C26083", "100k": "C25741",
-          "150k": "C25755", "4.7k": "C25900", "10k": "C25744", "390k": "C25778"}
+# Passives, JLCPCB "Basic" (no loading fee) except 150k and 390k, which have no
+# Basic part. verify_parts.py checks each number's value and stock against
+# JLCPCB's library; values matter, the exact maker doesn't.
+LCSC_R = {"5.1k": "C25905", "1M": "C26083", "100k": "C25741", "150k": "C25755",
+          "4.7k": "C25900", "10k": "C25744", "390k": "C25782"}
 LCSC_C = {("100nF", C0402): "C1525", ("1uF", C0402): "C52923",
           ("10uF", C0402): "C15525", ("1uF", C0603): "C15849",
           ("2.2uF", C0603): "C23630", ("4.7uF", C0603): "C19666"}
@@ -56,21 +57,27 @@ def C(ref, value, a, b, block, fp=C0402, note=""):
 
 
 # ---------------------------------------------------------------- module
-# ESP32-C3-WROOM-02 pin map (Espressif datasheet v1.7, Table 3-1). Pad 19 is
-# the centre ground pad.
-WROOM_NAMES = {
-    "1": "3V3", "2": "EN", "3": "IO4", "4": "IO5", "5": "IO6", "6": "IO7",
-    "7": "IO8", "8": "IO9", "9": "GND", "10": "IO10", "11": "RXD", "12": "TXD",
-    "13": "IO18", "14": "IO19", "15": "IO3", "16": "IO2", "17": "IO1",
-    "18": "IO0", "19": "GND",
+# ESP32-C3-MINI-1 pin map (Espressif datasheet v2.2, Table 3-1; LCSC's symbol
+# for C41349510 agrees). 53 pads: 1-48 round the edge, 49 the 3 x 3 ground
+# array in the middle, 50-53 the corner pads.
+MINI_GND = ["1", "2", "11", "14"] + [str(n) for n in range(36, 54)]
+MINI_NC = ["4", "7", "9", "10", "15", "17", "24", "25", "28", "29", "32", "33", "34", "35"]
+MINI_NAMES = {
+    **{p: "GND" for p in MINI_GND}, **{p: "NC" for p in MINI_NC},
+    "3": "3V3", "5": "IO2", "6": "IO3", "8": "EN", "12": "IO0", "13": "IO1",
+    "16": "IO10", "18": "IO4", "19": "IO5", "20": "IO6", "21": "IO7",
+    "22": "IO8", "23": "IO9", "26": "IO18/D-", "27": "IO19/D+",
+    "30": "RXD0", "31": "TXD0",
 }
-U1 = Part("U1", "ESP32-C3-WROOM-02-N4", "RF_Module:ESP32-C3-WROOM-02", {
-    "1": "3V3", "2": "EN", "3": "VBAT_SENSE", "4": "USB_SENSE", "5": "SDA",
-    "6": "SCL", "7": "IO8", "8": "BOOT", "9": "GND", "10": "OLED_RES",
-    "11": "RXD", "12": "TXD", "13": "USB_DN", "14": "USB_DP", "15": "IMU_INT",
-    "16": "IO2", "17": "CHG_STAT", "18": None, "19": "GND",
-}, WROOM_NAMES, lcsc="C2934560", block="MCU",
-    note="Radio-certified module. Antenna at the keyring edge; keep copper out of the marked area.")
+U1 = Part("U1", "ESP32-C3-MINI-1-H4X", "lumi:ESP32-C3-MINI-1", {
+    **{p: "GND" for p in MINI_GND}, **{p: None for p in MINI_NC},
+    "3": "3V3", "5": "IO2", "6": "IMU_INT", "8": "EN", "12": None,
+    "13": "CHG_STAT", "16": "OLED_RES", "18": "VBAT_SENSE", "19": "USB_SENSE",
+    "20": "SDA", "21": "SCL", "22": "IO8", "23": "BOOT", "26": "USB_DN",
+    "27": "USB_DP", "30": "RXD", "31": "TXD",
+}, MINI_NAMES, lcsc="C41349510", block="MCU",
+    note="Radio-certified module (chip revision v1.1; the -N4 is not recommended "
+         "for new designs). Antenna at the keyring edge; keep copper out of the marked area.")
 
 # ---------------------------------------------------------------- motion
 U2 = Part("U2", "LIS2DH12TR", "Package_LGA:LGA-12_2x2mm_P0.5mm", {
@@ -110,11 +117,11 @@ U4 = Part("U4", "RT9080-33GJ5", "Package_TO_SOT_SMD:SOT-23-5", {
 }, {"1": "VIN", "2": "GND", "3": "EN", "4": "NC", "5": "VOUT"},
     lcsc="C841192", block="Power", note="3.3 V LDO, 2 uA standby. VERIFY pinout.")
 
-SW1 = Part("SW1", "MSK12C02", "Button_Switch_SMD:SW_SPDT_PCM12", {
+SW1 = Part("SW1", "MSK12C02", "lumi:MSK12C02", {
     "1": "VBAT", "2": "LDO_EN", "3": "GND",
 }, {"1": "ON", "2": "COM", "3": "OFF"}, lcsc="C431540", block="Power",
     note="Power switch on the LDO enable (microamps), not on the battery. "
-         "VERIFY the MSK12C02 matches the PCM12 footprint.")
+         "Its own footprint: KiCad's PCM12 puts the mounting pads and pegs 0.5 mm off for this part.")
 
 BT1 = Part("BT1", "BAT+", BATPAD, {"1": "VBAT"}, {"1": "+"}, block="Power",
            bom=False, note="Battery red wire (protected 503030 LiPo).")
@@ -159,7 +166,7 @@ PASSIVES = [
     # Charger
     C("C1", "1uF", "VBUS", "GND", "Power", note="Charger input"),
     C("C2", "1uF", "VBAT", "GND", "Power", note="Charger output / battery"),
-    R("R3", "3.9k", "PROG", "GND", "Power", note="Charge current = 1000 V / R = 256 mA"),
+    R("R3", "4.7k", "PROG", "GND", "Power", note="Charge current = 1000 V / R = 213 mA (0.4 C for 500 mAh)"),
     # LDO
     C("C3", "1uF", "VBAT", "GND", "Power", note="LDO input"),
     C("C4", "1uF", "3V3", "GND", "Power", note="LDO output"),

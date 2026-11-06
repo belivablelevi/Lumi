@@ -3,6 +3,8 @@ import type { Carrier, Order } from "./store/types";
 export const CARRIERS: { id: Carrier; label: string }[] = [
   { id: "canada_post", label: "Canada Post" },
   { id: "chit_chats", label: "Chit Chats" },
+  { id: "stallion", label: "Stallion Express" },
+  { id: "ups", label: "UPS" },
   { id: "other", label: "Other" },
 ];
 
@@ -14,6 +16,7 @@ export function trackingUrl(carrier: Carrier | undefined, tracking: string | und
   if (!t || !/^[A-Za-z0-9-]{4,40}$/.test(t)) return null;
   if (carrier === "canada_post") return `https://www.canadapost-postescanada.ca/track-reperage/en#/details/${encodeURIComponent(t)}`;
   if (carrier === "chit_chats") return `https://chitchats.com/tracking/${encodeURIComponent(t)}`;
+  if (carrier === "ups") return `https://www.ups.com/track?loc=en_CA&tracknum=${encodeURIComponent(t)}`;
   return null;
 }
 

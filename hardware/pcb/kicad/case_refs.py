@@ -25,7 +25,7 @@ import pcbnew
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import design  # noqa: E402
 from fab import HEIGHTS  # noqa: E402
-from gen_board import H, KEEPOUT, NOTCH, W, X0, Y0  # noqa: E402
+from gen_board import CORNER_R, H, KEEPOUT, NOTCH, W, X0, Y0  # noqa: E402
 
 CX, CY = X0 + W / 2, Y0 + H / 2
 PCB_T = 1.0
@@ -107,7 +107,8 @@ def main(proj, out):
     nx, _ = bx(NOTCH[0], NOTCH[1])
     _, nz = bx(NOTCH[2], NOTCH[3])
     items = [box("PCB", "board", -W / 2, W / 2, 0, PCB_T, -H / 2, nz,
-                 f"{W:g} x {H:g} mm overall, {PCB_T:g} mm thick, 2 layers"),
+                 f"{W:g} x {H:g} mm overall, {PCB_T:g} mm thick, 2 layers, "
+                 f"{CORNER_R:g} mm corner radius (drawn square here)"),
              box("PCB, corner beside the antenna", "board", -W / 2, nx, 0, PCB_T, nz, H / 2,
                  "The board is cut away under the module's antenna")]
 
@@ -186,7 +187,9 @@ def main(proj, out):
     warnings = []
     ow, oh, orad = CASE_OUTER
     iw, ih, irad = ow - 2 * CASE_WALL, oh - 2 * CASE_WALL, orad - CASE_WALL
-    corners = {"PCB corner": (W / 2, H / 2)}
+    # The board's rounded corner, checked at its outermost (45 degree) point.
+    k = CORNER_R * (1 - math.sqrt(0.5))
+    corners = {"PCB corner": (W / 2 - k, H / 2 - k)}
     u1 = [i for i in items if i["name"].startswith("U1 ")][0]
     corners["module corner"] = (max(abs(u1["min"][0]), abs(u1["max"][0])), u1["max"][2])
     for name, (x, z) in corners.items():

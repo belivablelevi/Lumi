@@ -1,5 +1,7 @@
 import { brand } from "@/config/brand";
 import { confirmed } from "./placeholder";
+import { CHIT_CHATS_LIVE, CHIT_CHATS_STAGING, type CustomsConfig } from "./chitchats";
+import { shippingRules, shippingTable } from "./shipping";
 
 /** Server-side configuration. Never import from client components. */
 const get = (name: string) => {
@@ -32,7 +34,11 @@ export const env = {
   hashSalt: get("SIGNUP_HASH_SALT") ?? "lumi-dev-salt",
   // The order admin (/admin) is off unless this is set. Use a long random password.
   adminPassword: get("ADMIN_PASSWORD"),
-  // Live shipping prices from Canada Post's Rating API. Without these, checkout uses the region table in lib/shipping.ts.
+  // Flat shipping prices per region (SHIPPING_PRICE_ON_QC, _REST_OF_CANADA, _NORTH, _US, in dollars).
+  shippingTable: shippingTable(get),
+  // US import duties (SHIPPING_US_DUTY_PERCENT, SHIPPING_US_DUTY_FEE) and free shipping in Canada (SHIPPING_FREE_OVER).
+  shippingRules: shippingRules(get),
+  // Live shipping prices from Canada Post's Rating API. Without these, checkout uses shippingTable.
   canadaPost:
     get("CANADA_POST_API_KEY") && get("CANADA_POST_API_SECRET") && get("CANADA_POST_CUSTOMER_NUMBER")
       ? {
@@ -41,6 +47,23 @@ export const env = {
           customerNumber: get("CANADA_POST_CUSTOMER_NUMBER")!,
         }
       : null,
+  // Chit Chats labels from the order admin. CHIT_CHATS_SANDBOX=1 uses their staging site (fake credits).
+  chitChats:
+    get("CHIT_CHATS_CLIENT_ID") && get("CHIT_CHATS_ACCESS_TOKEN")
+      ? {
+          clientId: get("CHIT_CHATS_CLIENT_ID")!,
+          token: get("CHIT_CHATS_ACCESS_TOKEN")!,
+          base: get("CHIT_CHATS_SANDBOX") === "1" ? CHIT_CHATS_STAGING : CHIT_CHATS_LIVE,
+        }
+      : null,
+  // What the customs form says about a Lumi. The origin has no default: a broker confirms it.
+  customs: {
+    hsCode: get("CUSTOMS_HS_CODE") ?? "9503.00",
+    originCountry: get("CUSTOMS_ORIGIN_COUNTRY")?.toUpperCase(),
+    // One small lithium-ion cell built into the device; "none" leaves the battery code off.
+    hazmatCode: get("CHIT_CHATS_HAZMAT_CODE") === "none" ? undefined : (get("CHIT_CHATS_HAZMAT_CODE") ?? "CLASS_9_UNMARKED_LITHIUM_BATTERY"),
+    packageType: get("SHIPPING_PACKAGE_TYPE") === "thick_envelope" ? "thick_envelope" : "parcel",
+  } satisfies CustomsConfig,
   // The packed parcel: box + padding, plus each Lumi. Weigh a real one and adjust.
   parcel: {
     boxKg: num(get("SHIPPING_BOX_KG"), 0.08),

@@ -4,8 +4,9 @@
   fab/lumi-bom.csv       Bill of materials in JLCPCB's format (LCSC part numbers)
   fab/lumi-cpl.csv       Pick-and-place positions in JLCPCB's format
   fab/lumi.step          3D model of the board for the case fit (parts that
-                         have a KiCad 3D model; the WROOM-02 has none in
-                         KiCad 7, so it's drawn as a box in the fit check)
+                         have a KiCad 3D model; the module, the ZIF and the
+                         switch have none installed, so the fit check and
+                         case_refs.py treat them as boxes of their real height)
   fab/fit.txt            Height stack against the case
 
 Usage: python3 fab.py <project-dir> <out-dir> [3d-model-dir]
@@ -27,10 +28,10 @@ LAYERS = "F.Cu,B.Cu,F.Paste,B.Paste,F.SilkS,B.SilkS,F.Mask,B.Mask,Edge.Cuts"
 # Tallest point of each part above the board, mm (maker drawings and
 # KiCad's 3D models). Used for the case fit.
 HEIGHTS = {
-    "RF_Module:ESP32-C3-WROOM-02": 3.2,
+    "lumi:ESP32-C3-MINI-1": 2.4,   # 2.4 +/- 0.15 (datasheet section 10.1)
     "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12": 3.26,
     "lumi:JUSHUO_AFC07-S30ECC-00": 2.0,
-    "Button_Switch_SMD:SW_SPDT_PCM12": 1.5,
+    "lumi:MSK12C02": 1.5,          # body 1.4 +/- 0.1 (maker's drawing)
     "Package_TO_SOT_SMD:SOT-23-5": 1.45,
     "Package_TO_SOT_SMD:SOT-23-6": 1.45,
     "Package_LGA:LGA-12_2x2mm_P0.5mm": 1.0,

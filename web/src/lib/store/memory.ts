@@ -123,6 +123,7 @@ export class MemoryStore implements Store {
     if (patch.fulfilmentStatus) o.fulfilmentStatus = patch.fulfilmentStatus;
     if (patch.carrier !== undefined) o.carrier = patch.carrier ?? undefined;
     if (patch.trackingNumber !== undefined) o.trackingNumber = patch.trackingNumber ?? undefined;
+    if (patch.chitchatsShipmentId !== undefined) o.chitchatsShipmentId = patch.chitchatsShipmentId ?? undefined;
     if (patch.unitNames !== undefined) o.unitNames = patch.unitNames ?? undefined;
     if (patch.adminNote !== undefined) o.adminNote = patch.adminNote ?? undefined;
     if (patch.fulfilmentStatus === "shipped") o.shippedAt ??= new Date().toISOString();

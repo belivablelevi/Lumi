@@ -16,7 +16,7 @@ Over the 12.5 mm target by 2.11 mm.
 
 Tallest parts:
   J1    3.26 mm
-  U1    3.20 mm
+  U1    2.40 mm
   J2    2.00 mm
   SW1   1.50 mm
   U4    1.45 mm

@@ -122,10 +122,12 @@ async function started(qty = 1) {
 }
 
 describe("shipping at checkout", () => {
-  it("prices the address the server sets, for the order's units", async () => {
-    const { ship, quote, payments } = await started(2);
+  it("prices the address the server sets, for the order's units and value", async () => {
+    const { ship, quote, payments, store } = await started(2);
     expect(await setCheckoutShipping({ sessionId: S1, shipping: ADDRESS }, ship)).toEqual({ ok: true, quote: QUOTE });
-    expect(quote).toHaveBeenCalledWith({ country: "CA", postalCode: "K1A 0A1" }, 2);
+    const subtotal = [...store.orders.values()][0]!.subtotal;
+    expect(subtotal).toBeGreaterThan(0);
+    expect(quote).toHaveBeenCalledWith({ country: "CA", postalCode: "K1A 0A1" }, 2, subtotal);
     expect(payments.setShipping).toHaveBeenCalledWith(
       S1,
       { name: "Sam Lee", address: { line1: "1 Main St", city: "Ottawa", state: "ON", postal_code: "K1A 0A1", country: "CA" } },

@@ -133,7 +133,7 @@ export const products: Product[] = [
     ],
     included: tbc("What's in the box"),
     preorder: tbc("Pre-order terms: dispatch window, payment timing, cancellation and delays"),
-    shipping: "Ships to Canada and the US with Canada Post, tracked. The price is worked out from your address at checkout",
+    shipping: "Ships to Canada and the US, tracked. Checkout shows the price for your address",
     maxPerOrder: 4,
     launchId: "pocket-first-run",
     faq: [
@@ -151,7 +151,7 @@ export const products: Product[] = [
       },
       {
         q: "Where do you ship, and how much does shipping cost?",
-        a: "Canada and the US, with Canada Post, tracked. Shipping is worked out from your address at checkout, so you see the exact price before you pay.",
+        a: "Canada and the US, tracked. Checkout shows the shipping price for your address, so you see the exact price before you pay. US prices include the import duties, so there's nothing more to pay on delivery.",
       },
       {
         q: "How do I wake my Lumi when it arrives?",

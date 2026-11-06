@@ -9,6 +9,8 @@ const KEY = "lumi-cart-v1";
 export interface Services {
   checkout: boolean;
   signup: boolean;
+  /** Canadian orders at or over this subtotal ship free, in cents (SHIPPING_FREE_OVER); unset = never. */
+  freeShippingOver?: number | null;
 }
 
 interface CartContext {

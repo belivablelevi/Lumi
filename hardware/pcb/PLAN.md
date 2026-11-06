@@ -28,10 +28,10 @@ Side effects of one integrated board:
 
 | Block | Part (first choice) | Why | ≈ Unit cost |
 |---|---|---|---|
-| Brain + radio | **ESP32-C3-MINI-1-N4** module (LCSC C2838502). The draft board uses the **WROOM-02** instead; see [GUIDE.md](GUIDE.md#two-changes-from-the-plan) | Same chip as today, so the firmware barely changes. It's **pre-certified for radio**; see "Certification" below. 13.2 × 16.6 mm. | $2.0–3.0 |
+| Brain + radio | **ESP32-C3-MINI-1-H4X** module (LCSC C41349510; the older -N4, C2838502, is "not recommended for new designs" but drops in) | Same chip as today, so the firmware barely changes. It's **pre-certified for radio**; see "Certification" below. 13.2 × 16.6 × 2.4 mm. | $2.2–3.1 |
 | Motion sensor | **LIS2DH12** (SC7A20 is a later cost-down option) | Lumi only uses the accelerometer (the gyro is switched off in `firmware/src/imu.cpp`). These cost a fraction of an MPU-6050, which is end-of-life. Each has a 32-sample FIFO and a motion-wake interrupt, which is what pats and wake-on-pickup need. | $0.15–0.6 |
 | Screen | **Bare 0.96" 128×64 SSD1306 panel** with a 30-pin FPC, on a 0.5 mm FPC connector | The same panel as the module, without the module's board. We add its few capacitors ourselves. | $1.0–1.5 |
-| Charging | **TP4054** linear LiPo charger, set to ≈250 mA | Tiny, a few cents, plenty for a 500 mAh cell. | $0.05 |
+| Charging | **TP4054** linear LiPo charger, set to ≈213 mA (4.7 kΩ PROG) | Tiny, a few cents, plenty for a 500 mAh cell. | $0.13 |
 | Battery protection | Use a cell **with its own protection board**; leave footprints for DW01A + FS8205A | Cheapest safe option. The footprints let us add protection later if the cell supplier changes. | $0–0.10 |
 | 3.3 V supply | **Low-quiescent LDO**, e.g. RT9080 (≈2 µA standby) | Deep-sleep battery life depends on this. Common LDOs draw 40 µA+ doing nothing. | $0.10 |
 | USB-C | 16-pin USB-C receptacle, 5.1 kΩ CC resistors, ESD diode | Charging, plus programming through the C3's **built-in USB** (no USB-serial chip needed). | $0.15 |
@@ -48,7 +48,7 @@ and "extended part" fees, which matter most for small runs.
 
 ```
    ┌───────── keyring loop ─────────┐
-   │  ESP32-C3-MINI antenna here:   │  ← antenna at the top edge, no copper under it
+   │  ESP32-C3-MINI antenna here:   │  ← antenna at the top edge, no board under it
    │  ┌──────────────┐              │
    │  │ ESP32-C3     │   USB-C →    │  ← USB-C on the right side, as today
    │  │ MINI-1       │              │
@@ -58,6 +58,8 @@ and "extended part" fees, which matter most for small runs.
    └────────────────────────────────┘
         battery (30×30×5 mm) behind the board
         screen glass in front of the board
+   (seen from the back; the drawn board in GUIDE.md has the module top right
+   seen from the front, USB-C on the left)
 ```
 
 - **Board:** about **31 × 31 mm, 2-layer, 1.0 mm thick**, parts on the
@@ -177,3 +179,5 @@ experienced human review before the first order is worth the cost.
 
 - [LCSC: ESP32-C3-MINI-1-N4 (C2838502)](https://www.lcsc.com/product-detail/C2838502.html): price tiers about $3.00 at 1 down to about $2.03 at 650+.
 - [JLCPCB parts: ESP32-C3-MINI-1-N4](https://jlcpcb.com/partdetail/ESP32-C3-MINI-1-N4/C2838502): listed as an Extended part.
+- [JLCPCB parts: ESP32-C3-MINI-1-H4X (C41349510)](https://jlcpcb.com/partdetail/ESP32-C3-MINI-1-H4X/C41349510): the current variant (chip revision v1.1), about $3.10 at 1 and $2.16 at 1,000.
+- [Espressif: ESP32-C3-MINI-1 datasheet v2.2](https://documentation.espressif.com/esp32-c3-mini-1_datasheet_en.pdf): pin definitions (Table 3-1), land pattern (figure 11-1), and the revision note marking the -N4 not recommended for new designs.

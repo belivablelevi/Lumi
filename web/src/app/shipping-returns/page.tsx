@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
 import { PolicyPage } from "@/components/ui/PolicyPage";
 import { PROTECTION_CENTS } from "@/lib/addons";
+import { env } from "@/lib/env";
+import { formatMoney } from "@/lib/money";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/shipping-returns" },
   title: "Shipping and Returns",
-  description: "Snaggo ships Lumi to Canada and the US with Canada Post. Shipping is worked out from your address at checkout.",
+  description: "Snaggo ships Lumi to Canada and the US, tracked. Checkout shows the shipping price for your address before you pay.",
 };
 
 const protection = `$${(PROTECTION_CENTS / 100).toFixed(2)}`;
 
 export default function Page() {
+  const freeOver = env.shippingRules.freeOverCents;
   return (
     <PolicyPage
       title="Shipping and Returns"
@@ -20,18 +23,24 @@ export default function Page() {
           heading: "Where we ship",
           body: [
             "Canada and the United States.",
-            "Lumi has a small lithium battery inside, and Canada Post doesn't carry lithium batteries to other countries, so we can't ship anywhere else yet.",
+            "Lumi has a small lithium battery inside, and the rules for sending batteries abroad mean we can't ship anywhere else yet.",
           ],
         },
         {
           heading: "Shipping rates and times",
           body: [
-            "Shipping is worked out from your address at checkout, so you see the exact price before you pay. Prices are in Canadian dollars.",
-            "In Canada we ship with Canada Post Expedited Parcel, and to the US with Canada Post Tracked Packet USA. Both are tracked. Checkout shows the estimated delivery time for your address, and we email you the tracking number when your order ships.",
+            "Checkout shows the shipping price for your address, so you see the exact price before you pay. Prices are in Canadian dollars.",
+            "Every order is tracked. Checkout shows the estimated delivery time for your address, and we email you the tracking number when your order ships.",
+            ...(freeOver ? [`Orders of ${formatMoney({ amount: freeOver, currency: "CAD" })} or more ship free within Canada.`] : []),
             `You can add shipping protection at checkout for ${protection}.`,
           ],
         },
-        { heading: "US orders", note: "who pays US duties and import fees, and how." },
+        {
+          heading: "US orders",
+          body: [
+            "US shipping prices include the import duties and fees, and we pay them when your order ships, so there's nothing more to pay when it arrives.",
+          ],
+        },
         { heading: "When your Lumi arrives", body: ["Lumi travels asleep, so bumps in the post can't wake it. Tap its screen three times and it'll wake up and say hello."] },
         { heading: "Pre-orders", note: "when pre-ordered Lumis are dispatched, when payment is taken, and what happens if a launch is delayed." },
         { heading: "Mixed orders", note: "pre-orders and in-stock items are checked out separately; explain how each ships." },

@@ -35,6 +35,7 @@ function toOrder(data: Row): Order {
     fulfilmentStatus: opt(data.fulfilment_status),
     carrier: opt(data.carrier),
     trackingNumber: opt(data.tracking_number),
+    chitchatsShipmentId: opt(data.chitchats_shipment_id),
     shippedAt: opt(data.shipped_at),
     shippedEmailSentAt: opt(data.shipped_email_sent_at),
     unitNames: opt(data.unit_names),
@@ -117,6 +118,7 @@ export class SupabaseStore implements Store {
     if (patch.fulfilmentStatus) row.fulfilment_status = patch.fulfilmentStatus;
     if (patch.carrier !== undefined) row.carrier = patch.carrier;
     if (patch.trackingNumber !== undefined) row.tracking_number = patch.trackingNumber;
+    if (patch.chitchatsShipmentId !== undefined) row.chitchats_shipment_id = patch.chitchatsShipmentId;
     if (patch.unitNames !== undefined) row.unit_names = patch.unitNames;
     if (patch.adminNote !== undefined) row.admin_note = patch.adminNote;
     if (Object.keys(row).length) {

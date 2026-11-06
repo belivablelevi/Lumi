@@ -9,6 +9,7 @@ const CLEANUP = readFileSync(new URL("../../supabase/migrations/0002_cleanup.sql
   .replace(/^create extension if not exists pg_cron;$/m, "")
   .replace(/^select cron\.schedule\(.*$/m, "");
 const FULFILMENT = readFileSync(new URL("../../supabase/migrations/0003_fulfilment.sql", import.meta.url), "utf8");
+const CHITCHATS = readFileSync(new URL("../../supabase/migrations/0004_chitchats.sql", import.meta.url), "utf8");
 let db: PGlite;
 
 const order = (id: string, qty = 1) => ({
@@ -34,6 +35,8 @@ describe("database functions", () => {
     await db.exec(CLEANUP.replace(/^revoke .*$/gm, ""));
     await db.exec(FULFILMENT.replace(/^revoke .*$/gm, ""));
     await db.exec(FULFILMENT.replace(/^revoke .*$/gm, "")); // safe to run twice
+    await db.exec(CHITCHATS);
+    await db.exec(CHITCHATS); // safe to run twice
   });
   beforeEach(async () => {
     await db.exec("truncate order_items, orders, capacity, stripe_events, launch_signups, signup_attempts cascade");

@@ -3,7 +3,7 @@ import { Bricolage_Grotesque, Manrope } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { brand } from "@/config/brand";
 import { listedProducts, productBySlug } from "@/lib/catalogue";
-import { serviceStatus } from "@/lib/env";
+import { env, serviceStatus } from "@/lib/env";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -41,7 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
         <Providers
           catalogue={listedProducts()}
-          services={{ checkout: services.checkout, signup: services.signup }}
+          services={{ checkout: services.checkout, signup: services.signup, freeShippingOver: env.shippingRules.freeOverCents }}
           allowMixed={brand.allowMixedCarts}
         >
             <AnnouncementBar />
