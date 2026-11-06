@@ -2,14 +2,17 @@
 
 > **Status: DRAFT, NOT REVIEWED. Don't order yet.**
 >
-> Rebuilt in KiCad 10 on 2026-10-30 with the faults listed under
-> [Fixed from the datasheets](#fixed-from-the-datasheets) corrected.
->
-> `budget.py` and `BUDGET.md` still price the old J2 connector.
+> Rebuilt in KiCad 10 on 2026-11-05: the module is now the plan's smaller
+> ESP32-C3-MINI-1, every part was checked against the factory's own data,
+> and the faults listed under [Fixed from the datasheets](#fixed-from-the-datasheets)
+> are corrected.
 >
 > These files were generated and checked by software:
 > - KiCad's design-rule check passes with nothing left unrouted.
 > - The schematic and board match the design file pin for pin.
+> - `verify_parts.py` checks every part's value, footprint, pin names and
+>   stock against JLCPCB's parts library and LCSC's footprints
+>   ([`kicad/fab/parts-check.txt`](kicad/fab/parts-check.txt)).
 >
 > Software can't catch a wrong pinout in a datasheet I couldn't open, a bad
 > antenna layout, or a part that doesn't fit the case. Work through
@@ -28,42 +31,46 @@
 | [`kicad/fab/lumi-bom.csv`](kicad/fab/lumi-bom.csv) | Parts list in JLCPCB's format, with LCSC part numbers |
 | [`kicad/fab/lumi-cpl.csv`](kicad/fab/lumi-cpl.csv) | Part positions (pick-and-place) in JLCPCB's format |
 | [`kicad/fab/lumi-schematic.pdf`](kicad/fab/lumi-schematic.pdf) | Schematic as a PDF, for reviewers without KiCad |
-| [`kicad/fab/lumi.step`](kicad/fab/lumi.step) | 3D board for the case design. The module has no KiCad 3D model, so it's missing; it's an 18 × 20 × 3.2 mm box. |
+| [`kicad/fab/lumi.step`](kicad/fab/lumi.step) | 3D board for the case design. The module, the ZIF and the switch have no KiCad 3D model, so they're missing; the module is a 13.2 × 16.6 × 2.4 mm box. |
+| [`kicad/fab/parts-check.txt`](kicad/fab/parts-check.txt) | Every part checked against JLCPCB's library and LCSC's footprints (value, pads, pins, stock), from `verify_parts.py` |
 | [`kicad/fab/fit.txt`](kicad/fab/fit.txt) | Height stack against the case |
 | [`kicad/fab/drc-report.txt`](kicad/fab/drc-report.txt) | KiCad's design-rule check output |
 | [`kicad/renders/`](kicad/renders/) | Pictures of the schematic and both sides of the board |
 | [`kicad/design.py`](kicad/design.py) | **The source.** Every part and connection lives here; the schematic and board are generated from it. |
+| [`kicad/verify_parts.py`](kicad/verify_parts.py) | The parts check. Needs the network; run it again before ordering. |
 
 ## The board at a glance
 
 | | |
 |---|---|
-| Size | 31 × 33 mm, 2 layers, 1.0 mm thick |
+| Size | 31 × 33 mm, 2 layers, 1.0 mm thick, 4 mm rounded corners |
 | Parts | All on the **back**. The front is flat for the screen glass, with copper, 7 test pads and the label. |
-| Antenna | Top edge (keyring end). No copper on either layer above the module's antenna line. |
+| Module | ESP32-C3-MINI-1-H4X, top right seen from the front, its antenna at the top (keyring) edge but away from the metal split ring at the top centre |
+| Antenna | The board is cut away under the antenna, and there's no copper on either layer within 2 mm of it |
 | USB-C | **Left** edge seen from the front (right edge seen from the back) |
-| Power switch | Right edge, lever sticking out about 1 mm |
+| Power switch | Right edge, lever sticking out about 1.1 mm |
 | Screen | Its cable wraps around the **bottom** edge into a 30-pin ZIF connector on the back |
 | Battery | Two solder pads in the top-left corner on the back (BT1 +, BT2 −) |
-| Test pads (front) | Bottom corners, outside the glass: 3V3, GND, EN, BOOT, TXD, RXD, VBAT |
+| Test pads (front) | Along the bottom edge, below the glass and either side of the screen cable: 3V3, GND, EN on the left; BOOT, TXD, RXD and VBAT on the right |
 
 ![Back of the board (seen from the back)](kicad/renders/board-back.png)
 
 ![Front of the board](kicad/renders/board-front.png)
 
-### Two changes from the plan
+### What changed on 2026-11-05
 
-1. **Module: ESP32-C3-WROOM-02 instead of the MINI-1.**
-   - Why: KiCad 7, the version available here, has no footprint for the MINI-1, and drawing its 53-pad footprint without the datasheet would be guesswork.
-   - Same: the WROOM-02 has the same chip and the same radio certification (FCC/IC), and also comes in 4 MB.
-   - Cost: it's bigger (18 × 20 × 3.2 mm vs 13.2 × 16.6 × 2.4 mm) and costs about the same. LCSC C2934560, Extended.
-   - Switching back to the MINI-1 later is a footprint change in `design.py` plus a re-place.
-2. **The case gets thicker: about 14.5 mm, not 12.5 mm.**
-   - Why: the module and the USB-C socket are each about 3.2 mm tall, against the plan's assumed 1.5 mm for parts. See `fab/fit.txt`.
+1. **Module: the plan's ESP32-C3-MINI-1, not the WROOM-02.**
+   - The first draft used the bigger WROOM-02 (18 × 20 × 3.2 mm) because KiCad 7 had no MINI-1 footprint. KiCad 10 has one for the ESP32-C6-MINI-1, which is the same size and land pattern. `lumi.pretty/ESP32-C3-MINI-1` is a copy of it, checked against LCSC's own C3-MINI-1 footprint (all 61 pads match) and the datasheet's land pattern (figure 11-1).
+   - Pin map from Espressif's ESP32-C3-MINI-1 datasheet v2.2, Table 3-1. LCSC's symbol agrees. The firmware pins don't change.
+   - Part: **-H4X** (C41349510). Espressif marks the -N4 "not recommended for new designs"; the H4X has chip revision v1.1 and the same footprint and pins. It needs ESP-IDF 4.4.7 or newer, which the firmware's `espressif32@6.9.0` (Arduino 2.0.17) uses. If JLCPCB runs out (724 in stock today), the -N4 (C2838502) drops in.
+2. **The 3.3 V capacitors sit beside the module's 3V3 pin.** The first draft had them 14 mm away by trace. The GPIO2 pull-up and the EN delay (R11, C8) sit beside their pins too, in the strip right of the module.
+3. **Rounded corners.** The board's corners are now rounded at 4 mm, so it fits inside the case's 6 mm corners. The test pads and battery pads moved out of the corners.
+4. **Fixes from the parts check** (see [Fixed from the datasheets](#fixed-from-the-datasheets)): R15's part number, the switch footprint, and R3 is now 4.7 kΩ (213 mA charging, and one Extended fee fewer).
+5. **The case is still about 14.6 mm deep, not 12.5 mm.**
+   - Why: the USB-C socket (3.26 mm) is now the tallest part, against the plan's assumed 1.5 mm. The module is 2.4 mm. See `fab/fit.txt`.
    - Ways back toward 12.5 mm, roughly in order of cost:
      - a 4 mm battery (402030, ~300 mAh): −1.4 mm,
-     - a mid-mount USB-C that sinks into a board cutout: about −1.5 mm for that part, but the module still sets the height,
-     - the MINI-1 (2.4 mm): −0.8 mm.
+     - a mid-mount USB-C that sinks into a board cutout: about −0.9 mm, leaving the module as the tallest part.
 
 ## Fixed from the datasheets
 
@@ -77,48 +84,50 @@ Checking the board against the ER-OLED0.96-1 datasheet (rev 2.0) and Espressif's
 | The charge pump's VBAT ran from 3.3 V; the panel needs 3.5-4.2 V | Below spec, dim or unreliable | VBAT runs from the battery rail, with its own capacitor (C15) |
 | USB sense was VBUS/2 (2.5 V), against the C3's 2.48 V input-high level | Could read "not charging" while plugged in | R8 is now 150 kΩ, giving 3.0 V |
 | The board ran under the antenna | Detunes the antenna; Espressif recommends cutting the board away | Notch above the module |
+| R15's LCSC number, C25778, is a **330 kΩ** part, not 390 kΩ | The panel's reference current about 18% high | C25782 (390 kΩ). `verify_parts.py` now checks every resistor and capacitor value against JLCPCB's description |
+| SW1 sat on KiCad's PCM12 footprint | The MSK12C02's mounting pads and peg holes are 0.5 mm away from the PCM12's: the switch could sit crooked or not seat | Its own footprint, from LCSC's footprint and the maker's land pattern (drawing dated 2024-12-14) |
+| The 3V3 capacitors were 14 mm from the module's supply pin | Weaker decoupling during radio bursts | C5 and C6 beside pin 3 |
 
 **Effect on bring-up:** with VBAT on the battery rail, the panel's pin stays powered when the switch is off. Test 4 measures whether that raises the off current.
 
 ## Before you order: review checklist
 
-Tick every box. Items marked **VERIFY** come from memory or similar parts, not from the part's own datasheet.
+Tick every box. The ticked ones were checked against the part's datasheet or the factory's own parts data (sources given); the open ones need a real part or a person who designs RF boards.
 
 ### Pinouts
 
-- [x] **ESP32-C3-WROOM-02 pin map.** Matches Table 3-1 of Espressif's datasheet v1.7.
+- [x] **ESP32-C3-MINI-1 pin map.** Matches Table 3-1 of Espressif's datasheet v2.2, and LCSC's symbol for C41349510.
+- [x] **ESP32-C3-MINI-1 land pattern.** KiCad's ESP32-C6-MINI-1 pads, identical to LCSC's footprint for the C3-MINI-1 and to the datasheet's figure 11-1 (11.8 × 9.8 mm pad rows, 0.4 × 0.8 mm pads, 3 × 3 ground array of 1.45 mm pads).
 - [x] **OLED panel, 30 pins and I2C wiring.** Matches sections 1.5 and 1.6.2 of the ER-OLED0.96-1 datasheet rev 2.0.
 - [ ] **Screen cable: hold a real panel against the board.** These come from reading the drawing, so check them on the part before ordering boards:
   - **Part:** the panel must be the **ER-OLED0.96-1.3** (top contact). Other versions put the contacts on the other side.
   - **Pin 1 end:** seen from the front with the cable at the bottom, pin 1 is on the left, according to drawing 1.4.2.
   - **Reach:** about 1.2 mm of slack, based on an estimated 4 mm entry into J2 and a 2.2 mm bend.
-- [ ] **AFC07-S30ECC-00 (C11095, VERIFY).** Its PDF wouldn't download here. The pads come from EasyEDA's footprint for this part, and they match KiCad's footprints for the same series. Check the entry depth and that the drawer can open with the connector at the board edge.
-- [ ] **TP4054 (VERIFY):** 1 CHRG, 2 GND, 3 BAT, 4 VCC, 5 PROG.
-- [ ] **RT9080-33GJ5 (VERIFY):** 1 VIN, 2 GND, 3 EN, 4 NC, 5 VOUT.
-- [ ] **LIS2DH12:** 1 SCL, 2 CS, 3 SA0, 4 SDA, 5 RES (to GND), 6–8 GND, 9 VDD, 10 VDD_IO, 11 INT2, 12 INT1. This matches ST's datasheet as far as I know; still worth a glance.
-- [ ] **USBLC6-2SC6:** I/O lines on 1/6 and 3/4, VBUS 5, GND 2.
-- [ ] **MSK12C02 switch:** it's placed on KiCad's C&K PCM12 footprint. Check the pad layout matches the MSK12C02 drawing. Many clones copy the PCM12, but not all.
+- [ ] **AFC07-S30ECC-00 (C11095).** Its pads match LCSC's footprint to within 0.02 mm. LCSC numbers them from the other end, which doesn't matter: the factory places by pad position, and the connector is the same either way round. Its PDF wouldn't download here, so still check the entry depth and that the drawer can open with the connector at the board edge.
+- [x] **TP4054:** 1 CHRG, 2 GND, 3 BAT, 4 VCC, 5 PROG. Matches LCSC's symbol for C32574, the part JLCPCB fits.
+- [x] **RT9080-33GJ5:** 1 VIN, 2 GND, 3 EN, 4 NC, 5 VOUT. Matches LCSC's symbol for C841192.
+- [x] **LIS2DH12:** 1 SCL, 2 CS, 3 SA0, 4 SDA, 5 RES (to GND), 6–8 GND, 9 VDD, 10 VDD_IO, 11 INT2, 12 INT1. Matches LCSC's symbol for C110926. KiCad's pads sit 0.11 mm further under the part than LCSC's; both overlap the part's lands.
+- [x] **USBLC6-2SC6:** I/O lines on 1/6 and 3/4, VBUS 5, GND 2, as in ST's datasheet. LCSC's footprint matches; its symbol doesn't name the pins.
+- [x] **MSK12C02 switch:** its own footprint now, from LCSC's footprint for C431540 and the maker's land pattern (8.4 mm over the mounting pads, 0.75 mm pegs on a 3 mm pitch).
 
 ### Layout
 
 - [ ] **Antenna:**
   - nothing metal in front of or behind the module's antenna (top ~6 mm),
-  - **The battery currently sits behind it.** A 30 mm cell reaches about 4.6 mm into the antenna zone when centred, and about 2 mm even when pushed to the bottom of today's case. This needs a shorter cell or a taller case. Espressif's 15 mm clearance isn't possible in a case this size, so test range on real boards (test 12).
-  - The charger and battery pads sit just left of the keep-out. A reviewer may want them further away.
-- [ ] **Decoupling:** the 3.3 V pin is at the module's top-right corner, but its 10 µF/100 nF capacitors (C5, C6) sit below the module, about 14 mm away by trace. There's no room beside the pin. The module has its own on-board capacitors, so this probably works; a reviewer should still say yes or no.
-- [ ] **USB data:** D+/D− go via the ESD part at the bottom left, about 25 mm of trace. Fine for 12 Mb/s USB; check the routing doesn't run beside the screen's charge-pump lines.
+  - **The battery currently sits behind it.** A centred 30 mm cell reaches into the antenna zone (`case_refs.py` gives the number: see the warnings in [`../enclosure/blender/lumi_pcb_v1_refs.json`](../enclosure/blender/lumi_pcb_v1_refs.json)). A shorter cell avoids it: the 702025 cells bought for the prototype are 25 mm long, which clears the antenna, but 7 mm thick instead of 5.4. Espressif's 15 mm clearance isn't possible in a case this size, so test range on real boards (test 12).
+  - The charger and battery pads sit 2 mm left of the antenna, outside the keep-out. A reviewer may want them further away.
+- [x] **Decoupling:** C6 (100 nF) and C5 (10 µF) sit beside the 3V3 pin (pin 3), as Espressif's reference circuit has them.
+- [ ] **USB data:** D+/D− run from the USB-C socket through the ESD part (D1) to the module's left-hand pins, a few millimetres. Fine for 12 Mb/s USB; check the routing doesn't run beside the screen's charge-pump lines.
 - [ ] **Autorouted tracks:** the routing came from an autorouter. It meets every rule, but a person would tidy it: shorter power paths, fewer vias, straighter USB pair. A reviewer may suggest touch-ups.
 
 ### Parts and stock
 
-- [ ] Open each LCSC number in `fab/lumi-bom.csv` in JLCPCB's parts library. Check:
-  - it's the right part and package,
-  - it's in stock,
-  - it's Basic or Extended. Each Extended part adds ~$3 per order. This board has 8: U1, U2, U3, U4, D1, J1, J2, SW1.
-- [ ] Passive voltage ratings:
-  - C12 (VCC, ~7.5 V) needs ≥ 16 V, 25 V better.
-  - C13 (VCOMH) needs ≥ 16 V.
-  - C1 (USB 5 V) needs ≥ 10 V.
+- [x] Every LCSC number checked on 2026-11-05 with `verify_parts.py` ([`fab/parts-check.txt`](kicad/fab/parts-check.txt)): the right part and package, the right value for every resistor and capacitor, in stock at JLCPCB, footprint and pins matching LCSC's. **Run it again before ordering**; stock changes daily.
+  - Each Extended part adds ~$3 per order. This board has 10: U1, U2, U3, U4, D1, J1, J2, SW1, and the 150 kΩ (R8) and 390 kΩ (R15) resistors, which have no Basic part.
+- [x] Passive voltage ratings:
+  - C12 (VCC, ~7.5 V) is 16 V (CL10A225KO8). That meets the ≥ 16 V rule; at 7.5 V an X5R part like this keeps roughly half its 2.2 µF. A reviewer may prefer 25 V.
+  - C13 (VCOMH) is 16 V.
+  - C1 (USB 5 V) is 25 V.
 
 ### Case
 
@@ -127,7 +136,7 @@ Tick every box. Items marked **VERIFY** come from memory or similar parts, not f
   - the switch slot on the right,
   - the screen cable wrap at the bottom,
   - the ~14.5 mm depth.
-- [ ] **Corners:** today's case has 6 mm rounded corners, and the board's square corners and the module's top corners don't fit inside them. The PCB case needs smaller corners (about 4 mm), or the board needs rounded corners and a re-layout.
+- [x] **Corners:** the board has 4 mm rounded corners and the module sits 2.2 mm in from the right edge, so both fit inside today's 6 mm case corners (`case_refs.py` checks it).
 
 ## Ordering from JLCPCB
 
@@ -151,6 +160,8 @@ Tick every box. Items marked **VERIFY** come from memory or similar parts, not f
    - **J1 USB-C:** opening at the board edge.
    - **J2 ZIF:** drawer toward the bottom edge.
    - **SW1:** lever pointing out of the right edge.
+
+   From the parts check, expect these to need fixing: LCSC's footprints for **U2, U3, U4 and D1** are turned 90° from KiCad's, and **J1's** and **J2's** origins sit 1.5 mm and 0.45 mm from ours, so the preview may show them turned or shifted.
 
    Use JLCPCB's rotate buttons to fix anything off, and note the fix so the next order can use it.
 6. Order. The screen panels (BuyDisplay) and batteries come separately.
@@ -214,5 +225,11 @@ The build fails unless all three checks pass:
 - the schematic's netlist matches `design.py`,
 - every board pad carries the right net,
 - KiCad's DRC reports no violations and nothing unrouted.
+
+Before ordering, also run the parts check (it needs the network, and EasyEDA's API refuses for a few minutes if it's asked too often, so answers are cached for a day):
+
+```sh
+"$PYTHON" hardware/pcb/kicad/verify_parts.py   # writes kicad/fab/parts-check.txt
+```
 
 `check.py` runs the design-rule check through `kicad-cli`. The scripts now use KiCad 10's Python interface, and a rebuild saves the board in KiCad 10's format, which KiCad 7 can't open.

@@ -26,10 +26,10 @@ You now have:
 
   | Group | What's in it |
   |---|---|
-  | Board | The 31 × 33 × 1.0 mm PCB |
-  | Parts | Every part as a box at its real height. The module and USB-C socket are the tallest, ~3.2 mm. |
+  | Board | The 31 × 33 × 1.0 mm PCB, with 4 mm rounded corners and a notch at the top right for the module's antenna |
+  | Parts | Every part as a box at its real height. The USB-C socket is the tallest (3.26 mm), then the module (2.4 mm). |
   | Screen | The OLED glass, its active area (where the pixels are), and the cable that wraps round the bottom edge |
-  | Battery | The 702025 LiPo pouch, behind the parts |
+  | Battery | The 503030 LiPo pouch (30 × 30 × 5.4 mm, allowing for a little swelling), behind the parts |
   | Openings | The USB-C opening and the room a plug needs; the power switch's lever slot (wireframes) |
   | Keep-outs | The **antenna zone** (red wireframe): keep metal, screws, magnets and the battery out of it |
   | Today's case outline | The current case's outer and inner shape, for comparison |
@@ -55,11 +55,9 @@ So the screen glass is at negative Y and the parts and battery at positive Y. Th
 
 The generator checks the references against today's case shape and the plan, and lists these problems (also stored in `lumi_pcb_v1_refs.json` under `warnings`):
 
-1. **Corners.** Today's case has 6 mm rounded corners, so its inside corners are 4.6 mm round. The board's square corners and the module's top corners stick out through them. Either:
-   - give the PCB case smaller corners (about 4 mm radius outside), or
-   - round the board's corners, which means re-placing a few parts.
-2. **Depth.** The inside stack is ~14.6 mm with 1.4 mm walls, not the plan's 12.5 mm. The module and USB-C socket are 3.2 mm tall. See [`../../pcb/GUIDE.md`](../../pcb/GUIDE.md) for ways to get it thinner.
-3. **Battery vs antenna.** A 30 mm cell behind a 33 mm board reaches about 4.6 mm into the antenna zone, so expect some range loss. Options:
+1. **Corners: solved.** The board now has 4 mm rounded corners and fits inside today's case corners (4.6 mm round inside), so the checker no longer flags them.
+2. **Depth.** The inside stack is ~14.6 mm with 1.4 mm walls, not the plan's 12.5 mm. Front to back: wall 1.4, screen glass 1.45, board 1.0, USB-C socket 3.26, gap 0.3, battery 5.4, wall 1.4, foam and clearances 0.4. See [`../../pcb/GUIDE.md`](../../pcb/GUIDE.md) for ways to get it thinner.
+3. **Battery vs antenna.** The 30 mm cell behind the 33 mm board reaches about 4.0 mm into the antenna zone, so expect some range loss. Options:
    - a shorter cell,
    - a case a few millimetres taller, with the battery below the antenna line,
    - accept it and test the range at bring-up.

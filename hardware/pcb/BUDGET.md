@@ -13,14 +13,14 @@ Edit the tables in `budget.py` and re-run it to update this page.
 
 | | USD | CAD |
 |---|--:|--:|
-| 5 prototypes, all in | $186.75 | $261.45 |
-| … per prototype | $37.35 | $52.29 |
-| 10 prototypes, all in | $264.92 | $370.89 |
-| … per prototype | $26.49 | $37.09 |
-| One Lumi at 100 units | $11.64 | $16.30 |
-| One Lumi at 1,000 units | $8.40 | $11.77 |
-| **Average unit cost at 100 units** (packed, fees, spares, prototypes) | – | **$24.19** |
-| **Average unit cost at 1,000 units** (packed, fees, spares, prototypes) | – | **$15.41** |
+| 5 prototypes, all in | $190.02 | $266.03 |
+| … per prototype | $38.00 | $53.21 |
+| 10 prototypes, all in | $265.16 | $371.22 |
+| … per prototype | $26.52 | $37.12 |
+| One Lumi at 100 units | $11.22 | $15.70 |
+| One Lumi at 1,000 units | $7.95 | $11.13 |
+| **Average unit cost at 100 units** (packed, fees, spares, prototypes) | – | **$23.56** |
+| **Average unit cost at 1,000 units** (packed, fees, spares, prototypes) | – | **$14.74** |
 
 The device figures include:
 - the board, built by JLCPCB,
@@ -34,41 +34,41 @@ Neither includes certification (until you enter a lab quote), customs duty beyon
 
 | Item | USD | CAD |
 |---|--:|--:|
-| Board parts | $25.25 | $35.35 |
-| Assembly (solder joints) | $1.75 | $2.45 |
+| Board parts | $22.10 | $30.94 |
+| Assembly (solder joints) | $2.01 | $2.82 |
 | Bare boards (order of 5) | $4.00 | $5.60 |
-| Assembly setup, stencil, 8 Extended-part fees | $37.00 | $51.80 |
+| Assembly setup, stencil, 10 Extended-part fees | $43.00 | $60.20 |
 | Screens | $12.45 | $17.43 |
 | Batteries | $30.00 | $42.00 |
 | Cases (printed) and sundries | $3.00 | $4.20 |
 | Shipping: JLCPCB boards (DHL) | $25.00 | $35.00 |
 | Shipping: Screens from BuyDisplay | $15.00 | $21.00 |
 | Shipping: Batteries (AliExpress, ground) | $4.00 | $5.60 |
-| GST 5% on imports | $7.87 | $11.02 |
+| GST 5% on imports | $8.03 | $11.24 |
 | Courier brokerage (2 parcels) | $21.43 | $30.00 |
-| **Total** | **$186.75** | **$261.45** |
+| **Total** | **$190.02** | **$266.03** |
 
 ## 10 prototypes
 
 | Item | USD | CAD |
 |---|--:|--:|
-| Board parts | $50.50 | $70.70 |
-| Assembly (solder joints) | $3.50 | $4.90 |
+| Board parts | $44.20 | $61.88 |
+| Assembly (solder joints) | $4.02 | $5.63 |
 | Bare boards (order of 10) | $6.00 | $8.40 |
-| Assembly setup, stencil, 8 Extended-part fees | $37.00 | $51.80 |
+| Assembly setup, stencil, 10 Extended-part fees | $43.00 | $60.20 |
 | Screens | $24.90 | $34.86 |
 | Batteries | $60.00 | $84.00 |
 | Cases (printed) and sundries | $6.00 | $8.40 |
 | Shipping: JLCPCB boards (DHL) | $25.00 | $35.00 |
 | Shipping: Screens from BuyDisplay | $15.00 | $21.00 |
 | Shipping: Batteries (AliExpress, ground) | $4.00 | $5.60 |
-| GST 5% on imports | $11.59 | $16.23 |
+| GST 5% on imports | $11.61 | $16.25 |
 | Courier brokerage (2 parcels) | $21.43 | $30.00 |
-| **Total** | **$264.92** | **$370.89** |
+| **Total** | **$265.16** | **$371.22** |
 
 Notes on the prototype runs:
 - **Fixed costs dominate:**
-  - JLCPCB's setup, stencil and the 8 Extended-part fees ($3.00 each) come to $37.00 however many boards you build,
+  - JLCPCB's setup, stencil and the 10 Extended-part fees ($3.00 each) come to $43.00 however many boards you build,
   - so does shipping.
   - That's why 10 boards cost far less than twice 5.
 - **Extended-part fee:** one source says it dropped to $1.50 per part in December 2025. If your quote shows that, the run is about $12 cheaper.
@@ -79,31 +79,31 @@ Notes on the prototype runs:
 
 | Item | USD | CAD |
 |---|--:|--:|
-| Board parts | $4.07 | $5.70 |
+| Board parts | $3.55 | $4.97 |
 | Bare board | $0.25 | $0.35 |
-| Assembly (joints) | $0.35 | $0.49 |
-| Assembly setup and fees, shared | $0.54 | $0.76 |
+| Assembly (joints) | $0.40 | $0.56 |
+| Assembly setup and fees, shared | $0.60 | $0.84 |
 | Screen | $2.23 | $3.12 |
 | Battery | $2.50 | $3.50 |
 | Case and sundries | $0.55 | $0.77 |
 | Shipping share | $0.60 | $0.84 |
-| GST 5% on imports | $0.55 | $0.78 |
-| **Per unit** | **$11.64** | **$16.30** |
+| GST 5% on imports | $0.53 | $0.75 |
+| **Per unit** | **$11.22** | **$15.70** |
 
 ## Per Lumi at 1,000 units
 
 | Item | USD | CAD |
 |---|--:|--:|
-| Board parts | $3.71 | $5.19 |
+| Board parts | $3.22 | $4.51 |
 | Bare board | $0.08 | $0.11 |
-| Assembly (joints) | $0.35 | $0.49 |
-| Assembly setup and fees, shared | $0.05 | $0.08 |
+| Assembly (joints) | $0.40 | $0.56 |
+| Assembly setup and fees, shared | $0.06 | $0.08 |
 | Screen | $1.70 | $2.38 |
 | Battery | $1.40 | $1.96 |
 | Case and sundries | $0.51 | $0.71 |
 | Shipping share | $0.20 | $0.28 |
-| GST 5% on imports | $0.40 | $0.56 |
-| **Per unit** | **$8.40** | **$11.77** |
+| GST 5% on imports | $0.38 | $0.53 |
+| **Per unit** | **$7.95** | **$11.13** |
 
 Notes on volume:
 - **Setup:** assembly switches to Standard PCBA ($25 setup), shared across the run.
@@ -120,20 +120,20 @@ prototype run spread over the batch. Packaging prices are estimates; edit `PACKA
 
 | Item | 100 units | 1,000 units |
 |---|--:|--:|
-| Device: board, screen, battery, case, import shipping, GST | $16.30 | $11.77 |
+| Device: board, screen, battery, case, import shipping, GST | $15.70 | $11.13 |
 | Mailer box, 3 x 3 x 2 in | $0.60 | $0.35 |
 | Padding (crinkle paper or foam) | $0.10 | $0.05 |
 | Birth certificate (1/8 Letter sheet of card stock + ink) | $0.15 | $0.10 |
 | Odds card (printed 4 x 6 postcard) | $0.40 | $0.12 |
 | Shipping label | $0.10 | $0.05 |
-| Spares and failed units (5% of the device) | $0.82 | $0.59 |
-| **Cost to make and pack** | **$18.47** | **$13.02** |
+| Spares and failed units (5% of the device) | $0.79 | $0.56 |
+| **Cost to make and pack** | **$17.84** | **$12.36** |
 | Stripe fee at a $59.00 price | $2.01 | $2.01 |
 | Prototype run (10 boards) spread over the run | $3.71 | $0.37 |
 | Certification (lab quote) spread over the run | $0.00 | $0.00 |
 | One-time tools spread over the run | $0.00 | $0.00 |
-| **Average unit cost** | **$24.19** | **$15.41** |
-| Left from a $59.00 sale | $34.81 (59%) | $43.59 (74%) |
+| **Average unit cost** | **$23.56** | **$14.74** |
+| Left from a $59.00 sale | $35.44 (60%) | $44.26 (75%) |
 
 Notes:
 - **Shipping** isn't here: the customer pays it at checkout. Stripe's fee on the shipping part (2.9%) is left out too.
@@ -145,17 +145,17 @@ Notes:
 
 | Ref | Part | LCSC | 5–10 boards | 100 | 1,000 |
 |---|---|---|--:|--:|--:|
-| U1 | ESP32-C3-WROOM-02-N4 module | C2934560 | $2.92 | $2.44 | $2.34 |
+| U1 | ESP32-C3-MINI-1-H4X module | C41349510 | $2.72 | $2.26 | $2.16 |
 | U2 | LIS2DH12TR accelerometer | C110926 | $0.78 | $0.58 | $0.53 |
-| J2 | Hirose FH12-30S-0.5SH screen connector | C506793 | $0.58 | $0.46 | $0.40 |
+| J2 | JUSHUO AFC07-S30ECC-00 screen connector | C11095 | $0.15 | $0.12 | $0.09 |
 | D1 | USBLC6-2SC6 USB ESD | C7519 | $0.18 | $0.14 | $0.10 |
 | J1 | USB-C receptacle TYPE-C-31-M-12 | C165948 | $0.19 | $0.15 | $0.10 |
 | U4 | RT9080-33GJ5 3.3 V regulator | C841192 | $0.12 | $0.10 | $0.08 |
 | U3 | TP4054 charger | C32574 | $0.13 | $0.10 | $0.08 |
 | SW1 | MSK12C02 slide switch | C431540 | $0.05 | $0.04 | $0.04 |
-| R/C | 27 resistors and capacitors (JLCPCB Basic) *est.* | various | $0.10 | $0.06 | $0.04 |
+| R/C | 28 resistors and capacitors (Basic except R8, R15) *est.* | various | $0.10 | $0.06 | $0.04 |
 
-Board part prices are JLCPCB's parts library on 2026-11-04 (the 10, 100 and 1,000 price breaks).
+Board part prices are JLCPCB's parts library on 2026-11-05 (the 10, 100 and 1,000 price breaks).
 
 > **Stock warning (2026-11-04):** JLCPCB and LCSC have **0** LIS2DH12TR (C110926) in stock. Before ordering boards, either wait for a restock, buy them elsewhere and send them to JLCPCB as consigned parts, or switch to an in-stock part with the same 2 × 2 mm LGA-12 package, such as the LIS2DW12TR (C189624, about $0.68 at 100). The LIS2DW12 has a different register map, so the firmware's accelerometer driver and the schematic would need checking first.
 | Screen | BuyDisplay ER-OLED0.96-1 plug-in OLED (1,000: est. factory quote) | – | $2.49 | $2.23 | $1.70 |
@@ -168,10 +168,10 @@ Board part prices are JLCPCB's parts library on 2026-11-04 (the 10, 100 and 1,00
 - [JLCPCB: what the PCB assembly price includes](https://jlcpcb.com/help/article/pcb-assembly-price)
 - [JLCPCB PCBA price overview (feeder fee change)](https://techoverflow.net/2024/04/09/jlcpcb-pcba-assembly-price-overview/)
 - [JLCPCB $2 PCB offer](https://jlcpcb.com/blog/free-assembly-for-1-6-layer-pcbs-and-discounts-on-8-20-layer-pcba)
-- [ESP32-C3-WROOM-02-N4 on LCSC](https://www.lcsc.com/product-detail/WiFi-Modules_Espressif-Systems-ESP32-C3-WROOM-02-N4_C2934560.html)
+- [ESP32-C3-MINI-1-H4X on JLCPCB](https://jlcpcb.com/partdetail/ESP32-C3-MINI-1-H4X/C41349510)
 - [LIS2DH12TR on LCSC](https://www.lcsc.com/product-image/C110926.html)
 - [TYPE-C-31-M-12 on LCSC](https://lcsc.com/product-detail/USB-Connectors_Korean-Hroparts-Elec-TYPE-C-31-M-12_C165948.html)
-- [Hirose FH12-30S-0.5SH on LCSC](https://lcsc.com/product-detail/FFC-FPC-Flat-Flexible-Connector-Assemblies_HRS-Hirose-FH12-30S-0-5SH-55_C506793.html)
+- [JUSHUO AFC07-S30ECC-00 on JLCPCB](https://jlcpcb.com/partdetail/C11095)
 - [USBLC6-2SC6 on JLCPCB](https://jlcpcb.com/partdetail/C7519)
 - [BuyDisplay ER-OLED0.96-1](https://buydisplay.com/blue-128x64-0-96-inch-oled-display-top-contact-connector-fpc-ssd1306)
 - [503030 500 mAh protected LiPo (retail reference)](https://www.walmart.com/ip/seot/5362991161)

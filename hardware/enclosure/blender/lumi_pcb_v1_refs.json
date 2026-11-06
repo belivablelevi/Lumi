@@ -14,9 +14,9 @@
    "max": [
     15.5,
     1.0,
-    10.6
+    11.1
    ],
-   "note": "31 x 33 mm overall, 1 mm thick, 2 layers"
+   "note": "31 x 33 mm overall, 1 mm thick, 2 layers, 4 mm corner radius (drawn square here)"
   },
   {
    "name": "PCB, corner beside the antenna",
@@ -24,10 +24,10 @@
    "min": [
     -15.5,
     0,
-    10.6
+    11.1
    ],
    "max": [
-    -8.6,
+    0.1,
     1.0,
     16.5
    ],
@@ -37,14 +37,14 @@
    "name": "BT1 BAT+",
    "kind": "battery pad",
    "min": [
-    -15.732,
+    -12.082,
     1.0,
-    12.702
+    12.302
    ],
    "max": [
-    -12.768,
+    -9.118,
     1.05,
-    15.95
+    15.55
    ],
    "note": "Battery red wire (protected 503030 LiPo)."
   },
@@ -52,14 +52,14 @@
    "name": "BT2 BAT-",
    "kind": "battery pad",
    "min": [
-    -15.732,
+    -9.382,
     1.0,
-    10.002
+    12.302
    ],
    "max": [
-    -12.768,
+    -6.418,
     1.05,
-    13.25
+    15.55
    ],
    "note": "Battery black wire."
   },
@@ -67,12 +67,12 @@
    "name": "C1 1uF",
    "kind": "passive",
    "min": [
-    -12.11,
+    -6.21,
     1.0,
     10.34
    ],
    "max": [
-    -11.49,
+    -5.59,
     1.5,
     11.86
    ],
@@ -172,12 +172,12 @@
    "name": "C2 1uF",
    "kind": "passive",
    "min": [
-    -10.86,
+    -4.91,
     1.0,
     10.34
    ],
    "max": [
-    -10.24,
+    -4.29,
     1.5,
     11.86
    ],
@@ -187,14 +187,14 @@
    "name": "C3 1uF",
    "kind": "passive",
    "min": [
-    -13.66,
+    -14.21,
     1.0,
-    -12.31
+    -8.56
    ],
    "max": [
-    -12.14,
+    -13.59,
     1.5,
-    -11.69
+    -7.04
    ],
    "note": "LDO input"
   },
@@ -202,14 +202,14 @@
    "name": "C4 1uF",
    "kind": "passive",
    "min": [
-    -13.66,
+    -12.41,
     1.0,
-    -13.61
+    -8.56
    ],
    "max": [
-    -12.14,
+    -11.79,
     1.5,
-    -12.99
+    -7.04
    ],
    "note": "LDO output"
   },
@@ -217,28 +217,28 @@
    "name": "C5 10uF",
    "kind": "passive",
    "min": [
-    8.84,
+    14.09,
     1.0,
-    -4.91
+    9.04
    ],
    "max": [
-    10.36,
+    14.71,
     1.5,
-    -4.29
+    10.56
    ]
   },
   {
    "name": "C6 100nF",
    "kind": "passive",
    "min": [
-    11.14,
+    14.09,
     1.0,
-    -4.91
+    7.04
    ],
    "max": [
-    12.66,
+    14.71,
     1.5,
-    -4.29
+    8.56
    ]
   },
   {
@@ -260,14 +260,14 @@
    "name": "C8 1uF",
    "kind": "passive",
    "min": [
-    8.84,
+    14.09,
     1.0,
-    -7.71
+    1.04
    ],
    "max": [
-    10.36,
+    14.71,
     1.5,
-    -7.09
+    2.56
    ],
    "note": "EN delay (with R11)"
   },
@@ -275,28 +275,28 @@
    "name": "C9 100nF",
    "kind": "passive",
    "min": [
-    6.74,
+    -13.76,
     1.0,
-    -4.91
+    -12.41
    ],
    "max": [
-    8.26,
+    -12.24,
     1.5,
-    -4.29
+    -11.79
    ]
   },
   {
    "name": "D1 USBLC6-2SC6",
    "kind": "chip",
    "min": [
-    -14.4,
+    -4.1,
     1.0,
-    -6.2
+    0.9
    ],
    "max": [
-    -11.4,
+    -1.1,
     2.45,
-    -2.6
+    4.5
    ],
    "note": "USB ESD protection."
   },
@@ -362,14 +362,14 @@
    "name": "R11 10k",
    "kind": "passive",
    "min": [
-    13.42,
+    14.08,
     1.0,
-    -4.92
+    3.02
    ],
    "max": [
-    14.98,
+    14.72,
     1.5,
-    -4.28
+    4.58
    ],
    "note": "EN pull-up"
   },
@@ -377,14 +377,14 @@
    "name": "R12 10k",
    "kind": "passive",
    "min": [
-    -10.18,
+    14.08,
     1.0,
-    9.08
+    5.02
    ],
    "max": [
-    -8.62,
+    14.72,
     1.5,
-    9.72
+    6.58
    ],
    "note": "GPIO2 strap: high"
   },
@@ -433,32 +433,32 @@
    ]
   },
   {
-   "name": "R3 3.9k",
+   "name": "R3 4.7k",
    "kind": "passive",
    "min": [
-    -9.72,
+    -3.62,
     1.0,
     10.32
    ],
    "max": [
-    -9.08,
+    -2.98,
     1.5,
     11.88
    ],
-   "note": "Charge current = 1000 V / R = 256 mA"
+   "note": "Charge current = 1000 V / R = 213 mA (0.4 C for 500 mAh)"
   },
   {
    "name": "R5 1M",
    "kind": "passive",
    "min": [
-    -13.68,
+    -14.22,
     1.0,
-    -14.92
+    -10.88
    ],
    "max": [
-    -12.12,
+    -13.58,
     1.5,
-    -14.28
+    -9.32
    ],
    "note": "Battery divider top"
   },
@@ -466,14 +466,14 @@
    "name": "R6 1M",
    "kind": "passive",
    "min": [
-    -13.68,
+    -12.42,
     1.0,
-    -16.12
+    -10.88
    ],
    "max": [
-    -12.12,
+    -11.78,
     1.5,
-    -15.48
+    -9.32
    ],
    "note": "Battery divider bottom"
   },
@@ -481,14 +481,14 @@
    "name": "R7 100k",
    "kind": "passive",
    "min": [
-    -14.68,
+    -13.68,
     1.0,
-    9.08
+    9.28
    ],
    "max": [
-    -13.12,
+    -12.12,
     1.5,
-    9.72
+    9.92
    ],
    "note": "USB sense divider top"
   },
@@ -496,14 +496,14 @@
    "name": "R8 150k",
    "kind": "passive",
    "min": [
-    -12.43,
+    -11.28,
     1.0,
-    9.08
+    9.28
    ],
    "max": [
-    -10.87,
+    -9.72,
     1.5,
-    9.72
+    9.92
    ],
    "note": "USB sense divider bottom: 3.0 V from 5 V, clear of the C3's 2.48 V input-high level"
   },
@@ -526,71 +526,71 @@
    "name": "SW1 MSK12C02",
    "kind": "switch",
    "min": [
-    9.252,
+    10.688,
     1.0,
-    -14.15
+    -9.15
    ],
    "max": [
-    16.5,
+    16.6,
     2.5,
-    -5.85
+    -0.75
    ],
-   "note": "Power switch on the LDO enable (microamps), not on the battery. VERIFY the MSK12C02 matches the PCM12 footprint."
+   "note": "Power switch on the LDO enable (microamps), not on the battery. Its own footprint: KiCad's PCM12 puts the mounting pads and pegs 0.5 mm off for this part."
   },
   {
    "name": "TP1 3V3",
    "kind": "test pad",
    "min": [
-    -15.582,
+    -14.582,
     -0.05,
-    -13.6
+    -14.0
    ],
    "max": [
-    -12.618,
+    -11.618,
     0,
-    -10.802
+    -11.202
    ]
   },
   {
    "name": "TP2 GND",
    "kind": "test pad",
    "min": [
-    -13.382,
+    -12.582,
     -0.05,
-    -13.6
+    -14.0
    ],
    "max": [
-    -10.418,
+    -9.618,
     0,
-    -10.802
+    -11.202
    ]
   },
   {
    "name": "TP3 EN",
    "kind": "test pad",
    "min": [
-    -15.582,
+    -10.582,
     -0.05,
-    -15.75
+    -14.0
    ],
    "max": [
-    -12.618,
+    -7.618,
     0,
-    -12.952
+    -11.202
    ]
   },
   {
    "name": "TP4 BOOT",
    "kind": "test pad",
    "min": [
-    -13.382,
+    7.618,
     -0.05,
-    -15.75
+    -14.0
    ],
    "max": [
-    -10.418,
+    10.582,
     0,
-    -12.952
+    -11.202
    ],
    "note": "Hold BOOT to GND while resetting to force download mode."
   },
@@ -598,28 +598,28 @@
    "name": "TP5 TXD",
    "kind": "test pad",
    "min": [
-    8.618,
+    9.618,
     -0.05,
-    -13.6
+    -14.0
    ],
    "max": [
-    11.582,
+    12.582,
     0,
-    -10.802
+    -11.202
    ]
   },
   {
    "name": "TP6 RXD",
    "kind": "test pad",
    "min": [
-    10.818,
+    11.618,
     -0.05,
-    -13.6
+    -14.0
    ],
    "max": [
-    13.782,
+    14.582,
     0,
-    -10.802
+    -11.202
    ]
   },
   {
@@ -628,28 +628,28 @@
    "min": [
     8.618,
     -0.05,
-    -15.75
+    -16.1
    ],
    "max": [
     11.582,
     0,
-    -12.952
+    -13.302
    ]
   },
   {
-   "name": "U1 ESP32-C3-WROOM-02-N4",
+   "name": "U1 ESP32-C3-MINI-1-H4X",
    "kind": "module",
    "min": [
-    -4.1,
+    0.05,
     1.0,
-    -3.55
+    -0.15
    ],
    "max": [
-    14.9,
-    4.2,
+    13.35,
+    3.4,
     16.55
    ],
-   "note": "Radio-certified module. Antenna at the keyring edge; keep copper out of the marked area."
+   "note": "Radio-certified module (chip revision v1.1; the -N4 is not recommended for new designs). Antenna at the keyring edge; keep copper out of the marked area."
   },
   {
    "name": "U2 LIS2DH12TR",
@@ -670,12 +670,12 @@
    "name": "U3 TP4054",
    "kind": "chip",
    "min": [
-    -12.7,
+    -6.1,
     1.0,
     12.7
    ],
    "max": [
-    -9.1,
+    -2.5,
     2.45,
     15.7
    ],
@@ -685,14 +685,14 @@
    "name": "U4 RT9080-33GJ5",
    "kind": "chip",
    "min": [
-    -14.4,
+    -14.2,
     1.0,
-    -10.7
+    -6.5
    ],
    "max": [
-    -11.4,
+    -11.2,
     2.45,
-    -7.1
+    -2.9
    ],
    "note": "3.3 V LDO, 2 uA standby. VERIFY pinout."
   },
@@ -822,12 +822,12 @@
    "min": [
     14.9,
     1.0,
-    -12.4
+    -7.35
    ],
    "max": [
     18.0,
     2.6,
-    -7.6
+    -2.55
    ],
    "note": "Lever pokes ~1 mm past the board edge and slides 1.5 mm each way"
   },
@@ -835,9 +835,9 @@
    "name": "Antenna keep-out",
    "kind": "keepout",
    "min": [
-    -8.6,
+    -1.9,
     -6,
-    10.5
+    11.1
    ],
    "max": [
     18.5,
@@ -1144,9 +1144,7 @@
  "stack_depth_mm": 14.61,
  "screen_cable_slack_mm": 1.23,
  "warnings": [
-  "The PCB corner doesn't fit inside today's case corners (inside 32.2 x 34.2 mm, 4.6 mm radius). Use a smaller corner radius (about 4 mm outside) or round the board's corners.",
-  "The module corner doesn't fit inside today's case corners (inside 32.2 x 34.2 mm, 4.6 mm radius). Use a smaller corner radius (about 4 mm outside) or round the board's corners.",
-  "The battery reaches 4.6 mm into the antenna zone; expect some loss of range. A shorter cell, or a taller case with the battery below the antenna, avoids it.",
+  "The battery reaches 4.0 mm into the antenna zone; expect some loss of range. A shorter cell, or a taller case with the battery below the antenna, avoids it.",
   "Inside stack is about 14.6 mm deep with walls, not the plan's 12.5 mm."
  ]
 }

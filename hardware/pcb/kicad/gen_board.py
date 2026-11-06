@@ -11,6 +11,7 @@ Usage: python3 gen_board.py <out-dir>
 """
 
 import json
+import math
 import os
 import sys
 
@@ -24,9 +25,19 @@ FP_DIRS = {"lumi": HERE}  # library name -> folder holding <name>.pretty
 
 X0, Y0, W, H = 100.0, 100.0, 31.0, 33.0
 
-# The board stops short of the module's antenna: Espressif's layout guide
-# recommends cutting the base board away under it.
-NOTCH = (106.9, Y0, X0 + W, 105.9)
+# Rounded board corners, so the board fits inside the case's 6 mm corners
+# (4.6 mm on the inside, 0.6 mm from the board all round).
+CORNER_R = 4.0
+
+# The module (ESP32-C3-MINI-1, 13.2 x 16.6 mm) sits at the top right seen from
+# the front, away from the metal split ring at the top centre. Its top edge is
+# the board's top edge and its right edge is 2.2 mm in, so its square corner
+# still fits the case's rounded corner. The 5.4 mm antenna strip at the top of
+# the module has no board under it: Espressif's layout guide recommends
+# cutting the base board away there.
+U1_AT = (122.2, 111.0)                 # footprint origin (the pad pattern's centre)
+ANTENNA_BOTTOM = U1_AT[1] - 5.6        # 105.4: where the antenna meets the shield can
+NOTCH = (U1_AT[0] - 6.6, Y0, X0 + W, ANTENNA_BOTTOM)
 
 # ref -> (x, y, orientation, side). Orientation is KiCad's value for the
 # footprint *after* it has been flipped to the back: 180 keeps the part
@@ -34,46 +45,44 @@ NOTCH = (106.9, Y0, X0 + W, 105.9)
 # top-to-bottom.
 PLACE = {
     # Module: antenna at the keyring (top) edge.
-    "U1": (120.9, 113.1, 180, "B"),
+    "U1": (*U1_AT, 180, "B"),
+    # Right of the module, beside the pins they serve: the 3.3 V capacitors
+    # next to the 3V3 pin (pin 3, y 108.6), the GPIO2 strap next to IO2
+    # (pin 5, y 110.2), and the enable RC next to EN (pin 8, y 112.6).
+    "C5": (129.9, 106.7, 90, "B"),
+    "C6": (129.9, 108.7, 90, "B"),
+    "R12": (129.9, 110.7, 90, "B"),
+    "R11": (129.9, 112.7, 90, "B"),
+    "C8": (129.9, 114.7, 90, "B"),
     # USB-C, opening on the left edge (seen from the front).
     "J1": (103.7, 113.2, 90, "B"),
-    # Screen ZIF, opening toward the bottom edge where the panel's cable
-    # wraps around from the front.
-    "J2": (115.5, 128.6, 180, "B"),
-    # Slide switch, lever out of the right edge.
-    "SW1": (128.8, 126.5, 270, "B"),
-    # Top-left corner: battery pads and charger (outside the antenna area).
-    "BT1": (101.25, 101.3, 0, "B"),
-    "BT2": (101.25, 104.0, 0, "B"),
-    "U3": (104.6, 102.3, 0, "B"),
-    "C1": (103.7, 105.4, 90, "B"),
-    "C2": (104.95, 105.4, 90, "B"),
-    "R3": (106.1, 105.4, 90, "B"),
-    # Strip above the USB-C.
-    "R7": (101.6, 107.1, 0, "B"),
-    "R8": (103.85, 107.1, 0, "B"),
-    "R12": (106.1, 107.1, 0, "B"),
-    # Between the USB-C and the module: just the CC resistors, leaving room
-    # for the module's left-hand pins to fan out.
+    # Between the USB-C and the module: CC resistors and the ESD part, on the
+    # short path from the socket to the module's D-/D+ pins (left side).
     "R2": (109.6, 111.3, 90, "B"),
     "R1": (109.6, 114.6, 90, "B"),
-    # Left strip under the USB-C: ESD, LDO.
-    "D1": (102.6, 120.9, 90, "B"),
-    "U4": (102.6, 125.4, 90, "B"),
-    "C3": (102.6, 128.5, 0, "B"),
-    "C4": (102.6, 129.8, 0, "B"),
-    "R5": (102.6, 131.1, 0, "B"),
-    "R6": (102.6, 132.3, 0, "B"),
+    "D1": (112.9, 113.8, 90, "B"),
+    # Top left, clear of the antenna: battery pads, charger, USB sense.
+    "BT1": (104.9, 101.7, 0, "B"),
+    "BT2": (107.6, 101.7, 0, "B"),
+    "U3": (111.2, 102.3, 0, "B"),
+    "C1": (109.6, 105.4, 90, "B"),
+    "C2": (110.9, 105.4, 90, "B"),
+    "R3": (112.2, 105.4, 90, "B"),
+    "R7": (102.6, 106.9, 0, "B"),
+    "R8": (105.0, 106.9, 0, "B"),
+    # Left strip under the USB-C: the 3.3 V regulator and battery divider.
+    "U4": (102.8, 121.2, 90, "B"),
+    "C3": (101.6, 124.3, 90, "B"),
+    "C4": (103.4, 124.3, 90, "B"),
+    "R5": (101.6, 126.6, 90, "B"),
+    "R6": (103.4, 126.6, 90, "B"),
+    "C9": (102.5, 128.6, 0, "B"),
     # Strip between the module and the ZIF.
     "R13": (110.1, 121.1, 0, "B"),
     "R9": (113.0, 121.1, 0, "B"),
     "U2": (115.6, 122.5, 0, "B"),
     "C7": (118.0, 121.1, 0, "B"),
     "C13": (120.5, 121.1, 0, "B"),
-    "C9": (123.0, 121.1, 0, "B"),
-    "C5": (125.1, 121.1, 0, "B"),
-    "C6": (127.4, 121.1, 0, "B"),
-    "R11": (129.7, 121.1, 0, "B"),
     # Screen parts sit above the J2 pins they serve: panel pin N is at
     # x = 108.25 + (N - 1) * 0.5.
     "C11": (107.3, 123.9, 0, "B"),
@@ -83,24 +92,28 @@ PLACE = {
     "R10": (117.9, 123.9, 0, "B"),
     "R15": (119.8, 123.9, 0, "B"),
     "C12": (122.3, 123.9, 0, "B"),
-    "C8": (125.1, 123.9, 0, "B"),
-    # Front test pads in the bottom corners, below the screen glass.
-    "TP1": (101.4, 129.6, 0, "F"),
-    "TP2": (103.6, 129.6, 0, "F"),
-    "TP3": (101.4, 131.75, 0, "F"),
-    "TP4": (103.6, 131.75, 0, "F"),
-    "TP5": (125.6, 129.6, 0, "F"),
-    "TP6": (127.8, 129.6, 0, "F"),
-    "TP7": (125.6, 131.75, 0, "F"),
+    # Screen ZIF, opening toward the bottom edge where the panel's cable
+    # wraps around from the front.
+    "J2": (115.5, 128.6, 180, "B"),
+    # Slide switch, lever out of the right edge.
+    "SW1": (128.65, 121.45, 270, "B"),
+    # Front test pads along the bottom, below the screen glass and either
+    # side of the screen cable.
+    "TP1": (102.4, 130.0, 0, "F"),
+    "TP2": (104.4, 130.0, 0, "F"),
+    "TP3": (106.4, 130.0, 0, "F"),
+    "TP4": (124.6, 130.0, 0, "F"),
+    "TP5": (126.6, 130.0, 0, "F"),
+    "TP6": (128.6, 130.0, 0, "F"),
+    "TP7": (125.6, 132.1, 0, "F"),
 }
 
 # Test pad labels, as (x, y) offsets from the pad.
-TP_LABEL = {"TP1": (0, 1.07), "TP2": (0, 1.07), "TP3": (0, 0.85), "TP4": (0, 0.85),
-            "TP5": (0, 1.07), "TP6": (0, 1.07), "TP7": (1.9, 0)}
+TP_LABEL = {**{f"TP{i}": (0, 1.07) for i in range(1, 7)}, "TP7": (1.9, 0)}
 
-# Antenna keep-out (from the module footprint, clipped to the board): no
-# copper on any layer above this line, for the module's width plus margin.
-KEEPOUT = (106.9, Y0, X0 + W, 106.0)
+# Antenna keep-out: no copper on either layer beside or above the antenna,
+# for the module's width plus 2 mm on the board side.
+KEEPOUT = (NOTCH[0] - 2.0, Y0, X0 + W, ANTENNA_BOTTOM)
 
 NETCLASSES = {
     "Default": {"track_width": 0.15, "clearance": 0.13, "via_diameter": 0.6, "via_drill": 0.3},
@@ -116,14 +129,36 @@ def pt(x, y):
     return pcbnew.VECTOR2I(mm(x), mm(y))
 
 
-def add_outline(board):
+def outline_path():
+    """The board edge as straight runs and corner arcs, clockwise from the top
+    left (KiCad's y points down): [("line", a, b) | ("arc", start, mid, end)]."""
     nx, _, _, ny = NOTCH
-    corners = [(X0, Y0), (nx, Y0), (nx, ny), (X0 + W, ny), (X0 + W, Y0 + H), (X0, Y0 + H)]
-    for a, b in zip(corners, corners[1:] + corners[:1]):
+    r = CORNER_R
+    x1, y1, x2, y2 = X0, Y0, X0 + W, Y0 + H
+    s = r * (1 - math.sqrt(0.5))  # how far an arc's midpoint is in from the corner
+    return [
+        ("arc", (x1, y1 + r), (x1 + s, y1 + s), (x1 + r, y1)),
+        ("line", (x1 + r, y1), (nx, y1)),
+        ("line", (nx, y1), (nx, ny)),
+        ("line", (nx, ny), (x2, ny)),
+        ("line", (x2, ny), (x2, y2 - r)),
+        ("arc", (x2, y2 - r), (x2 - s, y2 - s), (x2 - r, y2)),
+        ("line", (x2 - r, y2), (x1 + r, y2)),
+        ("arc", (x1 + r, y2), (x1 + s, y2 - s), (x1, y2 - r)),
+        ("line", (x1, y2 - r), (x1, y1 + r)),
+    ]
+
+
+def add_outline(board):
+    for item in outline_path():
         seg = pcbnew.PCB_SHAPE(board)
-        seg.SetShape(pcbnew.SHAPE_T_SEGMENT)
-        seg.SetStart(pt(*a))
-        seg.SetEnd(pt(*b))
+        if item[0] == "line":
+            seg.SetShape(pcbnew.SHAPE_T_SEGMENT)
+            seg.SetStart(pt(*item[1]))
+            seg.SetEnd(pt(*item[2]))
+        else:
+            seg.SetShape(pcbnew.SHAPE_T_ARC)
+            seg.SetArcGeometry(pt(*item[1]), pt(*item[2]), pt(*item[3]))
         seg.SetLayer(pcbnew.Edge_Cuts)
         seg.SetWidth(mm(0.1))
         board.Add(seg)
@@ -137,7 +172,16 @@ def rect_poly(x1, y1, x2, y2):
     return chain
 
 
+def poly(points):
+    chain = pcbnew.SHAPE_LINE_CHAIN()
+    for x, y in points:
+        chain.Append(mm(x), mm(y))
+    chain.SetClosed(True)
+    return chain
+
+
 def rule_area(board, name, box, pads=True):
+    """A no-tracks, no-vias area: `box` is (x1, y1, x2, y2) or a list of points."""
     z = pcbnew.ZONE(board)
     z.SetIsRuleArea(True)
     z.SetZoneName(name)
@@ -150,18 +194,28 @@ def rule_area(board, name, box, pads=True):
     z.SetDoNotAllowVias(True)
     z.SetDoNotAllowPads(not pads)
     z.SetDoNotAllowFootprints(False)
-    z.Outline().AddOutline(rect_poly(*box))
+    z.Outline().AddOutline(rect_poly(*box) if len(box) == 4 and not isinstance(box[0], tuple) else poly(box))
     board.Add(z)
 
 
 def add_edge_keepouts(board, d=0.35):
     """Strips along the edges so the autorouter (which doesn't know KiCad's
-    copper-to-edge rule) keeps tracks and vias 0.35 mm from the edge."""
+    copper-to-edge rule) keeps tracks and vias 0.35 mm from the edge. Each
+    rounded corner gets the band between the edge and an arc d inside it."""
     x1, y1, x2, y2 = X0, Y0, X0 + W, Y0 + H
     nx, _, _, ny = NOTCH
-    for i, box in enumerate([(x1, y1, nx, y1 + d), (x1, y2 - d, x2, y2),
-                             (x1, y1, x1 + d, y2), (x2 - d, ny, x2, y2),
-                             (nx - d, y1, nx, ny + d), (nx, ny, x2, ny + d)]):
+    r = CORNER_R
+    boxes = [(x1 + r, y1, nx, y1 + d), (x1 + r, y2 - d, x2 - r, y2),
+             (x1, y1 + r, x1 + d, y2 - r), (x2 - d, ny, x2, y2 - r),
+             (nx - d, y1, nx, ny + d), (nx, ny, x2, ny + d)]
+    # (corner, arc centre, start angle): the band runs 90 degrees from there.
+    for (cx0, cy0), (ccx, ccy), a0 in (((x1, y1), (x1 + r, y1 + r), 180),
+                                       ((x2, y2), (x2 - r, y2 - r), 0),
+                                       ((x1, y2), (x1 + r, y2 - r), 90)):
+        inner = [(ccx + (r - d) * math.cos(math.radians(a0 + 90 * i / 12)),
+                  ccy + (r - d) * math.sin(math.radians(a0 + 90 * i / 12))) for i in range(13)]
+        boxes.append(inner + [(cx0, cy0)])
+    for i, box in enumerate(boxes):
         rule_area(board, f"edge-{i}", box)
 
 

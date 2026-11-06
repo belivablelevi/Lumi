@@ -24,18 +24,18 @@ TIERS = ("proto", "100", "1000")  # proto = buying for 5-10 boards
 
 # Board parts, per board, by tier (USD). From the JLCPCB BOM (kicad/fab/lumi-bom.csv);
 # prices from JLCPCB's parts library on BOARD_CHECKED (10 / 100 / 1,000 price breaks).
-BOARD_CHECKED = "2026-11-04"
+BOARD_CHECKED = "2026-11-05"
 BOARD_PARTS = [
     # ref, part, LCSC, (proto, 100, 1000), estimated?
-    ("U1", "ESP32-C3-WROOM-02-N4 module", "C2934560", (2.92, 2.44, 2.34), False),
+    ("U1", "ESP32-C3-MINI-1-H4X module", "C41349510", (2.72, 2.26, 2.16), False),
     ("U2", "LIS2DH12TR accelerometer", "C110926", (0.78, 0.58, 0.53), False),
-    ("J2", "Hirose FH12-30S-0.5SH screen connector", "C506793", (0.58, 0.46, 0.40), False),
+    ("J2", "JUSHUO AFC07-S30ECC-00 screen connector", "C11095", (0.15, 0.12, 0.09), False),
     ("D1", "USBLC6-2SC6 USB ESD", "C7519", (0.18, 0.14, 0.10), False),
     ("J1", "USB-C receptacle TYPE-C-31-M-12", "C165948", (0.19, 0.15, 0.10), False),
     ("U4", "RT9080-33GJ5 3.3 V regulator", "C841192", (0.12, 0.10, 0.08), False),
     ("U3", "TP4054 charger", "C32574", (0.13, 0.10, 0.08), False),
     ("SW1", "MSK12C02 slide switch", "C431540", (0.05, 0.04, 0.04), False),
-    ("R/C", "27 resistors and capacitors (JLCPCB Basic)", "various", (0.10, 0.06, 0.04), True),
+    ("R/C", "28 resistors and capacitors (Basic except R8, R15)", "various", (0.10, 0.06, 0.04), True),
 ]
 
 # Everything else that goes in one Lumi, per unit, by tier.
@@ -48,7 +48,7 @@ OTHER_PARTS = [
 
 # Factory costs per board (USD) by tier.
 PCB_PER_BOARD = {"100": 0.25, "1000": 0.08}           # est. (31 x 33 mm, 2 layers, 1.0 mm)
-JOINTS = 165                                           # solder joints per board (SMT)
+JOINTS = 196                                           # solder joints per board (SMT, counted from the board)
 JOINT_COST = 0.0017                                    # JLCPCB Economic assembly, per joint
 HAND_JOINTS, HAND_JOINT_COST = 4, 0.0173               # USB-C shell legs (through-hole)
 
@@ -56,7 +56,7 @@ HAND_JOINTS, HAND_JOINT_COST = 4, 0.0173               # USB-C shell legs (throu
 PCB_ORDER = {5: 4.00, 10: 6.00}                        # 5 or 10 bare boards, est. for 1.0 mm
 ASSEMBLY_SETUP = 8.00                                  # Economic PCBA setup
 STENCIL = 1.50
-EXTENDED = 8                                           # Extended parts (U1-U4, D1, J1, J2, SW1)
+EXTENDED = 10                                          # Extended parts (U1-U4, D1, J1, J2, SW1, R8, R15)
 EXTENDED_FEE = 3.00                                    # per Extended part type; some sources say $1.50 now
 HAND_SOLDER_SETUP = 3.50
 VOLUME_SETUP = 25.00                                   # Standard PCBA setup for 100+ runs
@@ -85,10 +85,10 @@ SOURCES = [
     ("JLCPCB: what the PCB assembly price includes", "https://jlcpcb.com/help/article/pcb-assembly-price"),
     ("JLCPCB PCBA price overview (feeder fee change)", "https://techoverflow.net/2024/04/09/jlcpcb-pcba-assembly-price-overview/"),
     ("JLCPCB $2 PCB offer", "https://jlcpcb.com/blog/free-assembly-for-1-6-layer-pcbs-and-discounts-on-8-20-layer-pcba"),
-    ("ESP32-C3-WROOM-02-N4 on LCSC", "https://www.lcsc.com/product-detail/WiFi-Modules_Espressif-Systems-ESP32-C3-WROOM-02-N4_C2934560.html"),
+    ("ESP32-C3-MINI-1-H4X on JLCPCB", "https://jlcpcb.com/partdetail/ESP32-C3-MINI-1-H4X/C41349510"),
     ("LIS2DH12TR on LCSC", "https://www.lcsc.com/product-image/C110926.html"),
     ("TYPE-C-31-M-12 on LCSC", "https://lcsc.com/product-detail/USB-Connectors_Korean-Hroparts-Elec-TYPE-C-31-M-12_C165948.html"),
-    ("Hirose FH12-30S-0.5SH on LCSC", "https://lcsc.com/product-detail/FFC-FPC-Flat-Flexible-Connector-Assemblies_HRS-Hirose-FH12-30S-0-5SH-55_C506793.html"),
+    ("JUSHUO AFC07-S30ECC-00 on JLCPCB", "https://jlcpcb.com/partdetail/C11095"),
     ("USBLC6-2SC6 on JLCPCB", "https://jlcpcb.com/partdetail/C7519"),
     ("BuyDisplay ER-OLED0.96-1", "https://buydisplay.com/blue-128x64-0-96-inch-oled-display-top-contact-connector-fpc-ssd1306"),
     ("503030 500 mAh protected LiPo (retail reference)", "https://www.walmart.com/ip/seot/5362991161"),
@@ -407,7 +407,8 @@ def write_xlsx(path):
         (None, "JLCPCB assembly", None, None, False, None),
         ("setup", "Economic assembly setup (per order)", ASSEMBLY_SETUP, usd, False, "JLCPCB help: PCB assembly price."),
         ("stencil", "Stencil (per order)", STENCIL, usd, False, "JLCPCB help: PCB assembly price."),
-        ("ext_n", "Extended part types on the board", EXTENDED, "0", False, "U1-U4, D1, J1, J2, SW1."),
+        ("ext_n", "Extended part types on the board", EXTENDED, "0", False,
+         "U1-U4, D1, J1, J2, SW1, and the 150k (R8) and 390k (R15) resistors, which have no Basic part."),
         ("ext_fee", "Fee per Extended part type", EXTENDED_FEE, usd, False,
          "Official FAQ says $3; one source says $1.50 since Dec 2025."),
         ("hand_setup", "Hand-soldering setup (USB-C shell legs)", HAND_SOLDER_SETUP, usd, False, "JLCPCB help."),

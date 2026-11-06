@@ -102,17 +102,23 @@ def add_ground_pours(board):
     pcbnew.ZONE_FILLER(board).Fill(board.Zones())
 
 
-def freeroute(proj, jar, timeout=150):
+def freeroute(proj, jar, timeout=420):
     """Run Freerouting headless. Returns the session file, or None if this
     run got stuck or failed. Runs differ: a good one finishes this board in
-    well under a minute, a bad one circles for ever, so the caller retries."""
+    a few minutes, a bad one circles for ever, so the caller retries."""
     ses = os.path.join(proj, "lumi.ses")
     if os.path.exists(ses):
         os.remove(ses)
     with open(os.path.join(proj, "freerouting.log"), "w") as log:
         # The route optimiser drops segments now and then (the session file
         # then lacks tracks Freerouting reports as routed), so it's off.
-        proc = subprocess.Popen(["java", "-jar", jar, "-de", "lumi.dsn", "-do", "lumi.ses",
+        # When the only link left is ground between the module's pads under
+        # the antenna line (which the pours join anyway), Freerouting keeps
+        # trying for a few minutes before it gives up and saves, hence the
+        # long timeout. Its pass-limit options made no difference in 2.1.
+        # The heap is capped: by default Java may take a quarter of the RAM,
+        # and this small board routes well within 1.5 GB.
+        proc = subprocess.Popen(["java", "-Xmx1536m", "-jar", jar, "-de", "lumi.dsn", "-do", "lumi.ses",
                                  "--gui.enabled=false", "--router.optimizer.enabled=false"],
                                 cwd=proj, stdout=log, stderr=subprocess.STDOUT)
         try:
@@ -294,9 +300,31 @@ def remove_stubs(board):
         removed += len(dead)
 
 
+def unrouted_signals(board, proj):
+    """How many unrouted links are on nets other than GND (which the pours
+    join). KiCad's Python can't list them, so this asks kicad-cli's DRC."""
+    tmp = tempfile.mkdtemp(dir=proj)
+    shutil.copy(os.path.join(proj, "lumi.kicad_pro"), tmp)
+    copy = os.path.join(tmp, "lumi.kicad_pcb")
+    pcbnew.SaveBoard(copy, board, True)
+    report = os.path.join(tmp, "unrouted.rpt")
+    subprocess.run(["kicad-cli", "pcb", "drc", "--severity-all", "--format", "report",
+                    "--output", report, copy], check=True, stdout=subprocess.DEVNULL)
+    with open(report) as fh:
+        text = fh.read()
+    shutil.rmtree(tmp)
+    count = 0
+    for block in re.findall(r"\[unconnected_items\].*?(?=\n\[|\n\n)", text, flags=re.S):
+        nets = set(re.findall(r"\[([^\]]+)\] on [FB]\.Cu", block))
+        if nets - {"GND"}:
+            count += 1
+    return count
+
+
 def route_once(proj, jar, pcb):
-    """One Freerouting run on the DSN in `proj`. Returns (board, unrouted)
-    or None. The board is loaded fresh: the session holds every track."""
+    """One Freerouting run on the DSN in `proj`. Returns (board, score) or
+    None, where score is (unrouted signal links, unrouted links in all). The
+    board is loaded fresh: the session holds every track."""
     ses = freeroute(proj, jar)
     if ses is None:
         return None
@@ -304,8 +332,9 @@ def route_once(proj, jar, pcb):
     tracks, vias = import_ses(board, ses)
     board.BuildConnectivity()
     left = board.GetConnectivity().GetUnconnectedCount(True)
-    print(f"  {tracks} track segments, {vias} vias, {left} unrouted")
-    return board, left
+    signals = unrouted_signals(board, proj) if left else 0
+    print(f"  {tracks} track segments, {vias} vias, {left} unrouted ({signals} not ground)")
+    return board, (signals, left)
 
 
 def main(proj, jar, rounds="8"):
@@ -324,12 +353,12 @@ def main(proj, jar, rounds="8"):
             continue
         if best is None or result[1] < best[1]:
             best = result
-        if best[1] == 0:
-            break
+        if best[1][0] == 0:
+            break  # only ground left, if anything: the pours join it
     if best is None:
         raise SystemExit("Freerouting never finished; see freerouting.log")
-    # A few connections left: hand the best board back to finish them.
-    if best[1]:
+    # A few signal connections left: hand the best board back to finish them.
+    if best[1][0]:
         print("finishing the best round:")
         assert pcbnew.ExportSpecctraDSN(best[0], dsn)
         result = route_once(proj, jar, pcb)
