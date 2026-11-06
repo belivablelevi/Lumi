@@ -11,6 +11,8 @@ export interface Services {
   signup: boolean;
   /** Canadian orders at or over this subtotal ship free, in cents (SHIPPING_FREE_OVER); unset = never. */
   freeShippingOver?: number | null;
+  /** Where it ships free ("Canada, except the territories"); free shipping shows only with both set. */
+  freeShippingArea?: string | null;
 }
 
 interface CartContext {

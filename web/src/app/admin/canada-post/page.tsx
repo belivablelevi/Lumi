@@ -3,7 +3,7 @@ import { buttonClass } from "@/components/ui/Button";
 import { requireAdmin } from "@/lib/admin-session";
 import { env } from "@/lib/env";
 import { formatMoney } from "@/lib/money";
-import { checkCanadaPost, quotedCm } from "@/lib/shipping";
+import { checkCanadaPost, freeShippingArea, quotedCm } from "@/lib/shipping";
 
 export const dynamic = "force-dynamic";
 
@@ -62,7 +62,9 @@ export default async function Page({ searchParams }: PageProps<"/admin/canada-po
           Live Canada Post prices are off, so checkout uses your flat prices: {cad(t.near)} Ontario and Quebec, {cad(t.far)} rest of
           Canada, {cad(t.north)} the North, {cad(t.us)} US. US orders add {rules.usDutyPercent}% of the order&apos;s value plus{" "}
           {cad(rules.usDutyFeeCents)} for import duties and fees.{" "}
-          {rules.freeOverCents ? `Canadian orders of ${cad(rules.freeOverCents)} or more ship free.` : "Free shipping is off."} To turn live
+          {rules.freeOverCents
+            ? `Orders of ${cad(rules.freeOverCents)} or more ship free ${rules.freeMaxCents === null ? "anywhere in Canada" : `where shipping is under ${cad(rules.freeMaxCents)}`} (${freeShippingArea(rules, t, p.handlingCents) ?? "nowhere at these prices"}).`
+            : "Free shipping is off."} To turn live
           prices on, add the settings marked &quot;not set&quot; in Vercel (Project → Settings → Environment Variables), then redeploy.
         </p>
       ) : (
