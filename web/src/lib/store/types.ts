@@ -2,7 +2,7 @@ import type { Currency } from "../money";
 
 export type OrderStatus = "pending" | "paid" | "expired" | "failed" | "review" | "refunded";
 export type FulfilmentStatus = "unfulfilled" | "packed" | "shipped";
-export type Carrier = "canada_post" | "chit_chats" | "stallion" | "other";
+export type Carrier = "canada_post" | "chit_chats" | "stallion" | "ups" | "other";
 
 export interface OrderItem {
   sku: string;

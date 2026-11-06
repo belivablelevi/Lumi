@@ -98,7 +98,7 @@ export async function markShipped(id: string, formData: FormData) {
   const { store, order } = await orderOrFail(id);
   const f = z
     .object({
-      carrier: z.enum(["canada_post", "chit_chats", "stallion", "other"]),
+      carrier: z.enum(["canada_post", "chit_chats", "stallion", "ups", "other"]),
       trackingNumber: text(60),
     })
     .parse({ carrier: formData.get("carrier"), trackingNumber: formData.get("trackingNumber") ?? "" });
