@@ -3,12 +3,19 @@ import clsx from "clsx";
 import { OrderPill } from "@/components/admin/OrderPill";
 import { buttonClass } from "@/components/ui/Button";
 import { requireAdmin } from "@/lib/admin-session";
+import { DEMO_PLACES, isDemoOrder } from "@/lib/demo-order";
 import { itemsSummary, shippingAddress, shortDate } from "@/lib/fulfilment";
 import { getStore } from "@/lib/store";
 import type { OrderView } from "@/lib/store/types";
-import { logout } from "./actions";
+import { logout, makeDemoOrder } from "./actions";
 
 export const dynamic = "force-dynamic";
+
+const DEMO: Record<string, string> = {
+  deleted: "Demo order deleted.",
+  failed: "Couldn't make the demo order. Check that Supabase has a capacity row for LUMI-POCKET-01.",
+  "no-db": "The database isn't set up, so there's nowhere to save a demo order.",
+};
 
 const VIEWS: { id: OrderView; label: string }[] = [
   { id: "to_ship", label: "To ship" },
@@ -18,7 +25,8 @@ const VIEWS: { id: OrderView; label: string }[] = [
 
 export default async function Page({ searchParams }: PageProps<"/admin">) {
   await requireAdmin();
-  const { view: v } = await searchParams;
+  const { view: v, demo } = await searchParams;
+  const demoMessage = typeof demo === "string" ? DEMO[demo] : undefined;
   const view = VIEWS.find((x) => x.id === v)?.id ?? "to_ship";
   const store = getStore();
   const orders = store ? await store.listOrders(view) : [];
@@ -39,6 +47,8 @@ export default async function Page({ searchParams }: PageProps<"/admin">) {
           </form>
         </div>
       </div>
+
+      {demoMessage ? <p role="status" className="mt-4 rounded-card bg-mint/40 px-4 py-3 text-sm font-semibold">{demoMessage}</p> : null}
 
       <nav className="mt-6 flex gap-2" aria-label="Order views">
         {VIEWS.map((x) => (
@@ -76,6 +86,7 @@ export default async function Page({ searchParams }: PageProps<"/admin">) {
                       <span className="block truncate text-sm text-muted">
                         {itemsSummary(o)}
                         {a.city ? ` · ${a.city}${a.state ? `, ${a.state}` : ""}` : ""}
+                        {isDemoOrder(o) ? " · Demo" : ""}
                         {o.protectionAmount ? " · Protection" : ""}
                         {o.unitNames ? ` · ${o.unitNames}` : ""}
                         {o.trackingNumber ? ` · ${o.trackingNumber}` : ""}
@@ -89,6 +100,23 @@ export default async function Page({ searchParams }: PageProps<"/admin">) {
           </ul>
         </>
       )}
+
+      {store ? (
+        <section aria-labelledby="demo-order" className="mt-8 rounded-card bg-white p-6 ring-1 ring-line">
+          <h2 id="demo-order" className="text-h3 font-bold">Demo order</h2>
+          <p className="mt-1 text-sm text-muted">
+            A fake paid order for 1 Pocket Lumi, to try packing and Chit Chats labels. No email goes out, no stock is used, and it stays out of the
+            CSV. Delete it from its page when you&apos;re done.
+          </p>
+          <form action={makeDemoOrder} className="mt-3 flex flex-wrap items-center gap-2">
+            <label htmlFor="demo-place" className="text-sm font-semibold">Ship to</label>
+            <select id="demo-place" name="place" defaultValue="toronto" className="h-11 rounded-chip border border-line bg-white px-4 text-[0.9375rem] outline-none focus:border-ink/40">
+              {DEMO_PLACES.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
+            </select>
+            <button type="submit" className={buttonClass("outline")}>Make demo order</button>
+          </form>
+        </section>
+      ) : null}
     </>
   );
 }

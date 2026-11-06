@@ -129,6 +129,16 @@ export class MemoryStore implements Store {
     if (patch.fulfilmentStatus === "shipped") o.shippedAt ??= new Date().toISOString();
   }
 
+  async addDemoOrder(order: Order) {
+    this.orders.set(order.id, structuredClone(order));
+  }
+
+  async deleteDemoOrder(orderId: string) {
+    const o = this.orders.get(orderId);
+    if (!o || o.stripeSessionId !== `demo_${orderId}`) return false;
+    return this.orders.delete(orderId);
+  }
+
   async markShippedEmailSent(orderId: string) {
     const o = this.orders.get(orderId);
     if (o) o.shippedEmailSentAt = new Date().toISOString();

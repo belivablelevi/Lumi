@@ -137,6 +137,40 @@ export class SupabaseStore implements Store {
     if (error) SupabaseStore.fail("mark shipped email sent", error);
   }
 
+  async addDemoOrder(order: Order) {
+    const { error } = await this.db.from("orders").insert({
+      id: order.id,
+      status: order.status,
+      fulfilment: order.fulfilment,
+      currency: order.currency,
+      subtotal: order.subtotal,
+      created_at: order.createdAt,
+      reservation_expires_at: order.reservationExpiresAt,
+      stripe_session_id: order.stripeSessionId,
+      customer_name: order.customerName ?? null,
+      shipping: order.shipping ?? null,
+      amount_total: order.amountTotal ?? null,
+      paid_at: order.paidAt ?? null,
+      counted_sold: false,
+      admin_note: order.adminNote ?? null,
+    });
+    if (error) SupabaseStore.fail("add demo order", error);
+    const { error: e2 } = await this.db.from("order_items").insert(
+      order.items.map((i, line) => ({ order_id: order.id, line, sku: i.sku, slug: i.slug, name: i.name, variant_id: i.variantId ?? null, qty: i.qty, unit_amount: i.unitAmount })),
+    );
+    if (e2) {
+      await this.db.from("orders").delete().eq("id", order.id);
+      SupabaseStore.fail("add demo order items", e2);
+    }
+  }
+
+  async deleteDemoOrder(orderId: string) {
+    // Only the row whose session id is exactly this demo's: a real order can't match.
+    const { data, error } = await this.db.from("orders").delete().eq("id", orderId).eq("stripe_session_id", `demo_${orderId}`).select("id");
+    if (error) SupabaseStore.fail("delete demo order", error);
+    return (data?.length ?? 0) > 0;
+  }
+
   async markRefunded(paymentIntent: string, refundedAmount: number, full: boolean): Promise<RefundResult> {
     const { data, error } = await this.db.rpc("mark_order_refunded", {
       p_payment_intent: paymentIntent,
