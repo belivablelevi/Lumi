@@ -1,4 +1,5 @@
 import { products } from "@/content/products";
+import { confirmed } from "./placeholder";
 import type { Order } from "./store/types";
 
 /**
@@ -18,8 +19,8 @@ export const DEMO_PLACES = [
 export type DemoPlace = (typeof DEMO_PLACES)[number]["id"];
 
 const PREFIX = "demo_";
-/** What a demo Lumi is "sold" for while the real price is still to be set. */
-export const DEMO_UNIT_CENTS = 4000;
+/** What a demo Lumi is "sold" for: the real price, or this if there isn't one. */
+export const DEMO_UNIT_CENTS = confirmed(products[0]?.price)?.amount ?? 3500;
 export const DEMO_NAME = "Demo order (not real)";
 
 export const isDemoOrder = (o: Pick<Order, "stripeSessionId">) => !!o.stripeSessionId?.startsWith(PREFIX);

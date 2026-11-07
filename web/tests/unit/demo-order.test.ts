@@ -11,8 +11,8 @@ const PARCEL: ParcelConfig = { boxKg: 0.03, unitKg: 0.03, cm: [22, 30, 3], handl
 describe("demo orders", () => {
   it("is a paid order for one Lumi with no email, no payment and nothing counted as sold", () => {
     const o = demoOrder("toronto", ID, new Date("2026-11-06T12:00:00Z"));
-    expect(o).toMatchObject({ id: ID, status: "paid", subtotal: 4000, amountTotal: 4000, paidAt: "2026-11-06T12:00:00.000Z", countedSold: false });
-    expect(o.items).toEqual([{ sku: "LUMI-POCKET-01", slug: "pocket-lumi", name: "Pocket Lumi", qty: 1, unitAmount: 4000 }]);
+    expect(o).toMatchObject({ id: ID, status: "paid", subtotal: 3500, amountTotal: 3500, paidAt: "2026-11-06T12:00:00.000Z", countedSold: false });
+    expect(o.items).toEqual([{ sku: "LUMI-POCKET-01", slug: "pocket-lumi", name: "Pocket Lumi", qty: 1, unitAmount: 3500 }]);
     expect(o.email).toBeUndefined();
     expect(o.paymentIntent).toBeUndefined();
     expect(isDemoOrder(o)).toBe(true);
