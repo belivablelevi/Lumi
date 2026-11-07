@@ -58,7 +58,8 @@ export const env = {
       : null,
   // What the customs form says about a Lumi. The origin has no default: a broker confirms it.
   customs: {
-    hsCode: get("CUSTOMS_HS_CODE") ?? "9503.00",
+    // The US wants all 10 digits. 9503.00.0090: "other toys", not labelled for children 12 and under.
+    hsCode: get("CUSTOMS_HS_CODE") ?? "9503.00.0090",
     originCountry: get("CUSTOMS_ORIGIN_COUNTRY")?.toUpperCase(),
     // One small lithium-ion cell built into the device (Chit Chats confirmed this code for one Lumi;
     // more than one uses the marked code, see packing() in lib/chitchats). "none" leaves it off.

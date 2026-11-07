@@ -156,6 +156,9 @@ export function shipmentRequest(order: Order, parcel: ParcelConfig, customs: Cus
   if (country === "US" && !customs.originCountry) {
     throw new ChitChatsError("US labels need the country Lumi is made in: set CUSTOMS_ORIGIN_COUNTRY in Vercel (for example CN), then redeploy.");
   }
+  if (country === "US" && customs.hsCode.replace(/[^0-9]/g, "").length !== 10) {
+    throw new ChitChatsError(`US labels need the full 10-digit US tariff code, not "${customs.hsCode}": set CUSTOMS_HS_CODE in Vercel (for example 9503.00.0090), then redeploy.`);
+  }
   const pack = packing(order, parcel, customs, country);
   if (pack.marked && pack.kg > MARKED_MAX_KG) throw new ChitChatsError(`This parcel would weigh ${pack.kg} kg. Battery parcels can be at most 5.5 lb (2.49 kg): split it.`);
   const [x, y, z] = [...pack.cm].sort((p, q) => q - p);
