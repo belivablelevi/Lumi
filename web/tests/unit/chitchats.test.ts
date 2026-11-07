@@ -132,6 +132,12 @@ describe("Chit Chats shipments", () => {
     expect(String(f.mock.calls[1]![0])).toBe("https://staging.chitchats.com/api/v1/clients/123456/shipments/R4Q286T84T");
   });
 
+  it("says what a 404 on a new shipment means, on the test site and the real one", async () => {
+    const f = vi.fn(async () => json({ error: { message: "Not Found" } }, 404));
+    await expect(createShipment(CFG, order(), PARCEL, CUSTOMS, f as typeof fetch)).rejects.toThrow(/test site has its own accounts.*CHIT_CHATS_SANDBOX/);
+    await expect(createShipment({ ...CFG, base: "https://chitchats.com" }, order(), PARCEL, CUSTOMS, f as typeof fetch)).rejects.toThrow(/CHIT_CHATS_CLIENT_ID/);
+  });
+
   it("asks Chit Chats to refresh the rates if a new shipment has none yet", async () => {
     let gets = 0;
     const f = vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
