@@ -33,6 +33,9 @@ export interface ParcelConfig {
   unitKg: number;
   /** Length, width, height in cm. */
   cm: [number, number, number];
+  /** The cardboard box for orders of more than one Lumi (battery rules need a box), if different. */
+  multiCm?: [number, number, number];
+  multiBoxKg?: number;
   handlingCents: number;
   fromPostalCode: string;
 }

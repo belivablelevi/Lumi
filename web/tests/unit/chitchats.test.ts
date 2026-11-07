@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { ChitChatsError, buyLabel, createShipment, deleteShipment, getShipment, parseShipment, shipmentRequest, type CustomsConfig } from "@/lib/chitchats";
+import { ChitChatsError, MARKED_HAZMAT, buyLabel, createShipment, deleteShipment, getShipment, packing, parseShipment, shipmentRequest, type CustomsConfig } from "@/lib/chitchats";
 import type { ParcelConfig } from "@/lib/shipping";
 import type { Order } from "@/lib/store/types";
 
@@ -63,7 +63,7 @@ describe("Chit Chats shipments", () => {
       value_currency: "cad",
       order_id: "0f8c2a1e",
       order_store: "other",
-      package_type: "thick_envelope",
+      package_type: "parcel", // two Lumis go in a box (battery rules)
       size_unit: "cm",
       size_x: 30,
       size_y: 22,
@@ -71,11 +71,30 @@ describe("Chit Chats shipments", () => {
       weight_unit: "kg",
       weight: 0.09,
       postage_type: "unknown",
-      hazmat_code: "CLASS_9_UNMARKED_LITHIUM_BATTERY",
+      hazmat_code: "CLASS_9_MARKED_LITHIUM_BATTERY",
       line_items: [{ quantity: 2, value_amount: "40.00", currency_code: "cad", hs_tariff_code: "9503.00", origin_country: "CN" }],
     });
     expect(JSON.stringify(body)).not.toContain("sam@example.com");
     expect(body).not.toHaveProperty("phone");
+  });
+
+  it("follows Chit Chats' battery rules: one Lumi unmarked in a mailer, more in a marked box, and only US shipments declared", () => {
+    const one = { items: [{ sku: "LUMI-POCKET-01", slug: "pocket-lumi", name: "Pocket Lumi", qty: 1, unitAmount: 4000 }], subtotal: 4000 };
+    const usOne = shipmentRequest(order("US", one), PARCEL, CUSTOMS);
+    expect(usOne).toMatchObject({ package_type: "thick_envelope", hazmat_code: "CLASS_9_UNMARKED_LITHIUM_BATTERY", weight: 0.06 });
+    expect(shipmentRequest(order("CA", one), PARCEL, CUSTOMS)).not.toHaveProperty("hazmat_code");
+    const caTwo = shipmentRequest(order("CA"), PARCEL, CUSTOMS);
+    expect(caTwo).toMatchObject({ package_type: "parcel" });
+    expect(caTwo).not.toHaveProperty("hazmat_code");
+    expect(shipmentRequest(order("US"), PARCEL, { ...CUSTOMS, hazmatCode: undefined })).not.toHaveProperty("hazmat_code");
+
+    const boxed: ParcelConfig = { ...PARCEL, multiCm: [15, 12, 8], multiBoxKg: 0.12 };
+    expect(packing(order("US"), boxed, CUSTOMS, "US")).toEqual({ units: 2, marked: true, packageType: "parcel", cm: [15, 12, 8], kg: 0.18, hazmatCode: MARKED_HAZMAT });
+    expect(packing(order("US", one), boxed, CUSTOMS, "US")).toMatchObject({ marked: false, cm: [22, 30, 3], kg: 0.06 });
+    expect(shipmentRequest(order("US"), boxed, CUSTOMS)).toMatchObject({ size_x: 15, size_y: 12, size_z: 8, weight: 0.18 });
+
+    const heavy = { items: [{ sku: "LUMI-POCKET-01", slug: "pocket-lumi", name: "Pocket Lumi", qty: 90, unitAmount: 4000 }] };
+    expect(() => shipmentRequest(order("CA", heavy), PARCEL, CUSTOMS)).toThrow(/5.5 lb/);
   });
 
   it("won't make a US label until the origin country is set", () => {
