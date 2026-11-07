@@ -57,6 +57,7 @@ Vercel address.
 | Launches | `src/content/launches.ts` |
 | Example personalities and the mood showcase | `src/content/personas.ts` |
 | Motion timings | `src/lib/motion.ts` |
+| Clip maker videos for TikTok and Instagram (`/admin/clips`): feature lines, 3D case model | `src/content/clip-features.ts`, `public/models/` (copies of `hardware/enclosure/mini_lumi_pcb/*.stl`) |
 
 ### Product states
 
