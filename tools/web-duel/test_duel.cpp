@@ -1,4 +1,4 @@
-// Native check of the website's Boop Pong harness: whole matches play out,
+// Native check of the website's Tilt Pong harness: whole matches play out,
 // someone wins, the screens show the game, and new seeds deal new Lumis.
 #include <stdio.h>
 #include <string.h>

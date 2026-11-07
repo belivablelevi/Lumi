@@ -1,4 +1,4 @@
-// Boop Pong between two Lumis, for the website: the real firmware (App, Game,
+// Tilt Pong between two Lumis, for the website: the real firmware (App, Game,
 // faces, genes) running on the simulator's fake hardware and radio.
 //
 // Built to WebAssembly by build.sh (web/public/duel/lumi-duel.wasm) and natively

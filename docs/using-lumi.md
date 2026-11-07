@@ -28,7 +28,7 @@ bouncing around in a bag), it goes back to sleep.
 Lumi tracks **happiness** and **energy**, and they survive sleep.
 
 - Pats raise happiness. Shaking, dropping and pat-spam lower it. Winning a
-  Boop Pong match is a big boost, and even losing one is fun.
+  Tilt Pong match is a big boost, and even losing one is fun.
 - Energy drains while awake and recharges while asleep.
 - The resting face follows mood: happy crescent eyes when it's content,
   droopy eyes when it's sad, half-closed lids when it's tired.
@@ -47,13 +47,13 @@ Lumi tracks **happiness** and **energy**, and they survive sleep.
 
 | Item | What it does |
 |---|---|
-| **PONG** | Boop Pong (below) |
+| **PONG** | Tilt Pong (below) |
 | **BATTERY** | Charge level, voltage, lifetime pats and match wins |
 | **UPDATE** | Wi-Fi firmware update (below) |
 | **SLEEP** | Go to sleep now |
 | **BACK** | Close the menu |
 
-## Boop Pong (2 players)
+## Tilt Pong (2 players)
 
 Classic Pong between two Lumis. Each screen is your half of the table, with
 your paddle along the bottom.

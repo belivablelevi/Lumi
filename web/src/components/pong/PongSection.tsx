@@ -4,12 +4,12 @@ import { PongDuel } from "./PongDuel";
 
 export function PongSection({ compact = false }: { compact?: boolean }) {
   return (
-    <section id="boop-pong" aria-labelledby="pong-title" className="container-page scroll-mt-24 py-12 lg:py-16">
+    <section id="tilt-pong" aria-labelledby="pong-title" className="container-page scroll-mt-24 py-12 lg:py-16">
       <div className={compact ? "" : "grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center lg:gap-14"}>
         <div className={compact ? "mb-8 max-w-2xl" : ""}>
           <SectionHeading
             id="pong-title"
-            eyebrow="Boop Pong"
+            eyebrow="Tilt Pong"
             title="Play a Lumi at Pong."
             lead="Two Lumis, one ball. Each screen is half the table, and you tilt your Lumi to slide the paddle. This is the real Lumi firmware running in your browser."
           />

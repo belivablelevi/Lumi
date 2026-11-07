@@ -1,5 +1,5 @@
 /**
- * Boop Pong between two Lumis: the real firmware (tools/web-duel/duel.cpp)
+ * Tilt Pong between two Lumis: the real firmware (tools/web-duel/duel.cpp)
  * compiled to WebAssembly. Works in the browser and in Node (for tests).
  */
 

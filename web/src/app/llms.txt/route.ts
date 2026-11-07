@@ -30,7 +30,7 @@ ${products}
 - It senses motion: pat it, shake it, tilt it or pick it up and it reacts. It has 29 expressions and 64 animations.
 - Every Lumi gets a random look and temperament (cheerful, sleepy, shy, grumpy or hyper) when it's made: ${combinations.toLocaleString("en-CA")} possible combinations.
 - Rarity: about ${pct(tierShare.common)} common, ${pct(tierShare.uncommon)} uncommon, ${pct(tierShare.rare)} rare and ${pct(tierShare.legendary)} legendary.
-- Two Lumis can play Boop Pong against each other.
+- Two Lumis can play Tilt Pong against each other.
 - Designed in Ottawa, Canada. Not on sale yet. When it is, it ships to Canada and the US, tracked.
 
 ## Pages

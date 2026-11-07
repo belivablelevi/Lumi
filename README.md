@@ -16,7 +16,7 @@ shares no code, artwork or branding with Rekko and isn't affiliated with it.
 | 0.96" OLED, 128×64, glowing cyan | SSD1306 0.96" 128×64 (blue panel reads as cyan) |
 | Motion sensor, 6-axis, feels every pat & shake | MPU-6050: pat, double-pat, pat-spam, shake, drop, tilt, flip, pick-up, put-down |
 | ESP32-C3 brain, runs 60+ animations | XIAO ESP32C3 · **64 animations** from 29 parametric expressions, plus blinking, eye-darts and breathing on top |
-| 2-player wireless battle | **Boop Pong** over ESP-NOW: classic Pong across two screens. Tilt to move your paddle, pat to smash, first to 5 |
+| 2-player wireless battle | **Tilt Pong** over ESP-NOW: classic Pong across two screens. Tilt to move your paddle, pat to smash, first to 5 |
 | Battery inside | 702025 300 mAh LiPo (the case can be resized for others) |
 | USB-C rechargeable | XIAO's USB-C + on-board charger |
 | Deep-sleeps when idle | ESP32-C3 deep sleep, display off, IMU on wake-on-motion |
@@ -30,11 +30,11 @@ All 29 expressions (rendered by the real firmware code in the simulator):
 
 ![expressions](docs/previews/expressions.png)
 
-Menu, battery, update and Boop Pong screens:
+Menu, battery, update and Tilt Pong screens:
 
 ![screens](docs/previews/screens.png)
 
-A scripted session: boot, pats, shake, menu, a full Boop Pong match, falling asleep
+A scripted session: boot, pats, shake, menu, a full Tilt Pong match, falling asleep
 ([tour.gif](docs/previews/tour.gif)).
 
 ## Every Lumi is one of a kind
@@ -73,14 +73,14 @@ firmware/
     animator.*                tweening, blinking, eye darts, motion layers
     gestures.*                pat / shake / tilt / pickup / freefall detection
     mood.h                    happiness + energy, persisted across deep sleep
-    pong.*                    Boop Pong: pairing, ball hand-off over the radio, scoring
+    pong.*                    Tilt Pong: pairing, ball hand-off over the radio, scoring
     app.*                     behaviour: modes, menu, sleep rules, screens
     gfx.*                     1-bit framebuffer + 5x7 font
 hardware/
   BOM.md · wiring.md
   enclosure/lumi_case.scad  parametric case; stl/ has ready-to-print parts
 docs/
-  using-lumi.md             gestures, mood, menu, Boop Pong, OTA, serial console
+  using-lumi.md             gestures, mood, menu, Tilt Pong, OTA, serial console
   assembly.md               build guide + first-power-up checklist
   studio.md                 Lumi Studio guide for makers
   previews/                 rendered images
@@ -142,7 +142,7 @@ plus a table row saying which gesture triggers it and in which mood range.
   are shakes. Low-passed gravity gives orientation; |a| ≈ 0 is free-fall.
   Tap timestamps come from the FIFO cadence, so they stay accurate even
   while the display is being redrawn.
-- **Boop Pong**: ESP-NOW broadcast, no pairing. The Lumi with the higher
+- **Tilt Pong**: ESP-NOW broadcast, no pairing. The Lumi with the higher
   MAC hosts and serves first. Tilt steers the paddle (low-passed gravity
   X). Only the Lumi the ball is on decides whether it was hit, so radio latency just makes the flight a little longer. Each
   ball crossing the net carries a sequence number plus its position, angle
@@ -156,7 +156,7 @@ plus a table row saying which gesture triggers it and in which mood range.
 ## Status
 
 - ✅ Core logic: 819 automated checks pass (ASan/UBSan clean), including
-  two simulated Lumis playing complete Boop Pong matches through their menus.
+  two simulated Lumis playing complete Tilt Pong matches through their menus.
 - ✅ Lumi Studio: 13 tests drive every tab offscreen and provision a virtual
   Lumi end to end. The packaged Linux app was built and started here. CI
   builds Windows and macOS too, but they haven't been tried by a person yet.

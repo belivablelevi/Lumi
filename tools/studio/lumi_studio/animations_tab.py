@@ -242,7 +242,7 @@ class AnimationsTab(QWidget):
 
     def _update_trigger_help(self):
         t = self.trigger.currentText()
-        self.trigger_help.setText(TRIGGER_HELP.get(t, "during Boop Pong" if t.startswith("pong") else ""))
+        self.trigger_help.setText(TRIGGER_HELP.get(t, "during Tilt Pong" if t.startswith("pong") else ""))
 
     def save_props(self):
         a = self.anim()

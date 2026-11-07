@@ -1,4 +1,4 @@
-# Native build of the website's Boop Pong harness, for its test:
+# Native build of the website's Tilt Pong harness, for its test:
 #   make -C tools/web-duel test
 # The WebAssembly build is build.sh.
 CORE := ../../firmware/lib/lumi_core/src

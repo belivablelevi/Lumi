@@ -93,7 +93,7 @@ const Key kLonelyLook[] = {K(Worried, -14, 0, None, 300, 700), K(Worried, 14, 0,
                            K(Sad, 0, 0, None, 300, 800)};
 const Key kLowBattery[] = {KF(Sleepy, 0, 0, None, 400, 2000, kFxLowBattery)};
 
-// ---- Boop Pong ------------------------------------------------------------
+// ---- Tilt Pong ------------------------------------------------------------
 const Key kSearching[] = {KF(Neutral, -14, 0, None, 250, 600, kFxQuestion),
                           KF(Neutral, 14, 0, None, 300, 600, kFxQuestion)};
 const Key kFound[] = {K(Excited, 0, 0, Hop, 100, 900)};

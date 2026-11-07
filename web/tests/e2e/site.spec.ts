@@ -49,7 +49,8 @@ test("the Lumi pill waits for the page head to scroll off, offers only what's re
   await expect(pill).toHaveCount(0);
   await scrollTo((await headBottom()) + 40);
   await expect(pill).toBeVisible();
-  await expect(pill.getByText("Coming soon")).toBeVisible();
+  // The price is set, but it isn't on sale yet: the pill shows the price and offers launch news.
+  await expect(pill.getByText(/^\$\d+\.\d{2} CAD$/)).toBeVisible();
   await expect(pill.getByRole("link", { name: /^Notify me/ })).toHaveAttribute("href", "/launches#pocket-first-run");
   const axe = await new AxeBuilder({ page }).include("aside").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
   expect(axe.violations.map((v) => v.id)).toEqual([]);
@@ -71,7 +72,7 @@ test("unknown pages get a friendly 404", async ({ page }) => {
 
 test("the shipped catalogue sells nothing yet and says so", async ({ page }) => {
   await page.goto("/products/pocket-lumi");
-  await expect(page.getByText("Price to be announced").first()).toBeVisible();
+  await expect(page.getByText(/\$\d+\.\d{2} CAD/).first()).toBeVisible();
   await expect(page.getByRole("button", { name: /pre-order|add to cart/i })).toHaveCount(0);
   await expect(page.getByText("Launch emails are coming soon").first()).toBeVisible();
   await expect(page.getByText("To be confirmed").first()).toBeVisible();
@@ -149,11 +150,11 @@ test.describe("reduced motion", () => {
   });
 });
 
-test.describe("Boop Pong", () => {
+test.describe("Tilt Pong", () => {
   test("plays itself, lets you take over, and goes back to the demo after 10 s", async ({ page }) => {
     await page.clock.install();
     await page.goto("/");
-    const game = page.getByRole("application", { name: /Boop Pong/ });
+    const game = page.getByRole("application", { name: /Tilt Pong/ });
     await game.scrollIntoViewIfNeeded();
     await page.clock.runFor(1500);
     await expect(game.getByText("Demo", { exact: true })).toBeVisible();
@@ -186,7 +187,7 @@ test.describe("Boop Pong", () => {
     test.use({ reducedMotion: "reduce" });
     test("waits for a tap instead of playing itself", async ({ page }) => {
       await page.goto("/");
-      const game = page.getByRole("application", { name: /Boop Pong/ });
+      const game = page.getByRole("application", { name: /Tilt Pong/ });
       await game.scrollIntoViewIfNeeded();
       await expect(game.getByText("Paused")).toBeVisible();
       await game.getByRole("button", { name: "Play the demo" }).click();

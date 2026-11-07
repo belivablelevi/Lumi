@@ -77,7 +77,7 @@ function PersonaTag({ who, p }: { who: string; p?: DuelPersona }) {
 }
 
 /**
- * Boop Pong against a Lumi, running the real firmware in WebAssembly. Tilt a
+ * Tilt Pong against a Lumi, running the real firmware in WebAssembly. Tilt a
  * phone, drag, or use the arrow keys; tap or Space to smash. With nobody
  * playing for 10 seconds it plays itself.
  */
@@ -266,7 +266,7 @@ export function PongDuel({ you, pal }: { you: GalleryImage; pal: GalleryImage })
         tabIndex={0}
         role="application"
         aria-roledescription="game"
-        aria-label="Boop Pong. Use the left and right arrow keys to move your paddle, Space to smash."
+        aria-label="Tilt Pong. Use the left and right arrow keys to move your paddle, Space to smash."
         onKeyDown={onKey}
         onKeyUp={onKey}
         onPointerDown={(e) => {

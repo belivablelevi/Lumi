@@ -4,7 +4,7 @@
 // Output (in the directory given as argv[1]):
 //   expressions.frames / .labels   one frame per expression
 //   anim_<name>.frames             every animation, 30 fps
-//   tour.frames                    a scripted session: pats, shake, menu, Boop Pong
+//   tour.frames                    a scripted session: pats, shake, menu, Tilt Pong
 //   screens.frames / .labels       stills of each UI screen
 // A .frames file is a sequence of raw 1024-byte SSD1306 page buffers.
 #include <math.h>
@@ -79,7 +79,7 @@ void renderAnimations() {
   fclose(index);
 }
 
-// A scripted session on device A, with device B as a Boop Pong partner.
+// A scripted session on device A, with device B as a Tilt Pong partner.
 struct Tour {
   sim::FakeAir air;
   sim::FakeHal ha, hb;
@@ -190,7 +190,7 @@ struct Tour {
     da.shake(900);
     da.run(1500);
 
-    // Both into Boop Pong (the menu opens on PONG).
+    // Both into Tilt Pong (the menu opens on PONG).
     openMenu();
     da.queuePat();
     db.queuePat();

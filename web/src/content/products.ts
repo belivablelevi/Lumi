@@ -122,7 +122,7 @@ export const products: Product[] = [
       { label: "Motion sensing", value: "6-axis motion sensor: pats, double pats, shakes, tilts, drops, pick-up and put-down" },
       { label: "Brain", value: "ESP32-C3" },
       { label: "Expressions", value: "29 expressions and 64 animations, with blinking and breathing on top" },
-      { label: "Play", value: "Boop Pong: two-player Pong between two Lumis, over the air" },
+      { label: "Play", value: "Tilt Pong: two-player Pong between two Lumis, over the air" },
       { label: "Sleep", value: "Sleeps when left alone and wakes when picked up" },
       { label: "Updates", value: "New animations over Wi-Fi" },
       { label: "Charging", value: "USB-C" },

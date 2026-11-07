@@ -135,7 +135,7 @@ const canvasPrint = (page: Page, name: string) =>
   });
 
 test("Lumi Studio stays behind the admin login", async ({ request }) => {
-  for (const path of ["/admin/studio", "/admin/studio/print?doc=odds"]) {
+  for (const path of ["/admin/studio", "/admin/studio/print?doc=odds", "/admin/clips"]) {
     const res = await request.get(path, { maxRedirects: 0 });
     expect([303, 307, 308]).toContain(res.status());
     expect(res.headers()["location"]).toContain("/admin/login");
@@ -212,4 +212,28 @@ test("Lumi Studio lays out birth certificates and odds cards for printing", asyn
   await page.goto("/admin/studio/print?doc=cards");
   await expect(page.locator("svg.studio-sheet")).toHaveCount(4, { timeout: 20_000 });
   await expect(page.getByText("Hi, I'm Unit0!")).toBeVisible();
+});
+
+// ---- Clip maker (admin only) ----------------------------------------------------------
+
+test("the Clip maker draws Lumi's face for videos", async ({ page }, info) => {
+  test.skip(info.project.name === "mobile", "The Clip maker is a desktop-size tool");
+  await signIn(page);
+  await page.goto("/admin/clips");
+  await expect(page.getByRole("heading", { name: "Clip maker" })).toBeVisible();
+
+  // The face close-up is plain 2D, so it works without WebGL: on a dark background the
+  // cyan face is the only bright thing, and it moves.
+  await page.getByRole("button", { name: "Face close-up" }).click();
+  await expect(page.getByRole("button", { name: "Face close-up" })).toHaveAttribute("aria-pressed", "true");
+  await page.getByLabel("Background").selectOption("night");
+  const preview = "Clip preview";
+  await expect.poll(async () => Number((await canvasPrint(page, preview)).split(":")[0]), { timeout: 15_000 }).toBeGreaterThan(500);
+  const first = await canvasPrint(page, preview);
+  await expect.poll(() => canvasPrint(page, preview), { timeout: 15_000 }).not.toBe(first);
+
+  // Back to the spin: the feature lines are there to edit.
+  await page.getByRole("button", { name: "3D spin" }).click();
+  await expect(page.getByLabel("Line 1", { exact: true })).toHaveValue("Pat it and it giggles");
+  await expect(page.getByRole("button", { name: /Record video/ })).toBeVisible();
 });
