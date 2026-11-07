@@ -18,7 +18,7 @@ export interface CustomsConfig {
   hsCode: string;
   /** Two-letter country the Lumi counts as made in. US labels need it. */
   originCountry?: string;
-  /** Chit Chats' battery code, or undefined for none. */
+  /** Chit Chats' battery code for a package with one Lumi, or undefined for none. */
   hazmatCode?: string;
   packageType: "parcel" | "thick_envelope";
 }
@@ -50,6 +50,44 @@ export class ChitChatsError extends Error {}
 export const CHIT_CHATS_LIVE = "https://chitchats.com";
 export const CHIT_CHATS_STAGING = "https://staging.chitchats.com";
 export const DESCRIPTION = "Lumi electronic toy keychain";
+export const MARKED_HAZMAT = "CLASS_9_MARKED_LITHIUM_BATTERY";
+/** Chit Chats' limit for a marked battery package: 5.5 lb. */
+export const MARKED_MAX_KG = 2.49;
+
+export interface Packing {
+  units: number;
+  /** More than one Lumi: Chit Chats' "Class 9 Marked" rules apply. */
+  marked: boolean;
+  packageType: CustomsConfig["packageType"];
+  cm: [number, number, number];
+  kg: number;
+  /** Only US shipments are declared: Chit Chats said Canadian ones don't need it. */
+  hazmatCode?: string;
+}
+
+/**
+ * How an order is packed, following Chit Chats' compliance answer (2026-11-06):
+ * - One Lumi: Class 9 Unmarked. A padded mailer is fine, no battery markings.
+ * - More than one: Class 9 Marked. A sturdy cardboard box, at most 5.5 lb, with a lithium
+ *   battery mark (with a phone number) on the same side as the label. US: send by U.S. Edge.
+ * - Both follow the same packing rules in Canada, but only US shipments carry the code.
+ */
+export function packing(order: Pick<Order, "items">, parcel: ParcelConfig, customs: CustomsConfig, country?: string): Packing {
+  const units = Math.max(1, order.items.reduce((n, i) => n + i.qty, 0));
+  const marked = units > 1;
+  const kg = marked && parcel.multiBoxKg !== undefined
+    ? Math.round((parcel.multiBoxKg + parcel.unitKg * units) * 1000) / 1000
+    : parcelKg(parcel, units);
+  const code = customs.hazmatCode === undefined ? undefined : marked ? MARKED_HAZMAT : customs.hazmatCode;
+  return {
+    units,
+    marked,
+    packageType: marked ? "parcel" : customs.packageType,
+    cm: (marked && parcel.multiCm) || parcel.cm,
+    kg,
+    ...(country?.toUpperCase() === "US" && code ? { hazmatCode: code } : {}),
+  };
+}
 
 const readJson = (text: string): unknown => {
   try {
@@ -118,8 +156,9 @@ export function shipmentRequest(order: Order, parcel: ParcelConfig, customs: Cus
   if (country === "US" && !customs.originCountry) {
     throw new ChitChatsError("US labels need the country Lumi is made in: set CUSTOMS_ORIGIN_COUNTRY in Vercel (for example CN), then redeploy.");
   }
-  const units = order.items.reduce((n, i) => n + i.qty, 0);
-  const [x, y, z] = [...parcel.cm].sort((p, q) => q - p);
+  const pack = packing(order, parcel, customs, country);
+  if (pack.marked && pack.kg > MARKED_MAX_KG) throw new ChitChatsError(`This parcel would weigh ${pack.kg} kg. Battery parcels can be at most 5.5 lb (2.49 kg): split it.`);
+  const [x, y, z] = [...pack.cm].sort((p, q) => q - p);
   const lineItems = customs.originCountry
     ? order.items.map((i) => ({
         quantity: i.qty,
@@ -146,16 +185,16 @@ export function shipmentRequest(order: Order, parcel: ParcelConfig, customs: Cus
     value_currency: "cad",
     order_id: order.id.slice(0, 8),
     order_store: "other",
-    package_type: customs.packageType,
+    package_type: pack.packageType,
     size_unit: "cm",
     size_x: x,
     size_y: y,
     size_z: z,
     weight_unit: "kg",
-    weight: parcelKg(parcel, units),
+    weight: pack.kg,
     postage_type: "unknown",
     ship_date: "today",
-    ...(customs.hazmatCode ? { hazmat_code: customs.hazmatCode } : {}),
+    ...(pack.hazmatCode ? { hazmat_code: pack.hazmatCode } : {}),
     ...(lineItems ? { line_items: lineItems } : {}),
   };
 }

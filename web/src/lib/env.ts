@@ -60,7 +60,8 @@ export const env = {
   customs: {
     hsCode: get("CUSTOMS_HS_CODE") ?? "9503.00",
     originCountry: get("CUSTOMS_ORIGIN_COUNTRY")?.toUpperCase(),
-    // One small lithium-ion cell built into the device; "none" leaves the battery code off.
+    // One small lithium-ion cell built into the device (Chit Chats confirmed this code for one Lumi;
+    // more than one uses the marked code, see packing() in lib/chitchats). "none" leaves it off.
     hazmatCode: get("CHIT_CHATS_HAZMAT_CODE") === "none" ? undefined : (get("CHIT_CHATS_HAZMAT_CODE") ?? "CLASS_9_UNMARKED_LITHIUM_BATTERY"),
     packageType: get("SHIPPING_PACKAGE_TYPE") === "thick_envelope" ? "thick_envelope" : "parcel",
   } satisfies CustomsConfig,
@@ -69,6 +70,8 @@ export const env = {
     boxKg: num(get("SHIPPING_BOX_KG"), 0.08),
     unitKg: num(get("SHIPPING_UNIT_KG"), 0.03),
     cm: dims(get("SHIPPING_BOX_CM")) ?? ([10, 10, 6] as [number, number, number]),
+    multiCm: dims(get("SHIPPING_MULTI_BOX_CM")) ?? undefined,
+    multiBoxKg: get("SHIPPING_MULTI_BOX_KG") ? num(get("SHIPPING_MULTI_BOX_KG"), 0.08) : undefined,
     handlingCents: Math.round(num(get("SHIPPING_HANDLING_CENTS"), 0)),
     fromPostalCode: get("SHIPPING_FROM_POSTAL_CODE") ?? "K1R6A1",
   },
