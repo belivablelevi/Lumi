@@ -66,8 +66,8 @@ export const brand = {
     ],
     // Add real profile URLs to show them. Empty entries are hidden.
     socials: [
-      { label: "Instagram", href: "" },
-      { label: "TikTok", href: "" },
+      { label: "Instagram", href: "https://www.instagram.com/snaggotech/" },
+      { label: "TikTok", href: "https://www.tiktok.com/@snaggotech" },
       { label: "YouTube", href: "" },
     ],
   },
