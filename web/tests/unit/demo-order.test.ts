@@ -23,7 +23,7 @@ describe("demo orders", () => {
 
   it("has an address Chit Chats can label for every place", () => {
     for (const p of DEMO_PLACES) {
-      const body = shipmentRequest(demoOrder(p.id, ID), PARCEL, { hsCode: "9503.00", originCountry: "CN", packageType: "parcel" });
+      const body = shipmentRequest(demoOrder(p.id, ID), PARCEL, { hsCode: "9503.00.0090", originCountry: "CN", packageType: "parcel" });
       expect(body).toMatchObject({ name: DEMO_NAME, country_code: p.address.country, postal_code: p.address.postal_code });
     }
     expect(() => demoOrder("nowhere" as never, ID)).toThrow(/Unknown demo place/);

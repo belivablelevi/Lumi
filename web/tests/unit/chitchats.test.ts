@@ -5,7 +5,7 @@ import type { Order } from "@/lib/store/types";
 
 const CFG = { clientId: "123456", token: "secret-token", base: "https://staging.chitchats.com" };
 const PARCEL: ParcelConfig = { boxKg: 0.03, unitKg: 0.03, cm: [22, 30, 3], handlingCents: 0, fromPostalCode: "K1R6A1" };
-const CUSTOMS: CustomsConfig = { hsCode: "9503.00", originCountry: "CN", hazmatCode: "CLASS_9_UNMARKED_LITHIUM_BATTERY", packageType: "thick_envelope" };
+const CUSTOMS: CustomsConfig = { hsCode: "9503.00.0090", originCountry: "CN", hazmatCode: "CLASS_9_UNMARKED_LITHIUM_BATTERY", packageType: "thick_envelope" };
 
 const order = (country = "US", over: Partial<Order> = {}): Order => ({
   id: "0f8c2a1e-1111-4111-8111-111111111111",
@@ -72,7 +72,7 @@ describe("Chit Chats shipments", () => {
       weight: 0.09,
       postage_type: "unknown",
       hazmat_code: "CLASS_9_MARKED_LITHIUM_BATTERY",
-      line_items: [{ quantity: 2, value_amount: "40.00", currency_code: "cad", hs_tariff_code: "9503.00", origin_country: "CN" }],
+      line_items: [{ quantity: 2, value_amount: "40.00", currency_code: "cad", hs_tariff_code: "9503.00.0090", origin_country: "CN" }],
     });
     expect(JSON.stringify(body)).not.toContain("sam@example.com");
     expect(body).not.toHaveProperty("phone");
@@ -99,6 +99,8 @@ describe("Chit Chats shipments", () => {
 
   it("won't make a US label until the origin country is set", () => {
     expect(() => shipmentRequest(order(), PARCEL, { ...CUSTOMS, originCountry: undefined })).toThrow(/CUSTOMS_ORIGIN_COUNTRY/);
+    expect(() => shipmentRequest(order(), PARCEL, { ...CUSTOMS, hsCode: "9503.00" })).toThrow(/10-digit.*CUSTOMS_HS_CODE/);
+    expect(shipmentRequest(order(), PARCEL, { ...CUSTOMS, hsCode: "9503000090" })).toMatchObject({ country_code: "US" });
     const ca = shipmentRequest(order("CA"), PARCEL, { ...CUSTOMS, originCountry: undefined, hazmatCode: undefined });
     expect(ca).toMatchObject({ country_code: "CA", province_code: "ON", postal_code: "M5V 2T6" });
     expect(ca).not.toHaveProperty("line_items");
