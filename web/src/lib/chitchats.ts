@@ -209,7 +209,14 @@ export async function getShipment(cfg: ChitChatsConfig, id: string, f: typeof fe
 
 /** Creates the shipment (unpaid, so nothing is charged yet) and returns it with its rates. */
 export async function createShipment(cfg: ChitChatsConfig, order: Order, parcel: ParcelConfig, customs: CustomsConfig, f: typeof fetch = fetch): Promise<ChitChatsShipment> {
-  const { res, json } = await call(cfg, f, "POST", "/shipments", shipmentRequest(order, parcel, customs));
+  const body = shipmentRequest(order, parcel, customs);
+  const { res, json } = await call(cfg, f, "POST", "/shipments", body).catch((e: unknown) => {
+    // Making a shipment only 404s when the account itself isn't found.
+    if (!(e instanceof ChitChatsError && e.message.includes("(404)"))) throw e;
+    throw new ChitChatsError(cfg.base === CHIT_CHATS_STAGING
+      ? "Chit Chats' test site doesn't know this client ID (404). The test site has its own accounts: use a client ID and token from staging.chitchats.com, or remove CHIT_CHATS_SANDBOX to use your real account."
+      : "Chit Chats doesn't know this client ID (404). Check CHIT_CHATS_CLIENT_ID in Vercel (the number in your Chit Chats dashboard's address).");
+  });
   const made = parseShipment(json);
   const id = made?.id ?? res.headers.get("location")?.split("/").filter(Boolean).pop();
   if (!id) throw new ChitChatsError("Chit Chats made the shipment but didn't say its ID. Check your Chit Chats shipments.");
