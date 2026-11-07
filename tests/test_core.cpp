@@ -163,7 +163,7 @@ static void testGestures() {
 }
 
 // ---------------------------------------------------------------------------
-// Boop Pong: two games talking through a simulated radio.
+// Tilt Pong: two games talking through a simulated radio.
 
 // How a scripted player moves its paddle (and whether it pats to smash).
 enum class Style { Perfect, Smasher, MissEveryThird, EdgeHits, Never };
@@ -563,7 +563,7 @@ static void testApp() {
     d.run(800);
     CHECK(app.mode() == App::Mode::Pet);
   }
-  {  // two Lumis play a full Boop Pong match through the menus
+  {  // two Lumis play a full Tilt Pong match through the menus
     sim::FakeAir air;
     FakeHal ha, hb;
     ha.mac[5] = 0x01;

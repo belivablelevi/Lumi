@@ -149,11 +149,11 @@ test.describe("reduced motion", () => {
   });
 });
 
-test.describe("Boop Pong", () => {
+test.describe("Tilt Pong", () => {
   test("plays itself, lets you take over, and goes back to the demo after 10 s", async ({ page }) => {
     await page.clock.install();
     await page.goto("/");
-    const game = page.getByRole("application", { name: /Boop Pong/ });
+    const game = page.getByRole("application", { name: /Tilt Pong/ });
     await game.scrollIntoViewIfNeeded();
     await page.clock.runFor(1500);
     await expect(game.getByText("Demo", { exact: true })).toBeVisible();
@@ -186,7 +186,7 @@ test.describe("Boop Pong", () => {
     test.use({ reducedMotion: "reduce" });
     test("waits for a tap instead of playing itself", async ({ page }) => {
       await page.goto("/");
-      const game = page.getByRole("application", { name: /Boop Pong/ });
+      const game = page.getByRole("application", { name: /Tilt Pong/ });
       await game.scrollIntoViewIfNeeded();
       await expect(game.getByText("Paused")).toBeVisible();
       await game.getByRole("button", { name: "Play the demo" }).click();

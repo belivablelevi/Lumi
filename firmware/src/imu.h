@@ -4,7 +4,7 @@
 //
 // Normal mode samples the accelerometer at 100 Hz into the chip's FIFO, so the
 // firmware can be busy pushing a frame to the display without dropping
-// samples (and tap timestamps stay accurate for Boop Pong).
+// samples (and tap timestamps stay accurate for Tilt Pong).
 // Sleep mode puts the chip in a low-power mode with a wake-on-motion
 // interrupt that pulls INT high to wake the ESP32-C3.
 #pragma once

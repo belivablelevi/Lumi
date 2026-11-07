@@ -5,7 +5,7 @@ import { loadDuel } from "@/lib/duel";
 const wasm = readFileSync(new URL("../../public/duel/lumi-duel.wasm", import.meta.url));
 const lit = (f: Uint8Array) => f.reduce((n, b) => n + ((b * 0x01010101) >>> 0).toString(2).split("1").length - 1, 0);
 
-describe("Boop Pong in WebAssembly (the real firmware)", () => {
+describe("Tilt Pong in WebAssembly (the real firmware)", () => {
   it("plays a whole demo match between two unique Lumis", async () => {
     const duel = await loadDuel(wasm);
     duel.newMatch(11, 22);

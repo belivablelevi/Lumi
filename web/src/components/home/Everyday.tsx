@@ -41,13 +41,13 @@ export function Everyday({ keyring, side }: { keyring: GalleryImage; side: Galle
           <figure className="overflow-hidden rounded-card bg-night text-white">
             <div className="p-6">
               <div className="aspect-[2/1] rounded-[14px] bg-black p-2 ring-1 ring-white/10">
-                <OledScreen src={persona("mimox").animations.pong_win_match!.file} label="Lumi celebrating a Boop Pong win" />
+                <OledScreen src={persona("mimox").animations.pong_win_match!.file} label="Lumi celebrating a Tilt Pong win" />
               </div>
             </div>
             <figcaption className="p-6 pt-0">
               <p className="font-bold">Play with a friend</p>
-              <p className="text-sm text-white/70">Boop Pong: hold two Lumis near each other and tilt to move your paddle.</p>
-              <a href="#boop-pong" className="mt-2 inline-block text-sm font-bold text-oled underline underline-offset-4">Try it here</a>
+              <p className="text-sm text-white/70">Tilt Pong: hold two Lumis near each other and tilt to move your paddle.</p>
+              <a href="#tilt-pong" className="mt-2 inline-block text-sm font-bold text-oled underline underline-offset-4">Try it here</a>
             </figcaption>
           </figure>
         </Reveal>

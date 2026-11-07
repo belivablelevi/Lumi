@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds the website's Boop Pong (the real firmware) to WebAssembly:
+# Builds the website's Tilt Pong (the real firmware) to WebAssembly:
 #   tools/web-duel/build.sh   ->   web/public/duel/lumi-duel.wasm
 # Downloads wasi-sdk (clang + wasi-libc + libc++ for wasm) into build/ once.
 set -euo pipefail

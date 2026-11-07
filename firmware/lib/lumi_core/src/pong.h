@@ -1,4 +1,4 @@
-// Boop Pong: classic Pong between two Lumis.
+// Tilt Pong: classic Pong between two Lumis.
 //
 // Each Lumi shows its own half of the court with a paddle along the bottom.
 // Tilt Lumi to slide the paddle, like turning the knob on the original Pong:
@@ -82,7 +82,7 @@ enum class Phase : uint8_t {
   Idle,
   Lobby,     // looking for a pal
   Inviting,  // found one, we host, waiting for them to accept
-  Intro,     // "BOOP PONG" title card
+  Intro,     // "TILT PONG" title card
   Play,
   MatchOver,
   Aborted,

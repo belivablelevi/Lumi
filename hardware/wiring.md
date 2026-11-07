@@ -158,7 +158,7 @@ Also:
   would flatten the battery in days.
 - **Lower the TP4056's charge current** (below).
 
-If the Wi-Fi or Boop Pong range is poor, try a different board before blaming
+If the Wi-Fi or Tilt Pong range is poor, try a different board before blaming
 the firmware. Some C3 SuperMini batches have weak antennas.
 
 ## TP4056 charge current

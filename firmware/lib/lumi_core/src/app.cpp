@@ -619,7 +619,7 @@ void App::renderPong(Canvas& c, uint32_t now) {
   char buf[32];
 
   if (p == Phase::Intro) {
-    c.textCentered(2, "BOOP", 3);
+    c.textCentered(2, "TILT", 3);
     c.textCentered(28, "PONG", 2);
     c.textCentered(50, (el / 1200) & 1 ? "tilt to move" : "don't miss the ball!", 1);
     return;
@@ -635,14 +635,14 @@ void App::renderPong(Canvas& c, uint32_t now) {
   drawCompactFace(c, now);
   switch (p) {
     case Phase::Lobby: {
-      c.textCentered(0, "BOOP PONG", 1);
+      c.textCentered(0, "TILT PONG", 1);
       static const char* const kDots[] = {"finding a pal", "finding a pal.", "finding a pal..",
                                           "finding a pal..."};
       c.textCentered(56, kDots[(now / 400) % 4], 1);
       break;
     }
     case Phase::Inviting:
-      c.textCentered(0, "BOOP PONG", 1);
+      c.textCentered(0, "TILT PONG", 1);
       c.textCentered(56, "found a pal!", 1);
       break;
     case Phase::Play:

@@ -15,9 +15,9 @@ jobs:
         run: make -C tools/sim run
       - name: Accelerometer driver against register models
         run: make -C tests/imu
-      - name: Website Boop Pong harness (native)
+      - name: Website Tilt Pong harness (native)
         run: make -C tools/web-duel test
-      - name: Website Boop Pong builds to WebAssembly
+      - name: Website Tilt Pong builds to WebAssembly
         run: tools/web-duel/build.sh
 
   firmware:

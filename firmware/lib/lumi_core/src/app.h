@@ -26,7 +26,7 @@ class Hal {
   virtual void macAddress(uint8_t mac[6]) = 0;
   virtual void setContrast(uint8_t level) = 0;
 
-  // Boop Pong radio.
+  // Tilt Pong radio.
   virtual bool radioStart() = 0;
   virtual void radioStop() = 0;
   virtual void radioSend(const pong::Packet& p) = 0;
