@@ -128,6 +128,7 @@ export const products: Product[] = [
       { label: "Charging", value: "USB-C" },
       { label: "Battery", value: tbc("Cell capacity and real-world battery life") },
       { label: "Size", value: "Case design: 35 × 37 × 25.5 mm, plus the keyring loop" },
+      { label: "Age", value: "14 and up" },
       { label: "Materials", value: tbc("Production shell material and finish") },
       { label: "Warranty", value: tbc("Warranty terms") },
     ],
