@@ -87,7 +87,7 @@ export const products: Product[] = [
       "Pocket Lumi is a keychain companion with a glowing 0.96-inch screen for a face. It notices when you pat it, shake it, tilt it or pick it up, and it answers with one of 64 little animations.",
       "Which Lumi you get is pure luck. The shape of its eyes, the glint in them, a little accent, and whether it's cheerful, sleepy, shy, grumpy or hyper are all picked at random when it's made, and no two are the same. You meet yours when it arrives.",
     ],
-    price: tbc("Retail price in CAD"),
+    price: { amount: 3500, currency: "CAD" },
     variants: [
       { id: "grey", name: "Light grey", swatch: "#dcddda", image: 0 },
       { id: "black", name: "Black", swatch: "#26272b", image: 4 },
