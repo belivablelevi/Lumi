@@ -5,7 +5,8 @@ import type { Order } from "@/lib/store/types";
 
 const CFG = { clientId: "123456", token: "secret-token", base: "https://staging.chitchats.com" };
 const PARCEL: ParcelConfig = { boxKg: 0.03, unitKg: 0.03, cm: [22, 30, 3], handlingCents: 0, fromPostalCode: "K1R6A1" };
-const CUSTOMS: CustomsConfig = { hsCode: "9503.00.0090", originCountry: "CN", hazmatCode: "CLASS_9_UNMARKED_LITHIUM_BATTERY", packageType: "thick_envelope" };
+const MAKER = { name: "Example Toy Works", street: "1 Test Rd", city: "Shenzhen", postalCode: "518000", provinceCode: "GD", countryCode: "CN" };
+const CUSTOMS: CustomsConfig = { hsCode: "9503.00.0090", originCountry: "CN", manufacturer: MAKER, hazmatCode: "CLASS_9_UNMARKED_LITHIUM_BATTERY", packageType: "thick_envelope" };
 
 const order = (country = "US", over: Partial<Order> = {}): Order => ({
   id: "0f8c2a1e-1111-4111-8111-111111111111",
@@ -72,7 +73,21 @@ describe("Chit Chats shipments", () => {
       weight: 0.09,
       postage_type: "unknown",
       hazmat_code: "CLASS_9_MARKED_LITHIUM_BATTERY",
-      line_items: [{ quantity: 2, value_amount: "40.00", currency_code: "cad", hs_tariff_code: "9503.00.0090", origin_country: "CN" }],
+      line_items: [
+        {
+          quantity: 2,
+          value_amount: "40.00",
+          currency_code: "cad",
+          hs_tariff_code: "9503.00.0090",
+          origin_country: "CN",
+          manufacturer_contact: "Example Toy Works",
+          manufacturer_street: "1 Test Rd",
+          manufacturer_city: "Shenzhen",
+          manufacturer_postal_code: "518000",
+          manufacturer_province_code: "GD",
+          manufacturer_country_code: "CN",
+        },
+      ],
     });
     expect(JSON.stringify(body)).not.toContain("sam@example.com");
     expect(body).not.toHaveProperty("phone");
@@ -99,6 +114,12 @@ describe("Chit Chats shipments", () => {
 
   it("won't make a US label until the origin country is set", () => {
     expect(() => shipmentRequest(order(), PARCEL, { ...CUSTOMS, originCountry: undefined })).toThrow(/CUSTOMS_ORIGIN_COUNTRY/);
+    // Without the manufacturer, Chit Chats only offers International Tracked (their answer, 2026-11-09).
+    expect(() => shipmentRequest(order(), PARCEL, { ...CUSTOMS, manufacturer: undefined })).toThrow(/CUSTOMS_MANUFACTURER_NAME/);
+    const noProvince = shipmentRequest(order(), PARCEL, { ...CUSTOMS, manufacturer: { ...MAKER, provinceCode: undefined } });
+    expect(noProvince.line_items?.[0]).not.toHaveProperty("manufacturer_province_code");
+    expect(noProvince.line_items?.[0]).not.toHaveProperty("manufacturer_street_2");
+    expect(shipmentRequest(order("CA"), PARCEL, { ...CUSTOMS, manufacturer: undefined })).toMatchObject({ country_code: "CA" });
     expect(() => shipmentRequest(order(), PARCEL, { ...CUSTOMS, hsCode: "9503.00" })).toThrow(/10-digit.*CUSTOMS_HS_CODE/);
     expect(shipmentRequest(order(), PARCEL, { ...CUSTOMS, hsCode: "9503000090" })).toMatchObject({ country_code: "US" });
     const ca = shipmentRequest(order("CA"), PARCEL, { ...CUSTOMS, originCountry: undefined, hazmatCode: undefined });
