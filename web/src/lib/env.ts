@@ -51,15 +51,6 @@ export const env = {
   shippingTable: shippingTable(get),
   // US import duties (SHIPPING_US_DUTY_PERCENT, SHIPPING_US_DUTY_FEE) and free shipping in Canada (SHIPPING_FREE_OVER).
   shippingRules: shippingRules(get),
-  // Live shipping prices from Canada Post's Rating API. Without these, checkout uses shippingTable.
-  canadaPost:
-    get("CANADA_POST_API_KEY") && get("CANADA_POST_API_SECRET") && get("CANADA_POST_CUSTOMER_NUMBER")
-      ? {
-          apiKey: get("CANADA_POST_API_KEY")!,
-          apiSecret: get("CANADA_POST_API_SECRET")!,
-          customerNumber: get("CANADA_POST_CUSTOMER_NUMBER")!,
-        }
-      : null,
   // Chit Chats labels from the order admin. CHIT_CHATS_SANDBOX=1 uses their staging site (fake credits).
   chitChats:
     get("CHIT_CHATS_CLIENT_ID") && get("CHIT_CHATS_ACCESS_TOKEN")
