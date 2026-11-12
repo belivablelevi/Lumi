@@ -14,10 +14,25 @@ export interface ChitChatsConfig {
   base: string;
 }
 
+/** Who makes the Lumi, for each customs line. Chit Chats only offers U.S. Edge and U.S. Select with it. */
+export interface Manufacturer {
+  name: string;
+  street: string;
+  street2?: string;
+  city: string;
+  postalCode: string;
+  /** Province or state code, where the country has them. */
+  provinceCode?: string;
+  /** Two letters, for example CA or CN. */
+  countryCode: string;
+}
+
 export interface CustomsConfig {
   hsCode: string;
   /** Two-letter country the Lumi counts as made in. US labels need it. */
   originCountry?: string;
+  /** US labels need it: without it Chit Chats only offers International Tracked. */
+  manufacturer?: Manufacturer;
   /** Chit Chats' battery code for a package with one Lumi, or undefined for none. */
   hazmatCode?: string;
   packageType: "parcel" | "thick_envelope";
@@ -159,9 +174,26 @@ export function shipmentRequest(order: Order, parcel: ParcelConfig, customs: Cus
   if (country === "US" && customs.hsCode.replace(/[^0-9]/g, "").length !== 10) {
     throw new ChitChatsError(`US labels need the full 10-digit US tariff code, not "${customs.hsCode}": set CUSTOMS_HS_CODE in Vercel (for example 9503.00.0090), then redeploy.`);
   }
+  if (country === "US" && !customs.manufacturer) {
+    throw new ChitChatsError(
+      "US labels need who makes Lumi (without it Chit Chats only offers International Tracked): set CUSTOMS_MANUFACTURER_NAME, _STREET, _CITY, _POSTAL_CODE and _COUNTRY in Vercel (and _PROVINCE where there is one), then redeploy.",
+    );
+  }
   const pack = packing(order, parcel, customs, country);
   if (pack.marked && pack.kg > MARKED_MAX_KG) throw new ChitChatsError(`This parcel would weigh ${pack.kg} kg. Battery parcels can be at most 5.5 lb (2.49 kg): split it.`);
   const [x, y, z] = [...pack.cm].sort((p, q) => q - p);
+  const m = customs.manufacturer;
+  const maker = m
+    ? {
+        manufacturer_contact: m.name,
+        manufacturer_street: m.street,
+        ...(m.street2 ? { manufacturer_street_2: m.street2 } : {}),
+        manufacturer_city: m.city,
+        manufacturer_postal_code: m.postalCode,
+        ...(m.provinceCode ? { manufacturer_province_code: m.provinceCode } : {}),
+        manufacturer_country_code: m.countryCode,
+      }
+    : {};
   const lineItems = customs.originCountry
     ? order.items.map((i) => ({
         quantity: i.qty,
@@ -172,6 +204,7 @@ export function shipmentRequest(order: Order, parcel: ParcelConfig, customs: Cus
         origin_country: customs.originCountry,
         weight: Math.round(parcel.unitKg * 1000),
         weight_unit: "g",
+        ...maker,
       }))
     : undefined;
   return {

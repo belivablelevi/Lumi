@@ -42,6 +42,7 @@ export default async function Page({ searchParams }: PageProps<"/admin">) {
           ) : null}
           <Link href="/admin/studio" className={buttonClass("outline")}>Lumi Studio</Link>
           <Link href="/admin/clips" className={buttonClass("outline")}>Clip maker</Link>
+          <Link href="/admin/videos" className={buttonClass("outline")}>Videos</Link>
           <Link href="/admin/canada-post" className={buttonClass("outline")}>Canada Post test</Link>
           <form action={logout}>
             <button type="submit" className={buttonClass("ghost")}>Sign out</button>

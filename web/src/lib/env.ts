@@ -18,6 +18,19 @@ const dims = (v: string | undefined): [number, number, number] | null => {
   return p.length === 3 && p.every((n) => Number.isFinite(n) && n > 0) ? [p[0]!, p[1]!, p[2]!] : null;
 };
 
+/** Who makes Lumi, for the customs lines. Only used once the name, street, city, postal code and country are all set. */
+const manufacturer = (): CustomsConfig["manufacturer"] => {
+  const name = get("CUSTOMS_MANUFACTURER_NAME");
+  const street = get("CUSTOMS_MANUFACTURER_STREET");
+  const city = get("CUSTOMS_MANUFACTURER_CITY");
+  const postalCode = get("CUSTOMS_MANUFACTURER_POSTAL_CODE");
+  const countryCode = get("CUSTOMS_MANUFACTURER_COUNTRY")?.toUpperCase();
+  if (!name || !street || !city || !postalCode || !countryCode) return undefined;
+  const street2 = get("CUSTOMS_MANUFACTURER_STREET_2");
+  const provinceCode = get("CUSTOMS_MANUFACTURER_PROVINCE")?.toUpperCase();
+  return { name, street, city, postalCode, countryCode, ...(street2 ? { street2 } : {}), ...(provinceCode ? { provinceCode } : {}) };
+};
+
 export const env = {
   siteUrl: brand.siteUrl,
   stripeSecretKey: get("STRIPE_SECRET_KEY"),
@@ -61,6 +74,7 @@ export const env = {
     // The US wants all 10 digits. 9503.00.0090: "other toys", not labelled for children 12 and under.
     hsCode: get("CUSTOMS_HS_CODE") ?? "9503.00.0090",
     originCountry: get("CUSTOMS_ORIGIN_COUNTRY")?.toUpperCase(),
+    manufacturer: manufacturer(),
     // One small lithium-ion cell built into the device (Chit Chats confirmed this code for one Lumi;
     // more than one uses the marked code, see packing() in lib/chitchats). "none" leaves it off.
     hazmatCode: get("CHIT_CHATS_HAZMAT_CODE") === "none" ? undefined : (get("CHIT_CHATS_HAZMAT_CODE") ?? "CLASS_9_UNMARKED_LITHIUM_BATTERY"),

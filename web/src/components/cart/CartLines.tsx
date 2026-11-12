@@ -2,15 +2,17 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { Gift, Minus, Plus, Trash2 } from "lucide-react";
 import { formatMoney } from "@/lib/money";
 import { confirmed } from "@/lib/placeholder";
 import { fulfilmentOf } from "@/lib/cart";
+import { ODDS_CARD, oddsCardCount } from "@/lib/freebies";
 import { StatusBadge } from "../ui/StatusBadge";
 import { useCart } from "./CartProvider";
 
 export function CartLines({ onNavigate }: { onNavigate?: () => void }) {
   const { lines, catalogue, setQty, remove } = useCart();
+  const cards = oddsCardCount(lines, catalogue);
   return (
     <ul className="divide-y divide-line">
       {lines.map((l) => {
@@ -75,6 +77,25 @@ export function CartLines({ onNavigate }: { onNavigate?: () => void }) {
           </li>
         );
       })}
+      {cards > 0 ? (
+        <li className="flex gap-4 py-4" data-testid="free-odds-card">
+          <div className="grid size-20 shrink-0 place-items-center rounded-[18px] bg-mint-pale text-mint-deep">
+            <Gift className="size-8" aria-hidden />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="font-bold text-ink">{ODDS_CARD.name}</p>
+                <p className="text-sm text-muted">{ODDS_CARD.note}</p>
+              </div>
+              <p className="shrink-0 font-bold uppercase tracking-wide text-mint-deep">Free</p>
+            </div>
+            <p className="mt-2 text-sm text-muted">
+              Quantity: <span className="font-bold tabular-nums text-ink">{cards}</span>
+            </p>
+          </div>
+        </li>
+      ) : null}
     </ul>
   );
 }

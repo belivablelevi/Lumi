@@ -30,6 +30,9 @@ test("add to cart, change quantity, survive a reload, remove", async ({ page }) 
   await expect(drawer).toBeVisible();
   await expect(drawer.getByText("$98.00 CAD").first()).toBeVisible();
   await expect(drawer.getByText("This is a pre-order")).toBeVisible();
+  // The personality odds card rides along as a free line, one per Lumi, and never changes the price.
+  await expect(drawer.getByTestId("free-odds-card")).toContainText("Free");
+  await expect(drawer.getByTestId("free-odds-card")).toContainText("Quantity: 2");
   // Free shipping over $100 in this build: two $49 Lumis are $2 short.
   // The North's $15 shipping is over the $15 limit, so it's left out.
   await expect(drawer.getByText(/more for free shipping in Canada, except the territories/)).toContainText("Add $2.00 CAD more");
