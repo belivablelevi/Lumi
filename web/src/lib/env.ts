@@ -78,7 +78,7 @@ export const env = {
     cm: dims(get("SHIPPING_BOX_CM")) ?? ([10, 10, 6] as [number, number, number]),
     multiCm: dims(get("SHIPPING_MULTI_BOX_CM")) ?? undefined,
     multiBoxKg: get("SHIPPING_MULTI_BOX_KG") ? num(get("SHIPPING_MULTI_BOX_KG"), 0.08) : undefined,
-    handlingCents: Math.round(num(get("SHIPPING_HANDLING_CENTS"), 0)),
+    handlingCents: Math.round(num(get("SHIPPING_HANDLING_CENTS"), 200)),
     fromPostalCode: get("SHIPPING_FROM_POSTAL_CODE") ?? "K1R6A1",
   },
   demoCatalogue: get("LUMI_DEMO_CATALOGUE") === "1",
