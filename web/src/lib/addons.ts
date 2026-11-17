@@ -5,7 +5,7 @@ import type { Addons } from "./store/types";
 // whether it wants protection and how big a tip.
 
 /** Shipping protection: one flat fee per order, in cents (CAD). */
-export const PROTECTION_CENTS = 398;
+export const PROTECTION_CENTS = 599;
 export const PROTECTION_LABEL = "Shipping protection";
 
 /** The tip buttons, in cents. "Custom" allows any whole-dollar or cents amount up to TIP_MAX_CENTS. */

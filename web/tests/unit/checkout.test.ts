@@ -67,7 +67,7 @@ describe("startCheckout", () => {
     expect(order).toMatchObject({ protectionAmount: PROTECTION_CENTS, tipAmount: 500 });
     expect(lineItems(order).map((l) => [l.price_data!.product_data!.name, l.price_data!.unit_amount, l.quantity])).toEqual([
       ["Pocket Lumi (pre-order)", 5900, 1],
-      ["Shipping protection", 398, 1],
+      ["Shipping protection", 599, 1],
       ["Tip", 500, 1],
     ]);
   });
