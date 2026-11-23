@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       payments: stripePayments(stripe),
       countries: env.shippingCountries,
       quote: (to, units, subtotal) =>
-        quoteShipping(to, units, { parcel: env.parcel, table: env.shippingTable, rules: env.shippingRules, canadaPost: env.canadaPost, log: console.error }, subtotal),
+        quoteShipping(to, units, { parcel: env.parcel, table: env.shippingTable, rules: env.shippingRules }, subtotal),
     });
     return result.ok
       ? NextResponse.json({ amount: result.quote.amount, label: result.quote.label }, { headers: { "cache-control": "no-store" } })

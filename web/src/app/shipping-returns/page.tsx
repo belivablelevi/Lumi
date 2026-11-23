@@ -44,7 +44,13 @@ export default function Page() {
           ],
         },
         { heading: "When your Lumi arrives", body: ["Lumi travels asleep, so bumps in the post can't wake it. Tap its screen three times and it'll wake up and say hello."] },
-        { heading: "Pre-orders", note: "when pre-ordered Lumis are dispatched, when payment is taken, and what happens if a launch is delayed." },
+        {
+          heading: "Pre-orders",
+          body: [
+            "A pre-ordered Lumi ships in the dispatch window shown on its product page. You pay in full when you order, and we email you before it ships.",
+            "You can cancel a pre-order for a full refund at any time before it ships. If a launch is delayed, we'll email you a new estimate and you can still cancel.",
+          ],
+        },
         { heading: "Mixed orders", note: "pre-orders and in-stock items are checked out separately; explain how each ships." },
         { heading: "Returns and refunds", note: "return window, condition, how refunds are made, and cancellation of pre-orders." },
         { heading: "Damaged or faulty Lumis", note: "how to report a problem and what we'll do." },
