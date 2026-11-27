@@ -5,8 +5,7 @@ import { STATUS_LABEL } from "@/lib/product-state";
 import { renderImage } from "@/lib/renders";
 import { Hero } from "@/components/home/Hero";
 import { ChooseCompanion } from "@/components/home/ChooseCompanion";
-import { PersonalityShowcase } from "@/components/home/PersonalityShowcase";
-import { HowItsMade } from "@/components/home/HowItsMade";
+import { MakingWorkshop } from "@/components/home/MakingWorkshop";
 import { PongSection } from "@/components/pong/PongSection";
 import { Everyday } from "@/components/home/Everyday";
 import { LaunchModule } from "@/components/home/LaunchModule";
@@ -46,16 +45,12 @@ export default function Home() {
         <div className="mt-10">
           <RollLumi />
         </div>
-        <p className="mt-5 text-sm text-muted">
-          A demo roll, made by the same code that decides a real Lumi. Yours is rolled when it is made.
-        </p>
       </section>
 
+      <MakingWorkshop />
       <ChooseCompanion pocket={pocket} desk={desk} />
       <Everyday keyring={renderImage("on-keyring.png")} side={renderImage("usb-side.png")} />
-      <HowItsMade />
       <PongSection />
-      <PersonalityShowcase />
       <LaunchModule launch={launch} />
       <BrandStory />
     </>

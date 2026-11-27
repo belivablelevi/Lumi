@@ -99,7 +99,7 @@ test("the screens play real firmware frames", async ({ page }) => {
 });
 
 test("the personality showcase switches mood and unit", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/our-world");
   await page.getByRole("button", { name: "Sleepy", exact: true }).click();
   await page.getByRole("button", { name: /^Ni/ }).click();
   await expect(page.getByText("Ni is sleepy")).toBeVisible();
@@ -216,7 +216,7 @@ test("roll a Lumi plays the reveal, and the same word always gives the same Lumi
   const rollOnce = async (word: string) => {
     await page.goto("/roll");
     await page.getByLabel("Type any name or word").fill(word);
-    const button = page.getByRole("button", { name: /roll a lumi|roll again/i });
+    const button = page.getByRole("button", { name: /roll a lumi|roll again/i }).first();
     await expect(button).toBeEnabled();
     await button.click();
     await expect(page.getByText("A demo roll, not your Lumi")).toBeVisible({ timeout: 10000 });
