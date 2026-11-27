@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { listedProducts } from "@/lib/catalogue";
 import { ShopGrid } from "@/components/product/ShopGrid";
-import { RollLumi } from "@/components/roll/RollLumi";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { SectionHeading } from "@/components/ui/Section";
 
 export const metadata: Metadata = { title: "Pocket Lumis", description: "Keychain-sized companions that feel every pat, shake and tilt.", alternates: { canonical: "/pocket" } };
 
@@ -18,12 +16,6 @@ export default function PocketPage() {
       </p>
       <section className="container-page" aria-label="Pocket Lumis">
         <ShopGrid products={products} initialCategory="pocket" />
-      </section>
-      <section className="container-page py-16" aria-labelledby="roll-title">
-        <SectionHeading id="roll-title" eyebrow="Roll a Lumi" title="Every one is different." lead="Which one you get is luck, and yours will be its own. Type a word and see which Lumi the dice would roll." />
-        <div className="mt-10">
-          <RollLumi />
-        </div>
       </section>
     </>
   );

@@ -49,6 +49,8 @@ export function RollLumi() {
   const [core, setCore] = useState<StudioCore | null>(null);
   const [failed, setFailed] = useState(false);
   const [text, setText] = useState("");
+  /** True while the box holds a word we picked, so the next roll picks a new one. Typing clears it. */
+  const [auto, setAuto] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [rolling, setRolling] = useState(false);
   const [rollId, setRollId] = useState(0);
@@ -70,7 +72,9 @@ export function RollLumi() {
   const roll = useCallback(
     (raw: string) => {
       if (!core) return;
-      const word = raw.trim() || randomWord();
+      const typed = raw.trim();
+      const word = typed || randomWord();
+      setAuto(!typed);
       setText(word);
       const seed = seedFromText(word);
       const g = core.genesFromSeed(seed);
@@ -221,14 +225,14 @@ export function RollLumi() {
         className="flex flex-col gap-3 sm:flex-row"
         onSubmit={(e) => {
           e.preventDefault();
-          roll(text);
+          roll(auto ? "" : text);
         }}
       >
         <label className="sr-only" htmlFor="roll-text">Type any name or word</label>
         <input
           id="roll-text"
           value={text}
-          onChange={(e) => setText(e.target.value.slice(0, 40))}
+          onChange={(e) => { setAuto(false); setText(e.target.value.slice(0, 40)); }}
           placeholder="Type any name or word"
           autoComplete="off"
           className="h-14 flex-1 rounded-chip border border-ink/15 bg-white px-5 text-base outline-offset-2"
@@ -254,6 +258,18 @@ export function RollLumi() {
         style={{ boxShadow: `0 0 0 3px ${ring}, 0 0 48px 6px ${ring === "transparent" ? "transparent" : ring + "55"}`, transition: "box-shadow 0.5s" }}
       >
         <OledCanvas frame={frame} label={result ? `${result.name}, rolled` : "A Lumi face"} />
+        {!result ? (
+          <div className="absolute inset-0 grid place-items-center">
+            <button
+              type="button"
+              onClick={() => roll(text)}
+              disabled={!core}
+              className="rounded-chip bg-white px-12 py-6 font-display text-h2 font-extrabold text-night ring-8 ring-white/25 transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-oled disabled:opacity-60"
+            >
+              {core ? "Roll a Lumi" : "Warming up..."}
+            </button>
+          </div>
+        ) : null}
         {done && result?.rarity === "legendary" && !reduce ? <Sparkles /> : null}
       </motion.div>
 

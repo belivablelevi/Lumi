@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { SectionHeading } from "@/components/ui/Section";
 import { Reveal } from "@/components/ui/Reveal";
 import { ButtonLink } from "@/components/ui/Button";
+import { MakingWorkshop } from "@/components/home/MakingWorkshop";
 
 export const metadata: Metadata = {
   title: "How a Lumi is made",
@@ -24,7 +25,9 @@ export default function HowItsMadePage() {
         lead={`${origin.line} ${origin.partsNote}`}
       />
 
-      <section className="container-page" aria-label="How a Lumi is made">
+      <MakingWorkshop heading={false} />
+
+      <section className="container-page pt-16" aria-label="The whole story">
         <ol className="grid gap-5 sm:grid-cols-2">
           {makingSteps.map((s, i) => (
             <li key={s.id} id={s.id} className="scroll-mt-28">
