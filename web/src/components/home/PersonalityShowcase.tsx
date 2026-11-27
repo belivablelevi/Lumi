@@ -25,7 +25,7 @@ export function PersonalityShowcase() {
             id="kind-title"
             eyebrow="Personality"
             title="Find your kind of Lumi."
-            lead="Every Lumi has the same 64 animations, but the eyes and temperament it gets by luck change how they feel. Pick a mood and an example unit."
+            lead="Every Lumi has the same 64 animations, but the eyes and temperament it gets by luck change how they feel. Pick a mood and a personality."
           />
           <fieldset className="mt-8">
             <legend className="text-sm font-bold text-ink">Mood</legend>
@@ -47,7 +47,7 @@ export function PersonalityShowcase() {
             </div>
           </fieldset>
           <fieldset className="mt-6">
-            <legend className="text-sm font-bold text-ink">Example unit</legend>
+            <legend className="text-sm font-bold text-ink">Personality</legend>
             <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {personaStories.map((s) => {
                 const q = persona(s.id);

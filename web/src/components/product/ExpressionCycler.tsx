@@ -34,7 +34,7 @@ export function ExpressionCycler({ personaIds }: { personaIds: string[] }) {
         </div>
       </div>
       <div>
-        <p className="text-sm font-bold">Example unit</p>
+        <p className="text-sm font-bold">Pick a personality</p>
         <div className="mt-3 grid grid-cols-2 gap-2">
           {personaIds.map((id) => {
             const q = persona(id);

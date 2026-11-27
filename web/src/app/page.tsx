@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { launches } from "@/content/launches";
-import { personaStories } from "@/content/personas";
 import { listedProducts } from "@/lib/catalogue";
 import { STATUS_LABEL } from "@/lib/product-state";
 import { renderImage } from "@/lib/renders";
@@ -12,9 +11,8 @@ import { PongSection } from "@/components/pong/PongSection";
 import { Everyday } from "@/components/home/Everyday";
 import { LaunchModule } from "@/components/home/LaunchModule";
 import { BrandStory } from "@/components/home/BrandStory";
-import { CharacterCard } from "@/components/product/CharacterCard";
+import { RollLumi } from "@/components/roll/RollLumi";
 import { SectionHeading } from "@/components/ui/Section";
-import { Reveal } from "@/components/ui/Reveal";
 import { ButtonLink } from "@/components/ui/Button";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
@@ -41,27 +39,23 @@ export default function Home() {
             id="meet-title"
             eyebrow="Meet the Lumis"
             title="No two are quite alike."
-            lead="Every Pocket Lumi gets its own eyes, sparkle and temperament at random, so which one you get is pure luck. Here are a few we made earlier."
+            lead="Every Pocket Lumi gets its own eyes, sparkle and temperament at random, so which one you get is pure luck. Type a word and roll one."
           />
           <ButtonLink href="/shop" variant="outline" className="shrink-0">Shop all</ButtonLink>
         </div>
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {personaStories.map((s, i) => (
-            <Reveal key={s.id} delay={i * 0.06}>
-              <CharacterCard personaId={s.id} line={s.line} shell={s.shell} image={renderImage(s.render)} product={pocket} />
-            </Reveal>
-          ))}
+        <div className="mt-10">
+          <RollLumi />
         </div>
         <p className="mt-5 text-sm text-muted">
-          These are example units. Yours is a surprise: one of a kind, and down to luck.
+          A demo roll, made by the same code that decides a real Lumi. Yours is rolled when it is made.
         </p>
       </section>
 
       <ChooseCompanion pocket={pocket} desk={desk} />
-      <PersonalityShowcase />
+      <Everyday keyring={renderImage("on-keyring.png")} side={renderImage("usb-side.png")} />
       <HowItsMade />
       <PongSection />
-      <Everyday keyring={renderImage("on-keyring.png")} side={renderImage("usb-side.png")} />
+      <PersonalityShowcase />
       <LaunchModule launch={launch} />
       <BrandStory />
     </>

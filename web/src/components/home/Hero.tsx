@@ -79,7 +79,7 @@ export function Hero({ units, statusLabel }: { units: [HeroUnit, HeroUnit, HeroU
             </motion.div>
           </motion.div>
 
-          <div className="relative mx-auto aspect-[1.05] w-full max-w-[600px] sm:aspect-[1.1]" aria-label="Three example Lumis">
+          <div className="relative mx-auto aspect-[1.05] w-full max-w-[600px] sm:aspect-[1.1]" aria-label="Three Lumis">
             <Floating delay={0.25} className="absolute top-[2%] left-[-4%] w-[44%] sm:left-[-2%] sm:w-[40%]">
               <DeviceFrame image={left.image} src={persona(left.persona).idle.file} label={`${persona(left.persona).name}, idling`} sizes="240px" />
             </Floating>
@@ -100,7 +100,7 @@ export function Hero({ units, statusLabel }: { units: [HeroUnit, HeroUnit, HeroU
           </div>
         </div>
         <p className="relative px-6 pb-6 text-xs text-muted sm:px-10 lg:px-16">
-          Renders of the prototype design. The screens play Lumi&apos;s real firmware animations; the faces are example units.
+          Renders of the prototype design. The screens play Lumi&apos;s real firmware animations.
         </p>
       </div>
     </section>

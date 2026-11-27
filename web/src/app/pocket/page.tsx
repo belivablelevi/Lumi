@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { listedProducts } from "@/lib/catalogue";
-import { personaStories } from "@/content/personas";
-import { renderImage } from "@/lib/renders";
 import { ShopGrid } from "@/components/product/ShopGrid";
-import { CharacterCard } from "@/components/product/CharacterCard";
+import { RollLumi } from "@/components/roll/RollLumi";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { SectionHeading } from "@/components/ui/Section";
 
@@ -12,7 +10,6 @@ export const metadata: Metadata = { title: "Pocket Lumis", description: "Keychai
 
 export default function PocketPage() {
   const products = listedProducts().filter((p) => p.category === "pocket");
-  const first = products[0];
   return (
     <>
       <PageHeader eyebrow="Pocket Lumis" title="A tiny face for your keys." lead="35 × 37 mm, a glowing screen, and no buttons at all. Pat it, tilt it, pick it up. It answers." />
@@ -22,16 +19,12 @@ export default function PocketPage() {
       <section className="container-page" aria-label="Pocket Lumis">
         <ShopGrid products={products} initialCategory="pocket" />
       </section>
-      {first ? (
-        <section className="container-page py-16" aria-labelledby="examples-title">
-          <SectionHeading id="examples-title" eyebrow="Example units" title="Every one is different." lead="Here are four Pocket Lumis and their personalities. Which one you get is luck, and yours will be its own." />
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {personaStories.map((s) => (
-              <CharacterCard key={s.id} personaId={s.id} line={s.line} shell={s.shell} image={renderImage(s.render)} product={first} />
-            ))}
-          </div>
-        </section>
-      ) : null}
+      <section className="container-page py-16" aria-labelledby="roll-title">
+        <SectionHeading id="roll-title" eyebrow="Roll a Lumi" title="Every one is different." lead="Which one you get is luck, and yours will be its own. Type a word and see which Lumi the dice would roll." />
+        <div className="mt-10">
+          <RollLumi />
+        </div>
+      </section>
     </>
   );
 }
