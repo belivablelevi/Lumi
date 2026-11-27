@@ -31,13 +31,15 @@ ${products}
 - Every Lumi gets a random look and temperament (cheerful, sleepy, shy, grumpy or hyper) when it's made: ${combinations.toLocaleString("en-CA")} possible combinations.
 - Rarity: about ${pct(tierShare.common)} common, ${pct(tierShare.uncommon)} uncommon, ${pct(tierShare.rare)} rare and ${pct(tierShare.legendary)} legendary.
 - Two Lumis can play Tilt Pong against each other.
-- Designed in Ottawa, Canada. Not on sale yet. When it is, it ships to Canada and the US, tracked.
+- Made in Ottawa, Canada (circuit boards and electronic parts come from partner factories). Not on sale yet. When it is, it ships to Canada and the US, tracked.
 
 ## Pages
 
 - [Home](${url("/")})
 - [Pocket Lumi](${url("/products/pocket-lumi")}): the full product page, with the odds of every trait
 - [Our World](${url("/our-world")}): the idea behind Lumi
+- [How it's made](${url("/how-its-made")}): designed, printed, wired and tested in Ottawa
+- [Roll a Lumi](${url("/roll")}): type a word to see the Lumi its chip would roll
 - [Launches](${url("/launches")}): what's coming and how to hear about it
 - [FAQ](${url("/faq")})
 - [Contact](${url("/contact")})${email ? `: ${email}` : ""}

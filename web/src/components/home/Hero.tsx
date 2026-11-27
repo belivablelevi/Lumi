@@ -48,7 +48,7 @@ export function Hero({ units, statusLabel }: { units: [HeroUnit, HeroUnit, HeroU
               className="inline-flex items-center gap-2 rounded-chip bg-white/70 px-3 py-1.5 text-[0.8125rem] font-bold text-ink-soft"
             >
               <span className="size-1.5 rounded-full bg-lavender-deep" aria-hidden />
-              Pocket Lumi · {statusLabel}
+              Pocket Lumi · {statusLabel} · Made in Ottawa
             </motion.p>
             <motion.h1
               id="hero-title"

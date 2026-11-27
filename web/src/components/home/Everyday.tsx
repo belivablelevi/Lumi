@@ -33,7 +33,7 @@ export function Everyday({ keyring, side }: { keyring: GalleryImage; side: Galle
             </div>
             <figcaption className="p-6 pt-0">
               <p className="font-bold">Charges over USB-C</p>
-              <p className="text-sm text-muted">A port on the side. New animations can arrive over Wi-Fi.</p>
+              <p className="text-sm text-muted">A port on the side, so there&apos;s no separate charger to lose.</p>
             </figcaption>
           </figure>
         </Reveal>

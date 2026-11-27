@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { inside, origin } from "@/content/making";
 import { brand } from "@/config/brand";
 import { listedProducts, productBySlug } from "@/lib/catalogue";
 import { confirmed, display } from "@/lib/placeholder";
@@ -88,6 +90,25 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
 
       {pocket ? (
         <>
+          <section className="container-page pb-4" aria-labelledby="inside-title">
+            <SectionHeading id="inside-title" eyebrow={origin.chip} title="What's inside." lead={origin.line} />
+            <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              {inside.map((x) => (
+                <li key={x.name} className="rounded-card bg-white p-5 ring-1 ring-line">
+                  <p className="font-bold">{x.name}</p>
+                  <p className="mt-1 text-sm text-muted">{x.what}</p>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-5 text-sm text-muted">
+              <Link href="/how-its-made" className="font-semibold underline">How a Lumi is made</Link>
+              {" · "}
+              <Link href="#odds-title" className="font-semibold underline">See every chance</Link>
+              {" · "}
+              <Link href="/roll" className="font-semibold underline">Roll a Lumi</Link>
+            </p>
+          </section>
+
           <section className="bg-white py-16 lg:py-20" aria-labelledby="own-title">
             <div className="container-page">
               <SectionHeading id="own-title" eyebrow="A personality all its own" title="Every Lumi is one of a kind."
