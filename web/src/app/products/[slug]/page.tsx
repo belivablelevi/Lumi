@@ -6,15 +6,12 @@ import { brand } from "@/config/brand";
 import { listedProducts, productBySlug } from "@/lib/catalogue";
 import { confirmed, display } from "@/lib/placeholder";
 import { persona } from "@/lib/lumi-frames";
-import { personaStories } from "@/content/personas";
 import { ProductTop } from "@/components/product/ProductTop";
 import { ExpressionCycler } from "@/components/product/ExpressionCycler";
-import { CharacterCard } from "@/components/product/CharacterCard";
+import { RollLumi } from "@/components/roll/RollLumi";
 import { Accordion } from "@/components/ui/Accordion";
 import { SectionHeading, Tbc } from "@/components/ui/Section";
-import { Reveal } from "@/components/ui/Reveal";
 import { OledScreen } from "@/components/lumi/OledScreen";
-import { renderImage } from "@/lib/renders";
 import { PongSection } from "@/components/pong/PongSection";
 import { OddsSection } from "@/components/product/OddsSection";
 import { JsonLd } from "@/components/JsonLd";
@@ -112,13 +109,9 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
           <section className="bg-white py-16 lg:py-20" aria-labelledby="own-title">
             <div className="container-page">
               <SectionHeading id="own-title" eyebrow="A personality all its own" title="Every Lumi is one of a kind."
-                lead="When a Lumi is made, its traits are picked at random from 108,000 combinations, and no two units are the same. Rarer traits come up less often, so a legendary Lumi is a lucky find. Here are four we made earlier." />
-              <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {personaStories.map((s, i) => (
-                  <Reveal key={s.id} delay={i * 0.05}>
-                    <CharacterCard personaId={s.id} line={s.line} shell={s.shell} image={renderImage(s.render)} product={product} />
-                  </Reveal>
-                ))}
+                lead="When a Lumi is made, its traits are picked at random from 108,000 combinations, and no two units are the same. Rarer traits come up less often, so a legendary Lumi is a lucky find. Type a word and roll one." />
+              <div className="mt-10">
+                <RollLumi />
               </div>
             </div>
           </section>
