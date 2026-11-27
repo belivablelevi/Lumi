@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { founderNote, origin } from "@/content/making";
 import { manifest } from "@/lib/lumi-frames";
 import { temperamentLine } from "@/content/personas";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -26,6 +28,21 @@ export default function OurWorldPage() {
             <p className="mt-2 text-ink-soft">{x.text}</p>
           </div>
         ))}
+      </section>
+      <section className="container-page mt-16" aria-labelledby="founder-title">
+        <div className="mx-auto max-w-2xl rounded-panel bg-white p-8 ring-1 ring-line sm:p-10">
+          <p className="eyebrow">{origin.chip}</p>
+          <h2 id="founder-title" className="mt-2 text-h2 font-bold">Who&apos;s behind Lumi</h2>
+          <div className="mt-4 space-y-4 text-lead text-ink-soft">
+            {founderNote.paragraphs.map((p) => <p key={p}>{p}</p>)}
+          </div>
+          <p className="mt-6 font-bold">{founderNote.name}</p>
+          <p className="mt-4 text-sm text-muted">
+            <Link href="/how-its-made" className="font-semibold underline">See how a Lumi is made</Link>
+            {" · "}
+            <Link href="/roll" className="font-semibold underline">Roll a Lumi</Link>
+          </p>
+        </div>
       </section>
       <div className="mt-16"><PersonalityShowcase /></div>
       <section className="container-page py-16" aria-labelledby="temper-title">

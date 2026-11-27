@@ -35,7 +35,7 @@ export function ProductCard({ product }: { product: Product }) {
       </Link>
       <div className="flex flex-1 flex-col p-6">
         <div className="flex items-center justify-between gap-2">
-          <p className="eyebrow">{product.category === "pocket" ? "Pocket Lumis" : "Desk Lumis"}</p>
+          <p className="eyebrow">{product.category === "pocket" ? "Pocket Lumis · Made in Ottawa" : "Desk Lumis"}</p>
           <StatusBadge status={product.status} />
         </div>
         <h3 className="mt-3 text-h3 font-bold"><Link href={href} className="hover:underline">{product.name}</Link></h3>

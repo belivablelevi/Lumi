@@ -3,7 +3,7 @@ import { brand } from "@/config/brand";
 import { listedProducts } from "@/lib/catalogue";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const pages = ["", "/shop", "/pocket", "/desk", "/our-world", "/launches", "/faq", "/contact", "/shipping-returns", "/privacy", "/terms"];
+  const pages = ["", "/shop", "/pocket", "/desk", "/our-world", "/how-its-made", "/roll", "/launches", "/faq", "/contact", "/shipping-returns", "/privacy", "/terms"];
   return [
     ...pages.map((p) => ({ url: `${brand.siteUrl}${p}` })),
     ...listedProducts().map((p) => ({ url: `${brand.siteUrl}/products/${p.slug}` })),

@@ -49,7 +49,7 @@ export default async function Page() {
             </li>
           ))}
         </ul>
-        {p.handlingCents ? <p className="mt-3 text-sm text-muted">Every order also adds a {cad(p.handlingCents)} packing charge.</p> : null}
+        {p.handlingCents ? <p className="mt-3 text-sm text-muted">Every order also adds a {cad(p.handlingCents)} packing and drop-off charge (SHIPPING_HANDLING_CENTS).</p> : null}
       </section>
 
       <section className={`mt-6 ${card}`} aria-labelledby="rules">

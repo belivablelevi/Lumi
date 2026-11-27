@@ -51,6 +51,8 @@ export const brand = {
         title: "Snaggo",
         links: [
           { label: "Our World", href: "/our-world" },
+          { label: "How it's made", href: "/how-its-made" },
+          { label: "Roll a Lumi", href: "/roll" },
           { label: "FAQ", href: "/faq" },
           { label: "Contact", href: "/contact" },
         ],

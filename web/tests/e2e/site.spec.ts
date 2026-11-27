@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-const PAGES = ["/", "/shop", "/pocket", "/desk", "/products/pocket-lumi", "/launches", "/our-world", "/faq", "/contact", "/shipping-returns", "/privacy", "/terms", "/cart", "/checkout"];
+const PAGES = ["/", "/shop", "/pocket", "/desk", "/products/pocket-lumi", "/launches", "/our-world", "/how-its-made", "/roll", "/faq", "/contact", "/shipping-returns", "/privacy", "/terms", "/cart", "/checkout"];
 
 test("every page loads with no errors, no horizontal scroll and no accessibility violations", async ({ page }) => {
   const errors: string[] = [];
@@ -210,4 +210,19 @@ test("each public page names itself as the canonical address, and no private pag
     if (path === "/cart" || path === "/checkout") await expect(canonical).toHaveCount(0);
     else expect(new URL((await canonical.getAttribute("href"))!).pathname, path).toBe(path);
   }
+});
+
+test("roll a Lumi plays the reveal, and the same word always gives the same Lumi", async ({ page }) => {
+  const rollOnce = async (word: string) => {
+    await page.goto("/roll");
+    await page.getByLabel("Type any name or word").fill(word);
+    const button = page.getByRole("button", { name: /roll a lumi|roll again/i });
+    await expect(button).toBeEnabled();
+    await button.click();
+    await expect(page.getByText("A demo roll, not your Lumi")).toBeVisible({ timeout: 10000 });
+    return page.locator("[aria-live=polite] p.font-display").innerText();
+  };
+  const first = await rollOnce("levi");
+  expect(first.length).toBeGreaterThan(1);
+  expect(await rollOnce("Levi")).toBe(first);
 });

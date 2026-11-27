@@ -124,7 +124,6 @@ export const products: Product[] = [
       { label: "Expressions", value: "29 expressions and 64 animations, with blinking and breathing on top" },
       { label: "Play", value: "Tilt Pong: two-player Pong between two Lumis, over the air" },
       { label: "Sleep", value: "Sleeps when left alone and wakes when picked up" },
-      { label: "Updates", value: "New animations over Wi-Fi" },
       { label: "Charging", value: "USB-C" },
       { label: "Battery", value: tbc("Cell capacity and real-world battery life") },
       { label: "Size", value: "Case design: 35 × 37 × 25.5 mm, plus the keyring loop" },
@@ -168,7 +167,7 @@ export const products: Product[] = [
       },
       {
         q: "Does it need an app or a phone?",
-        a: "No. Everything happens by touching and moving it. A phone is only used, optionally, to install new animations over Wi-Fi.",
+        a: "No. Everything happens by touching and moving it. There is no app and no account.",
       },
       { q: "When will it ship?", a: tbc("Dispatch window") },
     ],
